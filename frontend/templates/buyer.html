@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Buy Food - Canteen Delivery{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-12 text-center text-md-start">
+        <h2 class="fw-bold">Hungry? <span class="text-primary">Order Now</span></h2>
+        <p class="text-muted">Browse our delicious menu and get it delivered straight to your location.</p>
+    </div>
+</div>
+
+<!-- Search & Sort Controls -->
+<div class="glass-card p-3 mb-3">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-7">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">Search</span>
+                <input type="text" class="form-control border-start-0" id="search-input" placeholder="Search by food name or shop name...">
+            </div>
+        </div>
+        <div class="col-md-4 ms-auto">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted">Sort</span>
+                <select class="form-select border-start-0 fw-medium" id="sort-select">
+                    <option value="default">Default Sort</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="rating-desc">Highest Rated</option>
+                    <option value="name-asc">Name: A to Z</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Meal Type Filter Tabs -->
+<div class="d-flex gap-2 mb-4 flex-wrap" id="meal-filter-tabs">
+    <button class="btn meal-tab-btn active rounded-pill px-4 fw-semibold" data-meal="" onclick="setMealFilter(this, '')">
+        All Foods
+    </button>
+    <button class="btn meal-tab-btn rounded-pill px-4 fw-semibold" data-meal="breakfast" onclick="setMealFilter(this, 'breakfast')">
+        Breakfast
+    </button>
+    <button class="btn meal-tab-btn rounded-pill px-4 fw-semibold" data-meal="lunch" onclick="setMealFilter(this, 'lunch')">
+        Lunch
+    </button>
+</div>
+
+<!-- Food Menu Grid -->
+<div class="row g-4" id="food-menu">
+    <!-- Data populated by JS -->
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+<script>let _buyerSearchInit = false;</script>
+
+<!-- Order Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">Place Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center mb-4 bg-light p-3 rounded-3 shadow-sm border border-white">
+                    <img id="order_food_img" src="" class="rounded shadow-sm me-3 border border-2 border-white" style="width: 70px; height: 70px; object-fit: cover;">
+                    <div>
+                        <h6 id="order_food_name" class="mb-1 fw-bold fs-5"></h6>
+                        <span id="order_food_price" class="text-primary fw-bold badge bg-white border"></span>
+                    </div>
+                </div>
+                <form id="order-form">
+                    <input type="hidden" id="order_food_id">
+                    <input type="hidden" id="order_food_price_val">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Student Name</label>
+                        <input type="text" class="form-control" id="student_name" required placeholder="John Doe">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Student ID <span class="text-danger">*</span> (Required for Delivery)</label>
+                        <input type="text" class="form-control" id="student_id" required placeholder="e.g. 0112310001" pattern="\d{9,11}" minlength="9" maxlength="11" title="Student ID must be 9 to 11 digits">
+                    </div>
+                    <div class="row mb-3 g-3">
+                        <div class="col">
+                            <label class="form-label text-muted small fw-medium">Phone Number</label>
+                            <input type="text" class="form-control" id="phone" required placeholder="017...">
+                        </div>
+                        <div class="col">
+                            <label class="form-label text-muted small fw-medium">Quantity</label>
+                            <input type="number" min="1" value="1" class="form-control" id="order_quantity" required onchange="updateTotal()">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-medium">Delivery Location</label>
+                        <input type="text" class="form-control" id="delivery_location" required placeholder="Building / Room No">
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center bg-dark text-white p-3 rounded-4 mb-4 shadow-sm">
+                        <span class="fw-medium opacity-75">Total Amount:</span>
+                        <span id="order_total" class="fw-bold fs-3 text-primary">৳0.00</span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-lg py-3 fw-bold fs-5 hover-lift">Confirm Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Rate This Food</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center mb-4 bg-light p-3 rounded-3 border border-white shadow-sm">
+                    <img id="rating_food_img" src="" class="rounded shadow-sm me-3" style="width: 65px; height: 65px; object-fit: cover;">
+                    <div>
+                        <h6 id="rating_food_name" class="mb-0 fw-bold fs-5"></h6>
+                        <small class="text-muted" id="rating_food_shop"></small>
+                    </div>
+                </div>
+                <form id="rating-form">
+                    <input type="hidden" id="rating_food_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Your Student ID</label>
+                        <input type="text" class="form-control" id="rating_student_id" required placeholder="e.g. 0112310001" pattern="\d{9,11}" minlength="9" maxlength="11" title="Student ID must be 9 to 11 digits">
+                    </div>
+                    
+                    <div class="mb-4 text-center">
+                        <label class="form-label text-muted small fw-medium d-block mb-3">Your Rating</label>
+                        <div class="star-rating" id="star-rating-input">
+                            <span class="star" data-value="1">★</span>
+                            <span class="star" data-value="2">★</span>
+                            <span class="star" data-value="3">★</span>
+                            <span class="star" data-value="4">★</span>
+                            <span class="star" data-value="5">★</span>
+                        </div>
+                        <input type="hidden" id="rating_stars" value="0">
+                        <small id="rating-label" class="text-muted mt-2 d-block">Click a star to rate</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-medium">Comment (Optional)</label>
+                        <textarea class="form-control" id="rating_comment" rows="2" placeholder="Share your experience..."></textarea>
+                    </div>
+                    
+                    <button type="submit" id="submit-rating-btn" class="btn btn-warning w-100 rounded-pill py-3 fw-bold fs-5 hover-lift text-dark" disabled>Submit Rating</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/buyer.js?v=3"></script>
+{% endblock %}

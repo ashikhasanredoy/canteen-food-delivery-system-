@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Seller Dashboard - Canteen Delivery{% endblock %}
+
+{% block content %}
+
+<!-- ── Seller Login View ────────────────────────────── -->
+<div id="seller-login-view" class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="glass-card p-5 text-center shadow-lg position-relative overflow-hidden">
+            <!-- Auth Pills Toggle -->
+            <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill border" id="auth-tabs" style="font-size: 0.9rem;">
+                <li class="nav-item">
+                    <button type="button" class="nav-link active rounded-pill fw-bold py-2" id="tab-login">Login</button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="nav-link rounded-pill fw-bold py-2" id="tab-register">Register</button>
+                </li>
+            </ul>
+
+            <div class="mb-4">
+                <h3 class="fw-bold mt-3 mb-1" id="auth-title">Shop Login</h3>
+                <p class="text-muted small" id="auth-subtitle">Enter Shop Name and Shop ID to access dashboard</p>
+            </div>
+            
+            <form id="seller-login-form" class="text-start">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-medium">Shop Name</label>
+                    <input type="text" class="form-control form-control-lg" id="login_shop_name" required placeholder="e.g. burger shop">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-medium">Shop ID</label>
+                    <input type="text" class="form-control form-control-lg text-center" id="login_shop_id" required placeholder="e.g. 0223" autocomplete="off">
+                    <small class="text-muted d-block mt-1 text-center" id="auth-help-text">Enter your registered shop credentials.</small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow" id="auth-submit-btn">
+                    Enter Portal
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── Seller Dashboard View (Hidden by default) ────── -->
+<div id="seller-dashboard-view" class="d-none">
+
+    <!-- Header row -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h2 class="fw-bold">Seller <span class="text-primary" id="dashboard-shop-title">Dashboard</span></h2>
+            <p class="text-muted mb-0">Manage your food inventory and prices.</p>
+        </div>
+        <div class="col-md-6 text-md-end d-flex justify-content-md-end gap-2">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium" data-bs-toggle="modal" data-bs-target="#addFoodModal">
+                + Add New Food
+            </button>
+            <button class="btn btn-outline-danger rounded-pill px-4 shadow-sm fw-medium" onclick="logoutSeller()">
+                Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Two-column layout: Inventory + Notification Box -->
+    <div class="row g-4">
+
+        <!-- ── Left: Food Inventory Table ─────────────────── -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">My Food Inventory</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">Image</th>
+                                <th class="border-0">Food Name</th>
+                                <th class="border-0">Shop Name</th>
+                                <th class="border-0">Price</th>
+                                <th class="border-0">Quantity</th>
+                                <th class="border-0">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list">
+                            <tr><td colspan="6" class="text-center py-4">Loading inventory...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Right: Notification Box ─────────────────────── -->
+        <div class="col-lg-4">
+            <div class="glass-card p-0 overflow-hidden h-100" style="border: 1.5px solid #d1fae5;">
+
+                <!-- Notification Header -->
+                <div class="d-flex align-items-center justify-content-between px-4 py-3"
+                     style="background: linear-gradient(135deg, #16a34a, #22c55e); border-radius: 0;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold text-white" style="font-size:0.95rem; letter-spacing:0.2px;">Admin Notifications</span>
+                    </div>
+                    <span class="badge bg-white text-success rounded-pill fw-bold" id="notif-count-badge" style="font-size:0.72rem; min-width:22px;">0</span>
+                </div>
+
+                <!-- Notification List -->
+                <div id="notif-list"
+                     style="min-height: 220px; max-height: 420px; overflow-y: auto; background: #ffffff;">
+                    <!-- Populated by JS -->
+                    <div id="notif-empty-state" class="text-center py-5 px-3" style="color:#9ca3af;">
+                        <div style="font-size: 0.88rem; font-weight: 500;">No notifications yet</div>
+                        <div style="font-size: 0.78rem; margin-top: 4px;">Admin messages will appear here</div>
+                    </div>
+                </div>
+
+                <!-- Footer hint -->
+                <div class="px-4 py-2 text-center"
+                     style="background: #f0fdf4; border-top: 1px solid #d1fae5; font-size: 0.72rem; color: #6b7280;">
+                    Checks for new messages every 30s
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.row -->
+
+    <!-- ── Delivery Requests Section ────────────────────────────── -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0">Pending Delivery Requests</h6>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadDeliveryRequests()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">Order ID</th>
+                                <th class="border-0">Food Item</th>
+                                <th class="border-0">Delivery Boy ID</th>
+                                <th class="border-0">Quantity</th>
+                                <th class="border-0">Location</th>
+                                <th class="border-0">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delivery-requests-list">
+                            <tr><td colspan="6" class="text-center py-4 text-muted">No pending delivery requests.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Add Food Modal -->
+<div class="modal fade" id="addFoodModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">Add New Food</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="add-food-form">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Shop Name (Logged In)</label>
+                        <input type="text" class="form-control bg-light" id="shop_name" readonly required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Food Name</label>
+                        <input type="text" class="form-control" id="food_name" required>
+                    </div>
+                    <div class="row mb-3 g-3">
+                        <div class="col">
+                            <label class="form-label text-muted small fw-medium">Price (৳)</label>
+                            <input type="number" step="0.01" min="0.01" class="form-control" id="price" required>
+                        </div>
+                        <div class="col">
+                            <label class="form-label text-muted small fw-medium">Quantity</label>
+                            <input type="number" min="0" class="form-control" id="quantity" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Upload Food Photo</label>
+                        <input type="file" class="form-control" id="image_file" accept="image/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-medium">Meal Type</label>
+                        <select class="form-select" id="meal_type" required>
+                            <option value="both">All Day (Breakfast &amp; Lunch)</option>
+                            <option value="breakfast">Breakfast Only</option>
+                            <option value="lunch">Lunch Only</option>
+                        </select>
+                        <small class="text-muted">When will this food be available?</small>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-medium">Description</label>
+                        <textarea class="form-control" id="description" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-sm py-2 fw-medium hover-lift">Save Food Item</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/seller.js?v=7"></script>
+{% endblock %}

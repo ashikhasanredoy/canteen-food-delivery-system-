@@ -1,0 +1,417 @@
+{% extends "base.html" %}
+
+{% block title %}Canteen Delivery — Fast University Food Delivery{% endblock %}
+
+{% block content %}
+<!-- ── Hero Section ─────────────────────────────────────────── -->
+<div class="row align-items-center my-4 py-3">
+    <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-danger bg-opacity-10 text-danger fw-semibold mb-3" style="font-size: 0.85rem;">
+            <i class="bi bi-fire text-danger fs-6"></i> #1 University Food Delivery Portal
+        </div>
+        <h1 class="display-4 fw-extrabold mb-3 hero-title" style="letter-spacing: -0.5px;">
+            Canteen Delights,<br>
+            <span class="text-gradient-fire">Hot, Fresh &amp; Instant 🚀</span>
+        </h1>
+        <p class="hero-subtitle mb-4">
+            Order your favorite meals directly from campus canteen counters to your faculty, dorm, library, or study spot. Fast, affordable, and student-focused.
+        </p>
+
+        <!-- Live Quick Stats Counter Banner -->
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-4">
+            <div class="stat-box-home d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="bi bi-cup-hot-fill fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark" id="home-stat-foods">0</h5>
+                    <span class="small text-muted fw-medium">Available Foods</span>
+                </div>
+            </div>
+            <div class="stat-box-home d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="bi bi-shop fs-5 text-warning"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark" id="home-stat-shops">0</h5>
+                    <span class="small text-muted fw-medium">Active Outlets</span>
+                </div>
+            </div>
+            <div class="stat-box-home d-flex align-items-center gap-3">
+                <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="bi bi-bag-check-fill fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark" id="home-stat-orders">0</h5>
+                    <span class="small text-muted fw-medium">Orders Placed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Image + Floating Badges -->
+    <div class="col-lg-6">
+        <div class="hero-image-container position-relative p-3 text-center">
+            <div class="blob-shape position-absolute top-50 start-50 translate-middle"></div>
+            
+            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                 alt="Delicious Campus Food" class="img-fluid rounded-4 shadow-lg hero-img position-relative z-1 border border-3 border-white">
+
+            <!-- Floating Overlay Card 1 -->
+            <div class="position-absolute top-0 start-0 z-2 bg-white rounded-4 shadow-lg p-3 d-none d-sm-flex align-items-center gap-3 border border-danger border-opacity-10 animate-bounce" style="max-width: 220px; transform: translate(-10px, 20px);">
+                <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <div class="text-start">
+                    <span class="d-block fw-bold text-dark" style="font-size: 0.85rem;">⚡ Express Campus</span>
+                    <span class="small text-muted" style="font-size: 0.75rem;">Delivered in ~15 Mins</span>
+                </div>
+            </div>
+
+            <!-- Floating Overlay Card 2 -->
+            <div class="position-absolute bottom-0 end-0 z-2 bg-white rounded-4 shadow-lg p-3 d-none d-sm-flex align-items-center gap-3 border border-warning border-opacity-20" style="max-width: 210px; transform: translate(10px, -20px);">
+                <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-star-fill text-dark"></i>
+                </div>
+                <div class="text-start">
+                    <span class="d-block fw-bold text-dark" style="font-size: 0.85rem;" id="home-stat-rating-badge">4.8 ★ Ratings</span>
+                    <span class="small text-muted" style="font-size: 0.75rem;">By Verified Students</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Role Selector Section ─────────────────────────────────── -->
+<div class="row g-4 my-5">
+    <div class="col-12 text-center mb-2">
+        <h2 class="fw-bold mb-2 text-dark">Select Your Role &amp; Get Started</h2>
+        <p class="text-muted">Choose your path to start buying, managing, or delivering food on campus.</p>
+    </div>
+
+    <!-- Card 1: Buyer -->
+    <div class="col-md-4">
+        <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4">
+            <div>
+                <div class="role-icon-wrap bg-danger bg-opacity-10 text-danger mx-auto">
+                    <i class="bi bi-cart-check-fill"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Buy Food</h4>
+                <p class="text-muted small mb-4">Browse live canteen menus, select items, and place instant orders to your location.</p>
+            </div>
+            <a href="/buyer" class="btn btn-primary btn-lg rounded-pill w-100 py-3 hover-lift d-flex align-items-center justify-content-center gap-2">
+                <span>Browse &amp; Order</span> <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Card 2: Seller -->
+    <div class="col-md-4">
+        <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4" style="border-color: #ffedd5;">
+            <div>
+                <div class="role-icon-wrap bg-warning bg-opacity-10 text-warning mx-auto">
+                    <i class="bi bi-shop"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Sell Food</h4>
+                <p class="text-muted small mb-4">Register your canteen shop, add food items, manage stock, and receive student orders.</p>
+            </div>
+            <a href="/seller" class="btn btn-outline-orange btn-lg rounded-pill w-100 py-3 hover-lift d-flex align-items-center justify-content-center gap-2">
+                <span>Canteen Portal</span> <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Card 3: Delivery -->
+    <div class="col-md-4">
+        <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4" style="border-color: #fee2e2;">
+            <div>
+                <div class="role-icon-wrap bg-danger bg-opacity-10 text-danger mx-auto">
+                    <i class="bi bi-bicycle"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2">Delivery Boy</h4>
+                <p class="text-muted small mb-4">Accept pending delivery tasks, earn per delivery, and verify student orders securely.</p>
+            </div>
+            <a href="/delivery" class="btn btn-outline-primary btn-lg rounded-pill w-100 py-3 hover-lift d-flex align-items-center justify-content-center gap-2">
+                <span>Delivery Portal</span> <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ── Real Data Section: Live Canteen Menu ───────────────────── -->
+<div class="my-5 py-3">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+        <div>
+            <div class="d-inline-flex align-items-center gap-1 text-danger fw-semibold small mb-1">
+                <i class="bi bi-fire"></i> LIVE CANTEEN DISHES
+            </div>
+            <h2 class="fw-bold text-dark mb-0">Popular Campus Specialties</h2>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Meal Tabs -->
+            <button class="btn btn-sm meal-tab-btn active rounded-pill px-3" data-meal="all" onclick="filterHomeMeal('all', this)">All Meals</button>
+            <button class="btn btn-sm meal-tab-btn rounded-pill px-3" data-meal="breakfast" onclick="filterHomeMeal('breakfast', this)">Breakfast</button>
+            <button class="btn btn-sm meal-tab-btn rounded-pill px-3" data-meal="lunch" onclick="filterHomeMeal('lunch', this)">Lunch</button>
+        </div>
+    </div>
+
+    <!-- Live Foods Grid (Populated dynamically) -->
+    <div class="row g-4" id="home-foods-grid">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-danger me-2" role="status"></div>
+            <span class="text-muted fw-medium">Fetching fresh canteen dishes...</span>
+        </div>
+    </div>
+</div>
+
+<!-- ── Real Data Section: Active Shops ────────────────────────── -->
+<div class="my-5 py-4 bg-gradient-fire text-white rounded-4 p-4 p-md-5 shadow-lg position-relative overflow-hidden">
+    <div class="position-absolute end-0 bottom-0 opacity-10 pe-4 pb-2 d-none d-md-block" style="font-size: 10rem; pointer-events: none;">
+        <i class="bi bi-shop"></i>
+    </div>
+    <div class="row align-items-center position-relative z-1">
+        <div class="col-lg-7 mb-4 mb-lg-0">
+            <span class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-3">ACTIVE OUTLETS</span>
+            <h2 class="display-6 fw-bold mb-3 text-white">Registered University Canteen Outlets</h2>
+            <p class="lead opacity-90 mb-4" style="max-width: 540px;">
+                Partnered campus kitchens preparing hygienic, affordable, and fresh food every single day.
+            </p>
+        </div>
+        <div class="col-lg-5 text-lg-end">
+            <a href="/buyer" class="btn btn-light btn-lg rounded-pill px-4 fw-bold text-danger hover-lift shadow">
+                Order From Shops <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Shops List -->
+    <div class="row g-3 mt-4" id="home-shops-grid">
+        <div class="col-12 text-center py-3">
+            <span class="spinner-border spinner-border-sm me-2 text-white" role="status"></span> Loading canteen shops...
+        </div>
+    </div>
+</div>
+
+<!-- ── Why Campus Delivery Features Grid ─────────────────────── -->
+<div class="my-5 py-4">
+    <div class="text-center mb-5">
+        <span class="text-danger fw-semibold small text-uppercase tracking-wider">WHY CHOOSE US</span>
+        <h2 class="fw-bold text-dark mt-1">Designed for University Campus Life</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="glass-card p-4 text-center h-100">
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-lightning-fill fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">15-Min Campus Speed</h5>
+                <p class="text-muted small mb-0">Direct delivery from canteen counters to your specific building or dorm block.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 text-center h-100">
+                <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-lock-fill fs-3 text-warning"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Locked Delivery Safety</h5>
+                <p class="text-muted small mb-0">Delivery requests are locked securely to verified delivery boys with student ID verification.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 text-center h-100">
+                <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-wallet2 fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Student-Friendly Prices</h5>
+                <p class="text-muted small mb-0">No inflated canteen prices. Same authentic prices as buying in-person at the counter.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 text-center h-100">
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-shield-check fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-2">Quality &amp; Hygiene</h5>
+                <p class="text-muted small mb-0">Monitored canteen kitchens ensuring hot, fresh, and clean food every time.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let _homeAllFoods = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        loadHomeStatsAndData();
+    });
+
+    async function loadHomeStatsAndData() {
+        try {
+            // Fetch real foods, shops, orders in parallel
+            const [foodsRes, shopsRes, ordersRes] = await Promise.all([
+                fetch('/foods'),
+                fetch('/shops/public'),
+                fetch('/orders')
+            ]);
+
+            const foods  = foodsRes.ok  ? await foodsRes.json()  : [];
+            const shops  = shopsRes.ok  ? await shopsRes.json()  : [];
+            const orders = ordersRes.ok ? await ordersRes.json() : [];
+
+            _homeAllFoods = foods;
+
+            // 1. Render Stats Counter
+            document.getElementById('home-stat-foods').textContent  = foods.length;
+            document.getElementById('home-stat-shops').textContent  = shops.length;
+            document.getElementById('home-stat-orders').textContent = orders.length;
+
+            // Compute rating average
+            let totalStars = 0, ratedCount = 0;
+            foods.forEach(f => {
+                if (f.avg_rating && f.avg_rating > 0) {
+                    totalStars += f.avg_rating;
+                    ratedCount++;
+                }
+            });
+            const avgRating = ratedCount > 0 ? (totalStars / ratedCount).toFixed(1) : '4.8';
+            document.getElementById('home-stat-rating-badge').textContent = `${avgRating} ★ Ratings`;
+
+            // 2. Render Live Canteen Foods Grid
+            renderHomeFoods(foods);
+
+            // 3. Render Active Shops Grid
+            renderHomeShops(shops);
+
+        } catch (err) {
+            console.error('Error loading home page real data:', err);
+            document.getElementById('home-foods-grid').innerHTML = `
+                <div class="col-12 text-center py-4 text-muted">
+                    Unable to load live menu. <a href="/buyer" class="text-danger fw-bold">Go to Buyer Page</a>
+                </div>`;
+        }
+    }
+
+    function renderHomeFoods(foods) {
+        const grid = document.getElementById('home-foods-grid');
+        if (!grid) return;
+
+        if (foods.length === 0) {
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <div class="p-4 rounded-4 bg-light d-inline-block border">
+                        <i class="bi bi-cup-hot text-muted fs-1 d-block mb-2"></i>
+                        <h5 class="fw-bold text-dark">No canteen dishes added yet</h5>
+                        <p class="text-muted small mb-3">Shop owners will add items soon!</p>
+                        <a href="/seller" class="btn btn-sm btn-primary rounded-pill px-4">Register Shop &amp; Add Food</a>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        foods.forEach(food => {
+            const img = food.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
+            const priceStr = '৳' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(food.price);
+            const mealBadge = food.meal_type === 'breakfast'
+                ? '<span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-brightness-high me-1"></i>Breakfast</span>'
+                : food.meal_type === 'lunch'
+                ? '<span class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-sun me-1"></i>Lunch</span>'
+                : '<span class="badge bg-primary text-white rounded-pill px-2 py-1"><i class="bi bi-clock me-1"></i>Both</span>';
+
+            const ratingDisplay = food.avg_rating
+                ? `<span class="text-warning fw-bold small"><i class="bi bi-star-fill"></i> ${food.avg_rating}</span> <span class="text-muted small">(${food.rating_count || 0})</span>`
+                : `<span class="text-muted small"><i class="bi bi-star me-1"></i>New</span>`;
+
+            html += `
+                <div class="col-md-6 col-lg-3">
+                    <div class="glass-card h-100 d-flex flex-column justify-content-between overflow-hidden border-0 shadow-sm">
+                        <div>
+                            <div class="position-relative">
+                                <img src="${img}" class="card-img-top food-img-top" alt="${food.food_name}"
+                                     onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'">
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    ${mealBadge}
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="badge bg-light text-secondary border px-2 py-1" style="font-size:0.75rem;">
+                                        <i class="bi bi-shop me-1"></i>${food.shop_name}
+                                    </span>
+                                    ${ratingDisplay}
+                                </div>
+                                <h5 class="fw-bold text-dark mb-1 mt-2 text-truncate" title="${food.food_name}">${food.food_name}</h5>
+                                <p class="text-muted small mb-2 text-truncate-2" style="font-size:0.82rem; min-height: 2.4em;">
+                                    ${food.description || 'Delicious fresh meal prepared at the university canteen.'}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-3 pt-0 d-flex align-items-center justify-content-between border-top pt-2">
+                            <div>
+                                <span class="text-muted small d-block" style="font-size:0.7rem;">Price</span>
+                                <span class="fw-bold fs-5 text-danger">${priceStr}</span>
+                            </div>
+                            <a href="/buyer" class="btn btn-sm btn-primary rounded-pill px-3 hover-lift fw-medium">
+                                <i class="bi bi-cart-plus me-1"></i>Order
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        grid.innerHTML = html;
+    }
+
+    function filterHomeMeal(type, btn) {
+        document.querySelectorAll('.meal-tab-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        if (type === 'all') {
+            renderHomeFoods(_homeAllFoods);
+        } else {
+            const filtered = _homeAllFoods.filter(f => f.meal_type === type || f.meal_type === 'both');
+            renderHomeFoods(filtered);
+        }
+    }
+
+    function renderHomeShops(shops) {
+        const grid = document.getElementById('home-shops-grid');
+        if (!grid) return;
+
+        if (shops.length === 0) {
+            grid.innerHTML = `
+                <div class="col-12 text-center text-white-50 py-3">
+                    No active shops registered yet.
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        shops.forEach(shop => {
+            html += `
+                <div class="col-md-4 col-sm-6">
+                    <div class="bg-white bg-opacity-10 backdrop-blur rounded-3 p-3 text-white border border-white border-opacity-20 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-white text-danger fw-bold d-flex align-items-center justify-content-center" style="width:42px; height:42px; font-size:1.1rem;">
+                                ${shop.shop_name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-white">${shop.shop_name}</h6>
+                                <span class="small opacity-75" style="font-size:0.75rem;">ID: ${shop.shop_id}</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2 py-1" style="font-size:0.75rem;">
+                            ${shop.item_count || 0} Items
+                        </span>
+                    </div>
+                </div>`;
+        });
+
+        grid.innerHTML = html;
+    }
+</script>
+{% endblock %}

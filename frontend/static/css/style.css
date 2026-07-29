@@ -1,0 +1,329 @@
+:root {
+    --primary-color: #ef4444;       /* Vivid Crimson Red */
+    --primary-hover: #dc2626;       /* Deep Red */
+    --secondary-color: #f97316;     /* Vibrant Flame Orange */
+    --secondary-hover: #ea580c;     /* Warm Burnt Orange */
+    --accent-amber: #f59e0b;        /* Warm Gold */
+
+    --primary-gradient: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+    --primary-gradient-hover: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+    --dark-bg: #0f172a;
+    --dark-card: #1e293b;
+    --light-bg: #fffbf7;
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(239, 68, 68, 0.15);
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--light-bg);
+    color: #1e293b;
+    overflow-x: hidden;
+}
+
+/* ── Red & Orange Branding Highlights ── */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-gradient-fire {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-fire {
+    background: var(--primary-gradient) !important;
+}
+
+/* Glassmorphism Components */
+.glass-navbar {
+    background: rgba(15, 23, 42, 0.92) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.glass-footer {
+    background: #0b1329;
+    color: white !important;
+}
+
+.glass-footer .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px 0 rgba(239, 68, 68, 0.06);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px 0 rgba(239, 68, 68, 0.15);
+}
+
+/* Utilities */
+.hover-lift {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary-gradient);
+    border: none;
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transition: all 0.25s ease;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background: var(--primary-gradient-hover);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color) !important;
+    border: 2px solid var(--primary-color) !important;
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-outline-orange {
+    color: var(--secondary-color) !important;
+    border: 2px solid var(--secondary-color) !important;
+    background: transparent;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+.btn-outline-orange:hover {
+    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    color: white !important;
+    border-color: transparent !important;
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+}
+
+/* Hero Section */
+.hero-title {
+    font-size: 3.5rem;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #475569;
+}
+
+.blob-shape {
+    width: 380px;
+    height: 380px;
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(249, 115, 22, 0.35));
+    filter: blur(50px);
+    animation: blob-bounce 6s infinite alternate ease-in-out;
+}
+
+@keyframes blob-bounce {
+    0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) scale(1.15) rotate(15deg); }
+}
+
+.hero-img {
+    border-radius: 24px;
+    animation: float 6s ease-in-out infinite;
+    box-shadow: 0 20px 50px rgba(239, 68, 68, 0.2) !important;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-16px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Role Selection Cards on Home Page */
+.role-card {
+    background: #ffffff;
+    border: 2px solid #fee2e2;
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.role-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px rgba(239, 68, 68, 0.15);
+}
+
+.role-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+}
+
+/* Stat Counter Card */
+.stat-box-home {
+    background: #ffffff;
+    border: 1px solid #ffedd5;
+    border-radius: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 8px 24px rgba(249, 115, 22, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.stat-box-home:hover {
+    transform: translateY(-4px);
+}
+
+/* Input styling */
+.form-control, .form-select {
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    border: 1.5px solid #fed7aa;
+    transition: all 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(239, 68, 68, 0.2);
+    border-color: var(--primary-color);
+}
+
+/* Food Card Specifics */
+.food-img-top {
+    height: 200px;
+    object-fit: cover;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 50rem;
+    font-weight: 600;
+}
+
+/* Star Rating Styles */
+.star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.star-rating .star {
+    font-size: 2.8rem;
+    color: #ddd;
+    transition: color 0.15s ease, transform 0.15s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.star-rating .star:hover,
+.star-rating .star.active {
+    color: #f59e0b;
+    transform: scale(1.15);
+}
+
+.static-star {
+    font-size: 1.05rem;
+    color: #e2e8f0;
+}
+
+.static-star.active {
+    color: #f59e0b;
+}
+
+/* Admin Nav Button */
+.admin-nav-btn {
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    color: #fca5a5 !important;
+    transition: all 0.2s ease;
+}
+.admin-nav-btn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: #ef4444 !important;
+    color: #fff !important;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Admin Hero Button (Home Page) */
+.admin-hero-btn {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(249, 115, 22, 0.1));
+    border: 2px solid rgba(239, 68, 68, 0.5);
+    color: #ef4444;
+    transition: all 0.25s ease;
+}
+.admin-hero-btn:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: #fff !important;
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35);
+    transform: translateY(-3px);
+}
+
+/* Footer Styles */
+.footer-link {
+    color: rgba(255, 255, 255, 0.65) !important;
+    display: inline-block;
+    transition: all 0.25s ease;
+}
+
+.footer-link:hover {
+    color: var(--secondary-color) !important;
+    transform: translateX(4px);
+    text-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
+}
+
+/* Meal Type Filter Tabs (Buyer & Home page) */
+.meal-tab-btn {
+    border: 1.5px solid #fed7aa;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(249, 115, 22, 0.05);
+}
+.meal-tab-btn:hover {
+    background: #fff7ed;
+    border-color: var(--secondary-color);
+    color: var(--secondary-color);
+    transform: translateY(-1px);
+}
+.meal-tab-btn.active {
+    background: var(--primary-gradient) !important;
+    border-color: transparent !important;
+    color: #fff !important;
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+    transform: translateY(-1px);
+}
