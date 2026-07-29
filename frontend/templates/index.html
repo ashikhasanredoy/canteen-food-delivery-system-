@@ -392,20 +392,24 @@
 
         let html = '';
         shops.forEach(shop => {
+            const count = shop.item_count || 0;
+            const countLabel = count === 1 ? '1 Item' : `${count} Items`;
             html += `
                 <div class="col-md-4 col-sm-6">
-                    <div class="bg-white bg-opacity-10 backdrop-blur rounded-3 p-3 text-white border border-white border-opacity-20 d-flex align-items-center justify-content-between">
+                    <div class="bg-white bg-opacity-10 backdrop-blur rounded-4 p-3 text-white border border-white border-opacity-20 d-flex align-items-center justify-content-between hover-lift shadow-sm">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle bg-white text-danger fw-bold d-flex align-items-center justify-content-center" style="width:42px; height:42px; font-size:1.1rem;">
+                            <div class="rounded-circle bg-white text-danger fw-bold d-flex align-items-center justify-content-center shadow-sm" style="width:44px; height:44px; font-size:1.15rem;">
                                 ${shop.shop_name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h6 class="fw-bold mb-0 text-white">${shop.shop_name}</h6>
-                                <span class="small opacity-75" style="font-size:0.75rem;">ID: ${shop.shop_id}</span>
+                                <h6 class="fw-bold mb-1 text-white text-capitalize" style="font-size:0.98rem;">${shop.shop_name}</h6>
+                                <span class="text-white-50 small" style="font-size:0.75rem;">
+                                    <i class="bi bi-patch-check-fill text-warning me-1"></i>Verified Outlet
+                                </span>
                             </div>
                         </div>
-                        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2 py-1" style="font-size:0.75rem;">
-                            ${shop.item_count || 0} Items
+                        <span class="badge bg-danger text-white rounded-pill px-3 py-2 fw-bold shadow-sm" style="font-size:0.8rem;">
+                            ${countLabel}
                         </span>
                     </div>
                 </div>`;
