@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base, run_migrations, seed_default_settings
-from backend.routers import pages, foods, orders, delivery, ratings, shops
+from backend.routers import pages, foods, orders, delivery, ratings, shops, complaints
 import os
 
 from fastapi.exceptions import RequestValidationError
@@ -55,6 +55,7 @@ app.include_router(orders.router)
 app.include_router(delivery.router)
 app.include_router(ratings.router)
 app.include_router(shops.router)
+app.include_router(complaints.router)
 
 # Mount admin app under the root so /admin routes are served on port 8000 as well
 from backend.admin_app import admin_app

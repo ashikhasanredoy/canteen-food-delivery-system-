@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 # Food Schemas
 class FoodBase(BaseModel):
@@ -60,6 +60,22 @@ class OrderResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class CartItemCreate(BaseModel):
+    food_id: int
+    quantity: int = Field(..., gt=0)
+
+class CartCheckoutCreate(BaseModel):
+    student_name: str = Field(..., min_length=1)
+    student_id: str = Field(..., min_length=9, max_length=11, pattern=r"^\d{9,11}$")
+    phone: str = Field(..., min_length=1)
+    delivery_location: str = Field(..., min_length=1)
+    items: List[CartItemCreate] = Field(..., min_length=1)
+
+class CartCheckoutResponse(BaseModel):
+    orders: List[OrderResponse]
+    total_amount: float
+    order_count: int
+
 # Delivery Schemas
 class DeliveryVerify(BaseModel):
     order_id: int
@@ -108,4 +124,29 @@ class DeliveryBoyUpdate(BaseModel):
     delivery_boy_id: str = Field(..., min_length=1)
 
 
+# Complaint Schemas
+class ComplaintCreate(BaseModel):
+    role: str = Field(..., pattern=r"^(buyer|seller|delivery)$")
+    name: str = Field(..., min_length=1)
+    contact: Optional[str] = None
+    shop_name: Optional[str] = None
+    message: str = Field(..., min_length=5)
+    image_url: Optional[str] = None
+
+class ComplaintResponse(BaseModel):
+    id: int
+    role: str
+    name: str
+    contact: Optional[str] = None
+    shop_name: Optional[str] = None
+    message: str
+    image_url: Optional[str] = None
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ComplaintStatusUpdate(BaseModel):
+    status: str = Field(..., pattern=r"^(Open|Reviewed|Resolved)$")
 

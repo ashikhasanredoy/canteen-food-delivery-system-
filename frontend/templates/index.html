@@ -239,15 +239,108 @@
     </div>
 </div>
 
+<!-- ── Complaint Box ─────────────────────────────────────────── -->
+<div class="my-5 py-4" id="complaint-section">
+    <div class="glass-card p-4 p-md-5 border-0 shadow-sm">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-4">
+                <span class="text-danger fw-semibold small text-uppercase">Support</span>
+                <h2 class="fw-bold text-dark mt-1 mb-3">Submit a Complaint</h2>
+                <p class="text-muted mb-4">
+                    Buyers, sellers, and delivery boys can report any problem directly to the admin team. Attach a photo if helpful.
+                </p>
+                <div class="d-flex flex-column gap-2 small text-muted">
+                    <span><i class="bi bi-bag-check text-danger me-2"></i>Buyer issues — orders, delivery, food quality</span>
+                    <span><i class="bi bi-shop text-warning me-2"></i>Seller issues — shop, inventory, payments</span>
+                    <span><i class="bi bi-bicycle text-primary me-2"></i>Delivery issues — routes, verification, earnings</span>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <form id="complaint-form">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Your Role</label>
+                            <select class="form-select" id="complaint_role" required>
+                                <option value="">Select role...</option>
+                                <option value="buyer">Buyer (Student)</option>
+                                <option value="seller">Seller (Shop Owner)</option>
+                                <option value="delivery">Delivery Boy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Your Name</label>
+                            <input type="text" class="form-control" id="complaint_name" required placeholder="Full name">
+                        </div>
+                        <div class="col-md-6 d-none" id="complaint_shop_wrap">
+                            <label class="form-label text-muted small fw-medium">Shop Name <span class="text-muted">(if complaint is about a shop)</span></label>
+                            <input type="text" class="form-control" id="complaint_shop_name" list="complaint_shop_list" placeholder="e.g. Khan Kitchen">
+                            <datalist id="complaint_shop_list"></datalist>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Contact (Optional)</label>
+                            <input type="text" class="form-control" id="complaint_contact" placeholder="Phone, Student ID, Shop ID, etc.">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Attach Photo (Optional)</label>
+                            <input type="file" class="form-control" id="complaint_photo" accept="image/*">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small fw-medium">Describe the Problem</label>
+                            <textarea class="form-control" id="complaint_message" rows="4" required
+                                      placeholder="Explain what happened and how we can help..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold hover-lift" id="complaint-submit-btn">
+                                <i class="bi bi-send me-1"></i> Send Complaint to Admin
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     let _homeAllFoods = [];
+    let _homeShops = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
         loadHomeStatsAndData();
+        initComplaintForm();
     });
+
+    function initComplaintForm() {
+        const roleSelect = document.getElementById('complaint_role');
+        if (roleSelect) {
+            roleSelect.addEventListener('change', toggleComplaintShopField);
+        }
+    }
+
+    function toggleComplaintShopField() {
+        const role = document.getElementById('complaint_role').value;
+        const shopWrap = document.getElementById('complaint_shop_wrap');
+        const shopInput = document.getElementById('complaint_shop_name');
+        if (!shopWrap) return;
+
+        if (role === 'buyer' || role === 'delivery') {
+            shopWrap.classList.remove('d-none');
+        } else {
+            shopWrap.classList.add('d-none');
+            if (shopInput) shopInput.value = '';
+        }
+    }
+
+    function populateComplaintShopList(shops) {
+        const datalist = document.getElementById('complaint_shop_list');
+        if (!datalist) return;
+        datalist.innerHTML = shops.map(shop =>
+            `<option value="${shop.shop_name.replace(/"/g, '&quot;')}"></option>`
+        ).join('');
+    }
 
     async function loadHomeStatsAndData() {
         try {
@@ -263,6 +356,8 @@
             const orders = ordersRes.ok ? await ordersRes.json() : [];
 
             _homeAllFoods = foods;
+            _homeShops = shops;
+            populateComplaintShopList(shops);
 
             // 1. Render Stats Counter
             document.getElementById('home-stat-foods').textContent  = foods.length;
@@ -417,5 +512,73 @@
 
         grid.innerHTML = html;
     }
+
+    document.getElementById('complaint-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('complaint-submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+
+        let imageUrl = null;
+        const photoInput = document.getElementById('complaint_photo');
+        const photoFile = photoInput.files && photoInput.files[0];
+
+        try {
+            if (photoFile) {
+                const formData = new FormData();
+                formData.append('file', photoFile);
+                const uploadRes = await fetch('/complaints/upload-image', { method: 'POST', body: formData });
+                if (!uploadRes.ok) {
+                    const err = await uploadRes.json();
+                    throw new Error(err.detail || 'Failed to upload photo');
+                }
+                const uploadData = await uploadRes.json();
+                imageUrl = uploadData.image_url;
+            }
+
+            const payload = {
+                role: document.getElementById('complaint_role').value,
+                name: document.getElementById('complaint_name').value.trim(),
+                contact: document.getElementById('complaint_contact').value.trim() || null,
+                shop_name: (() => {
+                    const role = document.getElementById('complaint_role').value;
+                    if (role !== 'buyer' && role !== 'delivery') return null;
+                    const shop = document.getElementById('complaint_shop_name').value.trim();
+                    return shop || null;
+                })(),
+                message: document.getElementById('complaint_message').value.trim(),
+                image_url: imageUrl
+            };
+
+            const response = await fetch('/complaints', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                document.getElementById('complaint-form').reset();
+                toggleComplaintShopField();
+                if (typeof showToast === 'function') {
+                    showToast('Complaint submitted successfully. Admin will review it soon.', 'success');
+                } else {
+                    alert('Complaint submitted successfully. Admin will review it soon.');
+                }
+            } else {
+                const err = await response.json();
+                throw new Error(err.detail || 'Failed to submit complaint');
+            }
+        } catch (error) {
+            console.error('Complaint error:', error);
+            if (typeof showToast === 'function') {
+                showToast(error.message || 'Could not submit complaint', 'danger');
+            } else {
+                alert(error.message || 'Could not submit complaint');
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-send me-1"></i> Send Complaint to Admin';
+        }
+    });
 </script>
 {% endblock %}

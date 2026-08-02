@@ -5,13 +5,15 @@
 {% block content %}
 
 <!-- ── Delivery Boy Login/Register View ────────────────────────────── -->
-<div id="delivery-login-view" class="row g-0 justify-content-center mt-4 rounded-4 shadow-lg overflow-hidden glass-card p-0" style="min-height: 520px; border: none;">
-    <!-- Left panel (Blue gradient) -->
-    <div class="col-md-5 d-flex flex-column justify-content-between p-5 text-white" style="background: linear-gradient(135deg, #1d4ed8, #2563eb);">
+<div id="delivery-login-view" class="row g-0 justify-content-center mt-4 rounded-4 shadow-lg overflow-hidden glass-card p-0 seller-auth-shell" style="min-height: 520px; border: none;">
+    <!-- Left panel (Delivery branding) -->
+    <div class="col-md-5 d-flex flex-column justify-content-between p-5 text-white seller-auth-hero">
         <div>
             <div class="d-flex align-items-center gap-2 mb-4">
-                <span class="d-inline-flex align-items-center justify-content-center bg-white bg-opacity-20 rounded-circle fw-bold text-white" style="width: 40px; height: 40px; font-size: 1.2rem;">U</span>
-                <span class="fw-semibold tracking-wider text-white-50" style="font-size: 0.85rem; letter-spacing: 1px;">UNIVERSITY CANTEEN</span>
+                <span class="seller-auth-logo d-inline-flex align-items-center justify-content-center rounded-circle fw-bold">
+                    <i class="bi bi-bicycle"></i>
+                </span>
+                <span class="fw-semibold tracking-wider seller-auth-eyebrow">UNIVERSITY CANTEEN</span>
             </div>
             <h1 class="display-5 fw-bold mt-5 text-white" style="line-height: 1.2;">Delivery<br>Portal</h1>
         </div>
@@ -24,7 +26,7 @@
     <div class="col-md-7 bg-white p-5 d-flex align-items-center justify-content-center">
         <div class="w-100" style="max-width: 380px;">
             <!-- Auth Tabs Toggle -->
-            <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill border" id="delivery-auth-tabs" style="font-size: 0.9rem;">
+            <ul class="nav nav-pills nav-fill mb-4 p-1 rounded-pill border seller-auth-tabs" id="delivery-auth-tabs" style="font-size: 0.9rem;">
                 <li class="nav-item">
                     <button type="button" class="nav-link active rounded-pill fw-bold py-2" id="tab-delivery-login">Login</button>
                 </li>
@@ -34,7 +36,7 @@
             </ul>
 
             <div class="text-center mb-4">
-                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3 animate-bounce" style="width: 60px; height: 60px;">
+                <div class="seller-auth-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-3 animate-bounce">
                     <i class="bi bi-bicycle fs-2"></i>
                 </div>
                 <h3 class="fw-bold mb-1 text-dark" id="delivery-auth-title">Delivery Login</h3>
@@ -44,20 +46,20 @@
             <form id="delivery-login-form">
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-medium" id="delivery-name-label">Delivery Boy Name</label>
-                    <input type="text" class="form-control form-control-lg" id="delivery_boy_name" required placeholder="e.g. Alex Mercer">
+                    <input type="text" class="form-control form-control-lg seller-auth-input" id="delivery_boy_name" required placeholder="e.g. Alex Mercer">
                 </div>
                 <div class="mb-4">
                     <label class="form-label text-muted small fw-medium" id="delivery-id-label">Delivery Boy ID</label>
-                    <input type="text" class="form-control form-control-lg text-center" id="delivery_boy_id" required placeholder="Enter 9 to 11-Digit ID" autocomplete="off" pattern="\d{9,11}" minlength="9" maxlength="11" title="Delivery Boy ID must be 9 to 11 digits">
+                    <input type="text" class="form-control form-control-lg text-center seller-auth-input" id="delivery_boy_id" required placeholder="Enter 9 to 11-Digit ID" autocomplete="off" pattern="\d{9,11}" minlength="9" maxlength="11" title="Delivery Boy ID must be 9 to 11 digits">
                     <small class="text-muted d-block mt-1 text-center" id="delivery-auth-help-text">Enter your 9 to 11-digit registered ID.</small>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow d-flex align-items-center justify-content-center gap-2" id="delivery-auth-submit-btn">
+                <button type="submit" class="btn btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow seller-auth-submit d-flex align-items-center justify-content-center gap-2" id="delivery-auth-submit-btn">
                     <span>Login</span> <i class="bi bi-arrow-right"></i>
                 </button>
             </form>
             
             <div class="text-center mt-4">
-                <span class="text-muted small"><i class="bi bi-shield-lock-fill me-1"></i> Secure • canteen portal</span>
+                <span class="text-muted small"><i class="bi bi-shield-lock-fill me-1"></i> Secure • delivery portal</span>
             </div>
         </div>
     </div>

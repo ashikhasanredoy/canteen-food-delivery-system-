@@ -510,6 +510,42 @@
     </div>
 </section>
 
+<!-- ── Complaints Section ─────────────────────────────────────── -->
+<section id="complaints-section" class="admin-section">
+    <div class="admin-card">
+        <div class="admin-card-header flex-wrap gap-2">
+            <div>
+                <h6 class="mb-0">User Complaints</h6>
+                <span class="text-muted small">Reports from buyers, sellers, and delivery boys</span>
+            </div>
+            <button class="btn btn-sm btn-primary rounded-pill" onclick="loadComplaints()">Refresh</button>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Role</th>
+                        <th>Name</th>
+                        <th>Shop</th>
+                        <th>Contact</th>
+                        <th>Message</th>
+                        <th>Photo</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="complaints-tbody">
+                    <tr>
+                        <td colspan="9" class="text-center py-3 text-muted">Loading…</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
 <!-- ── Settings Section ──────────────────────────────────── -->
 <section id="settings-section" class="admin-section">
     <div class="admin-card" style="max-width: 560px;">
@@ -581,6 +617,7 @@
             <button class="act-tab" data-cat="shop" onclick="setActivityCat(this,'shop')">Shops</button>
             <button class="act-tab" data-cat="notification"
                 onclick="setActivityCat(this,'notification')">Notifications</button>
+            <button class="act-tab" data-cat="complaint" onclick="setActivityCat(this,'complaint')">Complaints</button>
             <button class="act-tab" data-cat="settings" onclick="setActivityCat(this,'settings')">Settings</button>
             <button class="act-tab" data-cat="admin" onclick="setActivityCat(this,'admin')">Admin</button>
         </div>

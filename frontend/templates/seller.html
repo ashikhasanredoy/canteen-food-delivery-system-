@@ -5,11 +5,27 @@
 {% block content %}
 
 <!-- ── Seller Login View ────────────────────────────── -->
-<div id="seller-login-view" class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="glass-card p-5 text-center shadow-lg position-relative overflow-hidden">
-            <!-- Auth Pills Toggle -->
-            <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill border" id="auth-tabs" style="font-size: 0.9rem;">
+<div id="seller-login-view" class="row g-0 justify-content-center mt-4 rounded-4 shadow-lg overflow-hidden glass-card p-0 seller-auth-shell" style="min-height: 520px; border: none;">
+    <!-- Left panel (Shop / Seller branding) -->
+    <div class="col-md-5 d-flex flex-column justify-content-between p-5 text-white seller-auth-hero">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-4">
+                <span class="seller-auth-logo d-inline-flex align-items-center justify-content-center rounded-circle fw-bold">
+                    <i class="bi bi-shop"></i>
+                </span>
+                <span class="fw-semibold tracking-wider seller-auth-eyebrow">UNIVERSITY CANTEEN</span>
+            </div>
+            <h1 class="display-5 fw-bold mt-5 text-white seller-auth-headline" style="line-height: 1.2;">Shop<br>Portal</h1>
+        </div>
+        <div class="mt-auto">
+            <span class="small opacity-75">List your menu, manage orders, and serve campus customers.</span>
+        </div>
+    </div>
+
+    <!-- Right panel (Auth form) -->
+    <div class="col-md-7 bg-white p-5 d-flex align-items-center justify-content-center">
+        <div class="w-100" style="max-width: 380px;">
+            <ul class="nav nav-pills nav-fill mb-4 p-1 seller-auth-tabs rounded-pill border" id="auth-tabs" style="font-size: 0.9rem;">
                 <li class="nav-item">
                     <button type="button" class="nav-link active rounded-pill fw-bold py-2" id="tab-login">Login</button>
                 </li>
@@ -18,25 +34,32 @@
                 </li>
             </ul>
 
-            <div class="mb-4">
-                <h3 class="fw-bold mt-3 mb-1" id="auth-title">Shop Login</h3>
+            <div class="text-center mb-4">
+                <div class="seller-auth-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-3">
+                    <i class="bi bi-shop-window fs-2"></i>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark" id="auth-title">Shop Login</h3>
                 <p class="text-muted small" id="auth-subtitle">Enter Shop Name and Shop ID to access dashboard</p>
             </div>
-            
-            <form id="seller-login-form" class="text-start">
+
+            <form id="seller-login-form">
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-medium">Shop Name</label>
-                    <input type="text" class="form-control form-control-lg" id="login_shop_name" required placeholder="e.g. burger shop">
+                    <input type="text" class="form-control form-control-lg seller-auth-input" id="login_shop_name" required placeholder="e.g. Khan Kitchen">
                 </div>
                 <div class="mb-4">
                     <label class="form-label text-muted small fw-medium">Shop ID</label>
-                    <input type="text" class="form-control form-control-lg text-center" id="login_shop_id" required placeholder="e.g. 0223" autocomplete="off">
+                    <input type="text" class="form-control form-control-lg text-center seller-auth-input" id="login_shop_id" required placeholder="e.g. 0223" autocomplete="off">
                     <small class="text-muted d-block mt-1 text-center" id="auth-help-text">Enter your registered shop credentials.</small>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow" id="auth-submit-btn">
-                    Enter Portal
+                <button type="submit" class="btn btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow seller-auth-submit d-flex align-items-center justify-content-center gap-2" id="auth-submit-btn">
+                    <span>Enter Portal</span> <i class="bi bi-arrow-right"></i>
                 </button>
             </form>
+
+            <div class="text-center mt-4">
+                <span class="text-muted small"><i class="bi bi-shield-lock-fill me-1"></i> Secure • seller portal</span>
+            </div>
         </div>
     </div>
 </div>
@@ -122,30 +145,91 @@
 
     </div><!-- /.row -->
 
-    <!-- ── Delivery Requests Section ────────────────────────────── -->
+    <!-- Sales Summary -->
+    <div class="row g-4 mt-2">
+        <div class="col-md-3">
+            <div class="glass-card p-4 d-flex align-items-center gap-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-basket fs-3"></i>
+                </div>
+                <div>
+                    <p class="text-muted small mb-1 fw-medium">Items Sold</p>
+                    <h3 class="fw-bold mb-0" id="stats-items-sold">0</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 d-flex align-items-center gap-3">
+                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-cash-stack fs-3"></i>
+                </div>
+                <div>
+                    <p class="text-muted small mb-1 fw-medium">Gross Revenue</p>
+                    <h3 class="fw-bold mb-0" id="stats-gross-revenue">৳0.00</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 d-flex align-items-center gap-3">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-percent fs-3"></i>
+                </div>
+                <div>
+                    <p class="text-muted small mb-1 fw-medium">Platform & Delivery Fees</p>
+                    <h3 class="fw-bold mb-0 text-danger" id="stats-total-fees">৳0.00</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-4 d-flex align-items-center gap-3">
+                <div class="bg-success bg-opacity-10 text-success rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-wallet2 fs-3"></i>
+                </div>
+                <div>
+                    <p class="text-muted small mb-1 fw-medium">Net Revenue</p>
+                    <h3 class="fw-bold mb-0 text-success" id="stats-net-revenue">৳0.00</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order History -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="glass-card p-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h6 class="fw-bold mb-0">Pending Delivery Requests</h6>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadDeliveryRequests()">
+                    <div>
+                        <h6 class="fw-bold mb-1">Order History</h6>
+                        <p class="text-muted small mb-0">All orders for your shop — net revenue shown after admin & delivery fees.</p>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadOrderHistory()">
                         <i class="bi bi-arrow-clockwise"></i> Refresh
                     </button>
+                </div>
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0 seller-auth-input" id="order-history-search"
+                               placeholder="Search by order ID, date, food, student, amount, fees, revenue, status...">
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th class="border-0">Order ID</th>
+                                <th class="border-0">Date</th>
                                 <th class="border-0">Food Item</th>
-                                <th class="border-0">Delivery Boy ID</th>
-                                <th class="border-0">Quantity</th>
-                                <th class="border-0">Location</th>
-                                <th class="border-0">Action</th>
+                                <th class="border-0">Qty</th>
+                                <th class="border-0">Student</th>
+                                <th class="border-0">Total</th>
+                                <th class="border-0">Fees</th>
+                                <th class="border-0">Net Revenue</th>
+                                <th class="border-0">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="delivery-requests-list">
-                            <tr><td colspan="6" class="text-center py-4 text-muted">No pending delivery requests.</td></tr>
+                        <tbody id="order-history-list">
+                            <tr><td colspan="9" class="text-center py-4 text-muted">Loading order history...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -209,5 +293,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/seller.js?v=7"></script>
+<script src="/static/js/seller.js?v=10"></script>
 {% endblock %}

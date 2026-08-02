@@ -43,3 +43,74 @@ function showToast(message, type = 'success') {
         toastEl.remove();
     });
 }
+
+// ── Navbar Calendar (visible on all pages) ───────────────────────
+let _navCalendarView = new Date();
+
+document.addEventListener('DOMContentLoaded', () => {
+    initNavCalendar();
+});
+
+function initNavCalendar() {
+    updateNavCalendarDateLabel();
+    renderNavCalendar();
+}
+
+function updateNavCalendarDateLabel() {
+    const label = document.getElementById('nav-calendar-date');
+    if (!label) return;
+    const today = new Date();
+    label.textContent = today.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+
+function renderNavCalendar() {
+    const container = document.getElementById('nav-calendar-widget');
+    if (!container) return;
+
+    const year = _navCalendarView.getFullYear();
+    const month = _navCalendarView.getMonth();
+    const today = new Date();
+    const monthName = _navCalendarView.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    let html = `
+        <div class="nav-calendar-header d-flex align-items-center justify-content-between mb-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle nav-calendar-nav-btn" onclick="changeNavCalendarMonth(-1)" aria-label="Previous month">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="fw-bold text-dark">${monthName}</span>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle nav-calendar-nav-btn" onclick="changeNavCalendarMonth(1)" aria-label="Next month">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+        <div class="nav-calendar-grid">
+            ${dayNames.map(d => `<div class="nav-calendar-dayname">${d}</div>`).join('')}
+    `;
+
+    for (let i = 0; i < firstDay; i++) {
+        html += '<div class="nav-calendar-day empty"></div>';
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = today.getFullYear() === year
+            && today.getMonth() === month
+            && today.getDate() === day;
+        html += `<div class="nav-calendar-day${isToday ? ' today' : ''}">${day}</div>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function changeNavCalendarMonth(delta) {
+    _navCalendarView = new Date(_navCalendarView.getFullYear(), _navCalendarView.getMonth() + delta, 1);
+    renderNavCalendar();
+}

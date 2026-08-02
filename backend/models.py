@@ -108,3 +108,17 @@ class Admin(Base):
     name = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Complaint(Base):
+    __tablename__ = "complaints"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role = Column(String, index=True)          # buyer | seller | delivery
+    name = Column(String)
+    contact = Column(String, nullable=True)    # phone, shop id, delivery id, etc.
+    shop_name = Column(String, nullable=True)  # shop being complained about (buyer/delivery)
+    message = Column(String)
+    image_url = Column(String, nullable=True)
+    status = Column(String, default="Open")    # Open | Reviewed | Resolved
+    created_at = Column(DateTime, default=datetime.utcnow)

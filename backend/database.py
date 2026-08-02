@@ -30,6 +30,12 @@ def run_migrations():
         except Exception:
             pass  # Column already exists
 
+        try:
+            conn.execute(text("ALTER TABLE complaints ADD COLUMN shop_name TEXT"))
+            conn.commit()
+        except Exception:
+            pass  # Column already exists
+
 def seed_default_settings():
     """Insert default fee settings if they don't exist yet."""
     db = SessionLocal()

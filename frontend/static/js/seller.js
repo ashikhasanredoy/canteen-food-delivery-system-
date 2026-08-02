@@ -1,11 +1,11 @@
 let currentAuthMode = 'login';
+let _orderHistoryCache = [];
 
 function switchAuthTab(mode) {
     currentAuthMode = mode;
     
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
-    const authIcon = document.getElementById('auth-icon');
     const authTitle = document.getElementById('auth-title');
     const authSubtitle = document.getElementById('auth-subtitle');
     const authHelpText = document.getElementById('auth-help-text');
@@ -14,19 +14,17 @@ function switchAuthTab(mode) {
     if (mode === 'login') {
         tabLogin.classList.add('active');
         tabRegister.classList.remove('active');
-        if (authIcon) authIcon.textContent = '';
         authTitle.textContent = 'Shop Login';
         authSubtitle.textContent = 'Enter Shop Name and Shop ID to access dashboard';
         authHelpText.textContent = 'Enter your registered shop credentials.';
-        authSubmitBtn.textContent = 'Enter Portal';
+        authSubmitBtn.innerHTML = '<span>Enter Portal</span> <i class="bi bi-arrow-right"></i>';
     } else {
         tabLogin.classList.remove('active');
         tabRegister.classList.add('active');
-        if (authIcon) authIcon.textContent = '';
         authTitle.textContent = 'Register New Shop';
         authSubtitle.textContent = 'Create a permanent shop name and shop ID combination';
         authHelpText.textContent = 'This ID and name combination will be locked for this shop.';
-        authSubmitBtn.textContent = 'Register & Enter Shop';
+        authSubmitBtn.innerHTML = '<span>Register &amp; Enter Shop</span> <i class="bi bi-arrow-right"></i>';
     }
 }
 
@@ -43,13 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
         tabRegister.addEventListener('click', () => switchAuthTab('register'));
     }
 
+    const orderHistorySearch = document.getElementById('order-history-search');
+    if (orderHistorySearch) {
+        orderHistorySearch.addEventListener('input', filterOrderHistory);
+    }
+
     // Seller Login/Register Form Submit
     const loginForm = document.getElementById('seller-login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const shopName = document.getElementById('login_shop_name').value.strip();
-            const shopId = document.getElementById('login_shop_id').value.strip();
+            const shopName = document.getElementById('login_shop_name').value.trim();
+            const shopId = document.getElementById('login_shop_id').value.trim();
 
             const endpoint = currentAuthMode === 'login' ? 'login' : 'register';
 
@@ -175,7 +178,7 @@ function checkSession() {
 
         loadInventory();
         pollNotifications();
-        loadDeliveryRequests();
+        loadOrderHistory();
     } else {
         // Unauthenticated: show login
         if (loginView) loginView.classList.remove('d-none');
@@ -370,61 +373,114 @@ async function deleteFood(id) {
     }
 }
 
-async function loadDeliveryRequests() {
+async function loadOrderHistory() {
     const shopName = sessionStorage.getItem('shop_name');
     if (!shopName) return;
-    
+
     try {
-        const response = await fetch(`${API_BASE_URL}/orders/shop/${encodeURIComponent(shopName)}/delivery-requests`);
-        const requests = await response.json();
-        
-        const tbody = document.getElementById('delivery-requests-list');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        if (requests.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No pending delivery requests.</td></tr>';
-            return;
-        }
-        
-        requests.forEach(req => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="fw-bold">#${req.id}</td>
-                <td class="fw-medium">${req.food_name || 'Unknown Food'}</td>
-                <td><code>${req.delivery_boy_id}</code></td>
-                <td class="fw-bold">${req.quantity}</td>
-                <td><span class="badge bg-light text-dark border p-2"><i class="bi bi-geo-alt"></i> ${req.delivery_location}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-success rounded-pill px-4 hover-lift fw-medium" onclick="approveDeliveryRequest(${req.id})">
-                        Approve
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+        const response = await fetch(`${API_BASE_URL}/orders/shop/${encodeURIComponent(shopName)}/history`);
+        if (!response.ok) throw new Error('Failed to load history');
+
+        const data = await response.json();
+        const summary = data.summary || {};
+        _orderHistoryCache = data.orders || [];
+
+        document.getElementById('stats-items-sold').textContent = summary.total_items_sold || 0;
+        document.getElementById('stats-gross-revenue').textContent = formatCurrency(summary.gross_revenue || 0);
+        const totalFees = (summary.admin_fee_cut || 0) + (summary.delivery_fee_cut || 0);
+        document.getElementById('stats-total-fees').textContent = formatCurrency(totalFees);
+        document.getElementById('stats-net-revenue').textContent = formatCurrency(summary.net_seller_revenue || 0);
+
+        filterOrderHistory();
     } catch (error) {
-        console.error('Error loading delivery requests:', error);
-        document.getElementById('delivery-requests-list').innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Error loading data.</td></tr>';
+        console.error('Error loading order history:', error);
+        _orderHistoryCache = [];
+        const tbody = document.getElementById('order-history-list');
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger py-4">Error loading order history.</td></tr>';
+        }
     }
 }
 
-async function approveDeliveryRequest(orderId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/orders/${orderId}/approve_delivery`, {
-            method: 'POST'
-        });
-        
-        if (response.ok) {
-            showToast('Delivery request approved!', 'success');
-            loadDeliveryRequests();
-        } else {
-            const err = await response.json();
-            showToast(err.detail || 'Error approving request', 'danger');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Network error', 'danger');
+function filterOrderHistory() {
+    const searchEl = document.getElementById('order-history-search');
+    const query = searchEl ? searchEl.value.toLowerCase().trim() : '';
+
+    let filtered = _orderHistoryCache;
+    if (query) {
+        filtered = _orderHistoryCache.filter(order => getOrderSearchText(order).includes(query));
     }
+
+    renderOrderHistory(filtered, query);
+}
+
+function getOrderSearchText(order) {
+    const fees = (order.admin_fee || 0) + (order.delivery_fee || 0);
+    return [
+        order.id,
+        `#${order.id}`,
+        formatOrderDate(order.created_at),
+        order.food_name,
+        order.quantity,
+        order.student_name,
+        order.student_id,
+        order.delivery_location,
+        order.phone,
+        order.total_price,
+        formatCurrency(order.total_price || 0),
+        fees,
+        formatCurrency(fees),
+        order.admin_fee,
+        order.delivery_fee,
+        order.net_seller_revenue,
+        formatCurrency(order.net_seller_revenue || 0),
+        order.status,
+        order.delivery_boy_id
+    ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function renderOrderHistory(orders, query = '') {
+    const tbody = document.getElementById('order-history-list');
+    if (!tbody) return;
+
+    if (_orderHistoryCache.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No orders yet. Sales will appear here once students order your food.</td></tr>';
+        return;
+    }
+
+    if (orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">No orders match "${escapeHtml(query)}".</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    orders.forEach(order => {
+        const fees = (order.admin_fee || 0) + (order.delivery_fee || 0);
+        const statusClass = order.status === 'Delivered' ? 'bg-success'
+            : order.status === 'Pending' ? 'bg-warning text-dark'
+            : 'bg-secondary';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="fw-bold">#${order.id}</td>
+            <td class="text-muted small">${formatOrderDate(order.created_at)}</td>
+            <td class="fw-medium">${escapeHtml(order.food_name || 'Unknown')}</td>
+            <td class="fw-bold">${order.quantity}</td>
+            <td>
+                <div class="fw-medium">${escapeHtml(order.student_name)}</div>
+                <small class="text-muted">${escapeHtml(order.delivery_location || '')}</small>
+            </td>
+            <td>${formatCurrency(order.total_price || 0)}</td>
+            <td class="text-danger">${formatCurrency(fees)}</td>
+            <td class="fw-bold text-success">${formatCurrency(order.net_seller_revenue || 0)}</td>
+            <td><span class="badge ${statusClass} rounded-pill px-3">${escapeHtml(order.status)}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function formatOrderDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }

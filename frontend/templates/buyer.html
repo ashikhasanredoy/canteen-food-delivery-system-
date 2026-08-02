@@ -56,62 +56,82 @@
         </div>
     </div>
 </div>
-<script>let _buyerSearchInit = false;</script>
 
-<!-- Order Modal -->
-<div class="modal fade" id="orderModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- Floating Cart Button -->
+<button type="button" class="cart-fab btn btn-primary shadow-lg" id="cart-fab" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas">
+    <i class="bi bi-cart3 fs-4"></i>
+    <span class="cart-fab-badge" id="cart-badge">0</span>
+</button>
+
+<!-- Cart Offcanvas -->
+<div class="offcanvas offcanvas-end cart-offcanvas" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel">
+            <i class="bi bi-cart3 me-2 text-primary"></i>Your Cart
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+        <div id="cart-items" class="cart-items flex-grow-1 overflow-auto p-3">
+            <div class="text-center text-muted py-5" id="cart-empty-state">
+                <i class="bi bi-basket fs-1 d-block mb-3 opacity-50"></i>
+                <p class="mb-0">Your cart is empty.<br>Add items from different shops!</p>
+            </div>
+        </div>
+        <div class="cart-footer border-top p-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-medium text-muted">Grand Total</span>
+                <span class="fw-bold fs-4 text-primary" id="cart-grand-total">৳0.00</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill flex-grow-1" id="clear-cart-btn" disabled>Clear</button>
+                <button type="button" class="btn btn-primary rounded-pill flex-grow-1 fw-bold" id="checkout-btn" disabled>Checkout</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cart Checkout Modal -->
+<div class="modal fade" id="cartCheckoutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content glass-card border-0">
             <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold">Place Order</h5>
+                <h5 class="modal-title fw-bold">Checkout Cart</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <div class="d-flex align-items-center mb-4 bg-light p-3 rounded-3 shadow-sm border border-white">
-                    <img id="order_food_img" src="" class="rounded shadow-sm me-3 border border-2 border-white" style="width: 70px; height: 70px; object-fit: cover;">
-                    <div>
-                        <h6 id="order_food_name" class="mb-1 fw-bold fs-5"></h6>
-                        <span id="order_food_price" class="text-primary fw-bold badge bg-white border"></span>
-                    </div>
-                </div>
-                <form id="order-form">
-                    <input type="hidden" id="order_food_id">
-                    <input type="hidden" id="order_food_price_val">
-                    
+                <div class="checkout-summary mb-4 p-3 rounded-3 bg-light border border-white" id="checkout-summary"></div>
+                <form id="cart-checkout-form">
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-medium">Student Name</label>
-                        <input type="text" class="form-control" id="student_name" required placeholder="John Doe">
+                        <input type="text" class="form-control" id="cart_student_name" required placeholder="John Doe">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label text-muted small fw-medium">Student ID <span class="text-danger">*</span> (Required for Delivery)</label>
-                        <input type="text" class="form-control" id="student_id" required placeholder="e.g. 0112310001" pattern="\d{9,11}" minlength="9" maxlength="11" title="Student ID must be 9 to 11 digits">
+                        <label class="form-label text-muted small fw-medium">Student ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="cart_student_id" required placeholder="e.g. 0112310001" pattern="\d{9,11}" minlength="9" maxlength="11" title="Student ID must be 9 to 11 digits">
                     </div>
                     <div class="row mb-3 g-3">
-                        <div class="col">
+                        <div class="col-md-6">
                             <label class="form-label text-muted small fw-medium">Phone Number</label>
-                            <input type="text" class="form-control" id="phone" required placeholder="017...">
+                            <input type="text" class="form-control" id="cart_phone" required placeholder="017...">
                         </div>
-                        <div class="col">
-                            <label class="form-label text-muted small fw-medium">Quantity</label>
-                            <input type="number" min="1" value="1" class="form-control" id="order_quantity" required onchange="updateTotal()">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Delivery Location</label>
+                            <input type="text" class="form-control" id="cart_delivery_location" required placeholder="Building / Room No">
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label text-muted small fw-medium">Delivery Location</label>
-                        <input type="text" class="form-control" id="delivery_location" required placeholder="Building / Room No">
-                    </div>
-                    
                     <div class="d-flex justify-content-between align-items-center bg-dark text-white p-3 rounded-4 mb-4 shadow-sm">
                         <span class="fw-medium opacity-75">Total Amount:</span>
-                        <span id="order_total" class="fw-bold fs-3 text-primary">৳0.00</span>
+                        <span id="checkout_total" class="fw-bold fs-3 text-primary">৳0.00</span>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-lg py-3 fw-bold fs-5 hover-lift">Confirm Order</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-lg py-3 fw-bold fs-5 hover-lift">Place All Orders</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>let _buyerSearchInit = false;</script>
 
 <!-- Rating Modal -->
 <div class="modal fade" id="ratingModal" tabindex="-1">
@@ -164,5 +184,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/buyer.js?v=3"></script>
+<script src="/static/js/buyer.js?v=4"></script>
 {% endblock %}

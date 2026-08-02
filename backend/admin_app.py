@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request, Form
+from fastapi import FastAPI, Depends, Request, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -496,6 +496,54 @@ def get_activity_log(
         }
         for r in rows
     ]
+
+
+# ─── Complaints API ──────────────────────────────────────────
+@admin_app.get("/admin/api/complaints")
+def get_complaints(db: Session = Depends(get_db)):
+    rows = db.query(models.Complaint).order_by(models.Complaint.created_at.desc()).all()
+    return [
+        {
+            "id": r.id,
+            "role": r.role,
+            "name": r.name,
+            "contact": r.contact,
+            "shop_name": r.shop_name,
+            "message": r.message,
+            "image_url": r.image_url,
+            "status": r.status,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+
+
+@admin_app.patch("/admin/api/complaints/{complaint_id}")
+def update_complaint_status(
+    complaint_id: int,
+    payload: schemas.ComplaintStatusUpdate,
+    db: Session = Depends(get_db),
+):
+    complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+
+    complaint.status = payload.status
+    db.commit()
+    log_activity(db, "complaint", "updated", f"Complaint #{complaint_id} marked as {payload.status}")
+    return {"message": "Complaint status updated"}
+
+
+@admin_app.delete("/admin/api/complaints/{complaint_id}")
+def delete_complaint(complaint_id: int, db: Session = Depends(get_db)):
+    complaint = db.query(models.Complaint).filter(models.Complaint.id == complaint_id).first()
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+
+    db.delete(complaint)
+    db.commit()
+    log_activity(db, "complaint", "deleted", f"Complaint #{complaint_id} deleted")
+    return {"message": "Complaint deleted"}
 
 
 # ─── Charts API ──────────────────────────────────────────────────

@@ -110,6 +110,7 @@ function showSection(id) {
     if (id === 'foods-section') loadFoods();
     if (id === 'orders-section') loadOrders();
     if (id === 'ratings-section') loadRatings();
+    if (id === 'complaints-section') loadComplaints();
     if (id === 'settings-section') loadSettings();
     if (id === 'activity-section') loadActivityLog();
 }
@@ -1110,4 +1111,112 @@ async function loadCharts() {
         }
 
     } catch (e) { console.error('Charts error', e); }
+}
+
+// ─── Complaints ──────────────────────────────────────────────
+function complaintRoleBadge(role) {
+    const map = {
+        buyer: '<span class="badge bg-danger rounded-pill">Buyer</span>',
+        seller: '<span class="badge bg-warning text-dark rounded-pill">Seller</span>',
+        delivery: '<span class="badge bg-primary rounded-pill">Delivery</span>',
+    };
+    return map[role] || `<span class="badge bg-secondary rounded-pill">${role || 'Unknown'}</span>`;
+}
+
+function complaintStatusBadge(status) {
+    const map = {
+        Open: 'badge-pending',
+        Reviewed: 'badge bg-info text-dark rounded-pill px-2',
+        Resolved: 'badge-delivered',
+    };
+    if (status === 'Reviewed') return `<span class="${map.Reviewed}">${status}</span>`;
+    return status === 'Resolved'
+        ? `<span class="badge-delivered">${status}</span>`
+        : `<span class="badge-pending">${status}</span>`;
+}
+
+async function loadComplaints() {
+    const tbody = document.getElementById('complaints-tbody');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/complaints`);
+        const complaints = await res.json();
+        tbody.innerHTML = '';
+
+        if (!complaints.length) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No complaints submitted yet.</td></tr>';
+            return;
+        }
+
+        complaints.forEach(c => {
+            const photoCell = c.image_url
+                ? `<a href="${c.image_url}" target="_blank" rel="noopener"><img src="${c.image_url}" alt="Complaint photo" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;"></a>`
+                : '<span class="text-muted small">—</span>';
+            const msg = (c.message || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const shopCell = c.shop_name
+                ? `<span class="fw-medium text-capitalize">${c.shop_name}</span>`
+                : '<span class="text-muted small">—</span>';
+            tbody.innerHTML += `
+                <tr>
+                    <td class="fw-bold">#${c.id}</td>
+                    <td>${complaintRoleBadge(c.role)}</td>
+                    <td>${c.name || '—'}</td>
+                    <td>${shopCell}</td>
+                    <td>${c.contact || '—'}</td>
+                    <td style="max-width:260px; white-space:normal;">${msg}</td>
+                    <td>${photoCell}</td>
+                    <td>${complaintStatusBadge(c.status)}</td>
+                    <td class="small text-muted">${fmtDate(c.created_at)}</td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-1">
+                            <select class="form-select form-select-sm" style="width:110px;" onchange="updateComplaintStatus(${c.id}, this.value)">
+                                <option value="Open" ${c.status === 'Open' ? 'selected' : ''}>Open</option>
+                                <option value="Reviewed" ${c.status === 'Reviewed' ? 'selected' : ''}>Reviewed</option>
+                                <option value="Resolved" ${c.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                            </select>
+                            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="deleteComplaint(${c.id})">Delete</button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    } catch (e) {
+        console.error('Complaints error', e);
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Failed to load complaints.</td></tr>';
+    }
+}
+
+async function updateComplaintStatus(id, status) {
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/complaints/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+            loadComplaints();
+            loadActivityLog();
+        } else {
+            const err = await res.json();
+            showAlert(err.detail || 'Could not update complaint');
+        }
+    } catch (e) {
+        showAlert('Network error updating complaint');
+    }
+}
+
+async function deleteComplaint(id) {
+    showConfirm('Delete Complaint', 'Are you sure you want to delete this complaint?', async () => {
+        try {
+            const res = await fetch(`${ADMIN_BASE}/admin/api/complaints/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                loadComplaints();
+                loadActivityLog();
+            } else {
+                showAlert('Could not delete complaint');
+            }
+        } catch (e) {
+            showAlert('Network error deleting complaint');
+        }
+    });
 }
