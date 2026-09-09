@@ -54,35 +54,6 @@ def read_order(order_id: int, db: Session = Depends(get_db)):
         order_dict["shop_name"] = food.shop_name
     return order_dict
 
-@router.get("/shop/{shop_name}/delivery-requests", response_model=List[schemas.OrderResponse])
-def get_shop_delivery_requests(shop_name: str, db: Session = Depends(get_db)):
-    orders = db.query(models.Order, models.Food)\
-        .join(models.Food, models.Order.food_id == models.Food.id)\
-        .filter(models.Food.shop_name == shop_name)\
-        .filter(models.Order.status == "Pending")\
-        .filter(models.Order.delivery_request_status == "Requested")\
-        .all()
-    
-    result = []
-    for order, food in orders:
-        order_dict = {c.name: getattr(order, c.name) for c in order.__table__.columns}
-        order_dict["food_name"] = food.food_name
-        order_dict["shop_name"] = food.shop_name
-        result.append(order_dict)
-    return result
-
-@router.post("/{order_id}/approve_delivery")
-def approve_delivery_request(order_id: int, db: Session = Depends(get_db)):
-    order = crud.get_order(db, order_id=order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-        
-    if order.delivery_request_status != "Requested":
-        raise HTTPException(status_code=400, detail="No pending delivery request for this order")
-        
-    order.delivery_request_status = "Approved"
-    db.commit()
-    return {"message": "Delivery request approved"}
 
 
 @router.get("/shop/{shop_name}/history")

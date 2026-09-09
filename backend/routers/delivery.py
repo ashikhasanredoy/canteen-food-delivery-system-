@@ -125,13 +125,3 @@ def verify_delivery(delivery: schemas.DeliveryVerify, db: Session = Depends(get_
         "status": updated_order.status
     }
 
-
-# Legacy: Keep /request endpoint for backward compatibility (maps to accept)
-@router.post("/request")
-def request_delivery_legacy(payload: schemas.DeliveryRequestPayload, db: Session = Depends(get_db)):
-    """Deprecated: Use /accept instead. Kept for backward compatibility."""
-    updated_order = delivery_service.accept_delivery(db, payload)
-    return {
-        "message": "Delivery Accepted Successfully",
-        "status": updated_order.delivery_request_status
-    }

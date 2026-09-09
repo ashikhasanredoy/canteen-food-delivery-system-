@@ -5,9 +5,9 @@
 {% block content %}
 
 <!-- ── Delivery Boy Login/Register View ────────────────────────────── -->
-<div id="delivery-login-view" class="row g-0 justify-content-center mt-4 rounded-4 shadow-lg overflow-hidden glass-card p-0 seller-auth-shell" style="min-height: 520px; border: none;">
+<div id="delivery-login-view" class="row g-0 justify-content-center my-3 rounded-4 shadow-lg overflow-hidden glass-card p-0 seller-auth-shell" style="width: min(82vw, 1180px); margin: 0 auto; border: none;">
     <!-- Left panel (Delivery branding) -->
-    <div class="col-md-5 d-flex flex-column justify-content-between p-5 text-white seller-auth-hero">
+    <div class="col-md-5 d-flex flex-column justify-content-between p-4 p-lg-5 text-white seller-auth-hero">
         <div>
             <div class="d-flex align-items-center gap-2 mb-4">
                 <span class="seller-auth-logo d-inline-flex align-items-center justify-content-center rounded-circle fw-bold">
@@ -15,18 +15,19 @@
                 </span>
                 <span class="fw-semibold tracking-wider seller-auth-eyebrow">UNIVERSITY CANTEEN</span>
             </div>
-            <h1 class="display-5 fw-bold mt-5 text-white" style="line-height: 1.2;">Delivery<br>Portal</h1>
+            <h1 class="fw-bold mt-4 text-white" style="line-height: 1.18; font-size: clamp(2.2rem, 3.2vw, 2.85rem);">Delivery<br>Portal</h1>
+            <p class="mt-3 opacity-75 small" style="max-width: 320px; line-height: 1.6;">Fast, reliable food deliveries across university campus departments and residences.</p>
         </div>
-        <div class="mt-auto">
-            <span class="small opacity-75">Connect with the campus community. Deliver smiles.</span>
+        <div class="mt-4 pt-3 border-top border-white border-opacity-10">
+            <span class="small opacity-75" style="font-size: 0.85rem;"><i class="bi bi-geo-alt me-1"></i> Connect with the campus community. Deliver smiles.</span>
         </div>
     </div>
     
     <!-- Right panel (Auth form) -->
-    <div class="col-md-7 bg-white p-5 d-flex align-items-center justify-content-center">
-        <div class="w-100" style="max-width: 380px;">
+    <div class="col-md-7 bg-white p-4 p-lg-5 d-flex align-items-center justify-content-center">
+        <div class="w-100" style="max-width: 440px;">
             <!-- Auth Tabs Toggle -->
-            <ul class="nav nav-pills nav-fill mb-4 p-1 rounded-pill border seller-auth-tabs" id="delivery-auth-tabs" style="font-size: 0.9rem;">
+            <ul class="nav nav-pills nav-fill mb-3 p-1 rounded-pill border seller-auth-tabs" id="delivery-auth-tabs" style="font-size: 0.9rem;">
                 <li class="nav-item">
                     <button type="button" class="nav-link active rounded-pill fw-bold py-2" id="tab-delivery-login">Login</button>
                 </li>
@@ -35,31 +36,31 @@
                 </li>
             </ul>
 
-            <div class="text-center mb-4">
-                <div class="seller-auth-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-3 animate-bounce">
-                    <i class="bi bi-bicycle fs-2"></i>
+            <div class="text-center mb-3">
+                <div class="seller-auth-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-2">
+                    <i class="bi bi-bicycle fs-3"></i>
                 </div>
-                <h3 class="fw-bold mb-1 text-dark" id="delivery-auth-title">Delivery Login</h3>
-                <p class="text-muted small" id="delivery-auth-subtitle">University Canteen • Food Delivery</p>
+                <h3 class="fw-bold mb-1 text-dark" id="delivery-auth-title" style="font-size: 1.5rem;">Delivery Login</h3>
+                <p class="text-muted small mb-0" id="delivery-auth-subtitle">University Canteen • Food Delivery</p>
             </div>
             
             <form id="delivery-login-form">
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-medium" id="delivery-name-label">Delivery Boy Name</label>
-                    <input type="text" class="form-control form-control-lg seller-auth-input" id="delivery_boy_name" required placeholder="e.g. Alex Mercer">
+                    <label class="form-label text-muted small fw-medium mb-1" id="delivery-name-label" style="font-size: 0.85rem;">Delivery Boy Name</label>
+                    <input type="text" class="form-control seller-auth-input py-2.5" id="delivery_boy_name" required placeholder="e.g. Alex Mercer" style="font-size: 0.95rem; border-radius: 12px;">
                 </div>
-                <div class="mb-4">
-                    <label class="form-label text-muted small fw-medium" id="delivery-id-label">Delivery Boy ID</label>
-                    <input type="text" class="form-control form-control-lg text-center seller-auth-input" id="delivery_boy_id" required placeholder="Enter 9 to 11-Digit ID" autocomplete="off" pattern="\d{9,11}" minlength="9" maxlength="11" title="Delivery Boy ID must be 9 to 11 digits">
-                    <small class="text-muted d-block mt-1 text-center" id="delivery-auth-help-text">Enter your 9 to 11-digit registered ID.</small>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-medium mb-1" id="delivery-id-label" style="font-size: 0.85rem;">Delivery Boy ID</label>
+                    <input type="text" class="form-control text-center seller-auth-input py-2.5" id="delivery_boy_id" required placeholder="Enter 9 to 11-Digit ID" autocomplete="off" pattern="\d{9,11}" minlength="9" maxlength="11" title="Delivery Boy ID must be 9 to 11 digits" style="font-size: 0.95rem; border-radius: 12px;">
+                    <small class="text-muted d-block mt-1 text-center" style="font-size: 0.78rem;" id="delivery-auth-help-text">Enter your 9 to 11-digit registered ID.</small>
                 </div>
-                <button type="submit" class="btn btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow seller-auth-submit d-flex align-items-center justify-content-center gap-2" id="delivery-auth-submit-btn">
+                <button type="submit" class="btn w-100 rounded-pill py-2.5 fw-bold hover-lift shadow seller-auth-submit d-flex align-items-center justify-content-center gap-2" id="delivery-auth-submit-btn" style="font-size: 1rem;">
                     <span>Login</span> <i class="bi bi-arrow-right"></i>
                 </button>
             </form>
             
-            <div class="text-center mt-4">
-                <span class="text-muted small"><i class="bi bi-shield-lock-fill me-1"></i> Secure • delivery portal</span>
+            <div class="text-center mt-3">
+                <span class="text-muted" style="font-size: 0.78rem;"><i class="bi bi-shield-lock-fill me-1"></i> Secure • delivery portal</span>
             </div>
         </div>
     </div>

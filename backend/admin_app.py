@@ -263,7 +263,6 @@ def update_settings(payload: dict, db: Session = Depends(get_db)):
     return {"detail": "Settings updated", "settings": payload}
 
 # ─── Delivery Boys API ───────────────────────────────────────────
-@admin_app.get("/api/admin/delivery-boys")
 @admin_app.get("/admin/api/delivery-boys")
 def get_all_delivery_boys(db: Session = Depends(get_db)):
     """
@@ -358,7 +357,6 @@ def get_all_delivery_boys(db: Session = Depends(get_db)):
         "data": result
     }
 
-@admin_app.put("/api/admin/delivery-boys/{boy_id}")
 @admin_app.put("/admin/api/delivery-boys/{boy_id}")
 def admin_update_delivery_boy(boy_id: int, payload: schemas.DeliveryBoyUpdate, db: Session = Depends(get_db)):
     from fastapi import HTTPException
@@ -395,7 +393,6 @@ def admin_update_delivery_boy(boy_id: int, payload: schemas.DeliveryBoyUpdate, d
         }
     }
 
-@admin_app.delete("/api/admin/delivery-boys/{boy_id}")
 @admin_app.delete("/admin/api/delivery-boys/{boy_id}")
 def admin_delete_delivery_boy(boy_id: int, db: Session = Depends(get_db)):
     from fastapi import HTTPException

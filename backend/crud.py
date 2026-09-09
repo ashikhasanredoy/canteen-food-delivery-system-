@@ -36,12 +36,6 @@ def delete_food(db: Session, food_id: int):
 def get_order(db: Session, order_id: int):
     return db.query(models.Order).filter(models.Order.id == order_id).first()
 
-def get_orders(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Order).offset(skip).limit(limit).all()
-
-def get_pending_orders(db: Session):
-    return db.query(models.Order).filter(models.Order.status == "Pending").all()
-
 def create_order(db: Session, order: schemas.OrderCreate, total_price: float,
                  admin_fee: float = 0.0, delivery_fee: float = 0.0):
     db_order = models.Order(
@@ -53,14 +47,6 @@ def create_order(db: Session, order: schemas.OrderCreate, total_price: float,
     db.add(db_order)
     db.commit()
     db.refresh(db_order)
-    return db_order
-
-def update_order_status(db: Session, order_id: int, status: str):
-    db_order = get_order(db, order_id)
-    if db_order:
-        db_order.status = status
-        db.commit()
-        db.refresh(db_order)
     return db_order
 
 # Rating CRUD
