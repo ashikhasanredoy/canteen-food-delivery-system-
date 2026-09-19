@@ -757,3 +757,74 @@ body::-webkit-scrollbar,
     width: 240px;
 }
 
+/* ══════════════════════════════════════════════
+   MOBILE RESPONSIVE ENHANCEMENTS FOR ADMIN
+══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .stat-card {
+        padding: 14px 12px !important;
+    }
+
+    .stat-value {
+        font-size: 1.35rem !important;
+    }
+
+    .stat-label {
+        font-size: 0.75rem !important;
+    }
+
+    .admin-card-header {
+        padding: 14px 16px !important;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .admin-card-header .d-flex {
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .table-search-input {
+        width: 100% !important;
+    }
+
+    .admin-table-wrapper,
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        min-width: 640px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 10px 8px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .admin-pagination-bar {
+        flex-direction: column !important;
+        text-align: center;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-content {
+        padding: 12px 10px !important;
+    }
+}
+

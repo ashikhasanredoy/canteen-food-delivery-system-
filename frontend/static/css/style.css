@@ -786,38 +786,266 @@ body::-webkit-scrollbar,
     white-space: nowrap;
 }
 
-/* ── Order Success Modal Animations ── */
-@keyframes bounceIn {
-    0% {
-        opacity: 0;
-        transform: scale(0.3);
+/* ── Comprehensive Mobile Responsive Styles (Phones, Tablets & Small Screens) ── */
+
+/* 1. Global Touch Target & Mobile Base */
+@media (max-width: 767.98px) {
+    body {
+        font-size: 15px;
     }
-    50% {
-        opacity: 0.9;
-        transform: scale(1.1);
+
+    /* Container Spacing */
+    main.container,
+    main.container-fluid {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        padding-top: 74px !important;
     }
-    80% {
-        opacity: 1;
-        transform: scale(0.89);
+
+    /* Fluid Headings */
+    h1, .h1 { font-size: clamp(1.65rem, 6vw, 2.25rem) !important; }
+    h2, .h2 { font-size: clamp(1.4rem, 5vw, 1.85rem) !important; }
+    h3, .h3 { font-size: clamp(1.2rem, 4.2vw, 1.5rem) !important; }
+    h4, .h4 { font-size: 1.15rem !important; }
+    h5, .h5 { font-size: 1rem !important; }
+
+    /* Touch-friendly Minimum Tap Targets */
+    button, .btn, .nav-link, .form-select, .form-control {
+        min-height: 42px;
     }
-    100% {
-        opacity: 1;
-        transform: scale(1);
+
+    .btn-sm, .form-control-sm, .form-select-sm {
+        min-height: 34px;
     }
 }
 
-#orderSuccessModal .modal-content {
-    animation: modalSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+/* 2. Mobile Navbar */
+@media (max-width: 991.98px) {
+    .glass-navbar .navbar-collapse {
+        background: rgba(15, 23, 42, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        margin-top: 10px;
+        padding: 1rem 1.25rem;
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .glass-navbar .navbar-nav {
+        gap: 0.5rem !important;
+    }
+
+    .glass-navbar .nav-link {
+        padding: 0.65rem 1rem !important;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-calendar-wrap {
+        width: 100%;
+        margin-bottom: 0.25rem;
+    }
+
+    .nav-calendar-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 0.6rem 1rem !important;
+    }
+
+    .nav-calendar-btn span {
+        display: inline !important;
+    }
+
+    .nav-calendar-dropdown {
+        position: static !important;
+        width: 100% !important;
+        transform: none !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: #ffffff !important;
+        margin-top: 8px !important;
+    }
 }
 
-@keyframes modalSlideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.96);
+/* 3. Hero & Landing Page on Mobile */
+@media (max-width: 767.98px) {
+    .hero-banner {
+        padding: 2.25rem 1rem !important;
+        border-radius: 20px !important;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+
+    .hero-title {
+        font-size: clamp(1.75rem, 6.5vw, 2.5rem);
+        line-height: 1.2;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem !important;
+    }
+
+    .hero-actions .btn {
+        width: 100%;
+    }
+
+    .shop-card-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* 4. Buyer Portal & Food Cards on Mobile */
+@media (max-width: 767.98px) {
+    /* Meal Filter Tabs (Horizontal Scrollable Pill Bar) */
+    #meal-filter-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+        width: 100%;
+    }
+
+    .meal-tab-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 0.45rem 1rem !important;
+        font-size: 0.88rem;
+    }
+
+    /* Food Menu Grid */
+    #food-menu .col-12,
+    #food-menu .col-md-6,
+    #food-menu .col-lg-4,
+    #food-menu .col-xl-3 {
+        width: 100% !important;
+        max-width: 100%;
+    }
+
+    .food-card {
+        border-radius: 18px;
+    }
+
+    .food-card-img {
+        height: 180px !important;
+        object-fit: cover;
+    }
+
+    /* Floating Cart FAB Positioning */
+    .cart-fab {
+        bottom: 20px !important;
+        right: 20px !important;
+        width: 58px !important;
+        height: 58px !important;
+    }
+
+    .cart-fab i {
+        font-size: 1.35rem !important;
+    }
+
+    /* Pagination controls */
+    #pagination-container {
+        flex-direction: column !important;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .pagination .page-link {
+        padding: 0.35rem 0.65rem !important;
+        font-size: 0.82rem;
+    }
+}
+
+/* 5. Seller & Delivery Auth Shell on Mobile */
+@media (max-width: 767.98px) {
+    .seller-auth-shell {
+        margin: 0.5rem auto;
+        border-radius: 18px !important;
+    }
+
+    .seller-auth-hero {
+        padding: 1.5rem !important;
+        text-align: center;
+        border-radius: 18px 18px 0 0 !important;
+    }
+
+    .seller-auth-hero .d-flex.align-items-center {
+        justify-content: center;
+    }
+
+    .seller-auth-headline {
+        font-size: 1.75rem !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .seller-auth-shell .col-md-7 {
+        padding: 1.5rem 1.25rem !important;
+    }
+
+    /* Delivery Partner Top Bar */
+    .delivery-rider-header {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.75rem;
+    }
+
+    .delivery-rider-header .d-flex {
+        justify-content: space-between;
+    }
+}
+
+/* 6. Responsive Tables & Horizontal Scrolling */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+}
+
+@media (max-width: 767.98px) {
+    .table-responsive table {
+        min-width: 600px;
+    }
+
+    .table th, .table td {
+        padding: 10px 8px !important;
+        font-size: 0.85rem;
+    }
+
+    /* Inventory Page Size and Search bar */
+    #inventory-search,
+    #order-history-search {
+        font-size: 0.88rem;
+    }
+}
+
+/* 7. Notification Panel Responsive Popup */
+@media (max-width: 767.98px) {
+    #notif-panel {
+        width: calc(100vw - 28px) !important;
+        right: 14px !important;
+        top: 70px !important;
+        max-height: 80vh !important;
+    }
+}
+
+/* 8. Modals Mobile Optimization */
+@media (max-width: 575.98px) {
+    .modal-dialog {
+        margin: 0.75rem !important;
+        max-width: calc(100vw - 1.5rem) !important;
+    }
+
+    .modal-content {
+        border-radius: 18px !important;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem !important;
     }
 }
 
