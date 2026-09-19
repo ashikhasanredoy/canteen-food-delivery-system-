@@ -583,47 +583,6 @@
     </div>
 </section>
 
-<!-- ── Settings Section ──────────────────────────────────── -->
-<section id="settings-section" class="admin-section">
-    <div class="admin-card" style="max-width: 560px;">
-        <div class="admin-card-header">
-            <h6 class="mb-0 fw-bold">⚙️ Fee Settings</h6>
-            <span class="text-muted small">Changes apply to new orders immediately</span>
-        </div>
-        <div class="p-4">
-            <div class="mb-4">
-                <label class="d-flex justify-content-between mb-2">
-                    <span class="fw-medium">Admin Fee (%)</span>
-                    <span class="text-primary fw-bold" id="admin-fee-display">1.0%</span>
-                </label>
-                <input type="range" class="fee-slider" id="admin-fee-slider" min="0" max="20" step="0.5" value="1"
-                    oninput="document.getElementById('admin-fee-display').textContent = this.value + '%'; document.getElementById('admin-fee-input').value = this.value;">
-                <input type="number" class="fee-number-input mt-2" id="admin-fee-input" min="0" max="20" step="0.1"
-                    value="1"
-                    oninput="document.getElementById('admin-fee-slider').value = this.value; document.getElementById('admin-fee-display').textContent = this.value + '%';">
-                <small class="text-muted">Admin earns this % of every order's total price.</small>
-            </div>
-
-            <div class="mb-5">
-                <label class="d-flex justify-content-between mb-2">
-                    <span class="fw-medium">Delivery Boy Fee (%)</span>
-                    <span class="text-info fw-bold" id="delivery-fee-display">1.0%</span>
-                </label>
-                <input type="range" class="fee-slider" id="delivery-fee-slider" min="0" max="20" step="0.5" value="1"
-                    oninput="document.getElementById('delivery-fee-display').textContent = this.value + '%'; document.getElementById('delivery-fee-input').value = this.value;">
-                <input type="number" class="fee-number-input mt-2" id="delivery-fee-input" min="0" max="20" step="0.1"
-                    value="1"
-                    oninput="document.getElementById('delivery-fee-slider').value = this.value; document.getElementById('delivery-fee-display').textContent = this.value + '%';">
-                <small class="text-muted">Delivery boy earns this % of every order's total price.</small>
-            </div>
-
-            <div id="settings-msg" class="mb-3" style="min-height: 24px;"></div>
-            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="saveSettings()">Save
-                Settings</button>
-        </div>
-    </div>
-</section>
-
 <!-- ── Activity Log Section ──────────────────────────────── -->
 <section id="activity-section" class="admin-section">
     <div class="admin-card">
@@ -674,6 +633,47 @@
             <div class="act-empty-state">Loading activity log...</div>
         </div>
         <div id="activity-pagination"></div>
+    </div>
+</section>
+
+<!-- ── Settings Section ──────────────────────────────────── -->
+<section id="settings-section" class="admin-section">
+    <div class="admin-card" style="max-width: 560px;">
+        <div class="admin-card-header">
+            <h6 class="mb-0 fw-bold">⚙️ Fee Settings</h6>
+            <span class="text-muted small">Changes apply to new orders immediately</span>
+        </div>
+        <div class="p-4">
+            <div class="mb-4">
+                <label class="d-flex justify-content-between mb-2">
+                    <span class="fw-medium">Admin Fee (%)</span>
+                    <span class="text-primary fw-bold" id="admin-fee-display">1.0%</span>
+                </label>
+                <input type="range" class="fee-slider" id="admin-fee-slider" min="0" max="20" step="0.5" value="1"
+                    oninput="document.getElementById('admin-fee-display').textContent = this.value + '%'; document.getElementById('admin-fee-input').value = this.value;">
+                <input type="number" class="fee-number-input mt-2" id="admin-fee-input" min="0" max="20" step="0.1"
+                    value="1"
+                    oninput="document.getElementById('admin-fee-slider').value = this.value; document.getElementById('admin-fee-display').textContent = this.value + '%';">
+                <small class="text-muted">Admin earns this % of every order's total price.</small>
+            </div>
+
+            <div class="mb-5">
+                <label class="d-flex justify-content-between mb-2">
+                    <span class="fw-medium">Delivery Boy Fee (%)</span>
+                    <span class="text-info fw-bold" id="delivery-fee-display">1.0%</span>
+                </label>
+                <input type="range" class="fee-slider" id="delivery-fee-slider" min="0" max="20" step="0.5" value="1"
+                    oninput="document.getElementById('delivery-fee-display').textContent = this.value + '%'; document.getElementById('delivery-fee-input').value = this.value;">
+                <input type="number" class="fee-number-input mt-2" id="delivery-fee-input" min="0" max="20" step="0.1"
+                    value="1"
+                    oninput="document.getElementById('delivery-fee-slider').value = this.value; document.getElementById('delivery-fee-display').textContent = this.value + '%';">
+                <small class="text-muted">Delivery boy earns this % of every order's total price.</small>
+            </div>
+
+            <div id="settings-msg" class="mb-3" style="min-height: 24px;"></div>
+            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="saveSettings()">Save
+                Settings</button>
+        </div>
     </div>
 </section>
 
