@@ -1,94 +1,201 @@
 # 🍔 University Canteen Food Delivery System
 
-A production-ready full-stack food ordering and delivery ecosystem engineered for university campuses. The platform seamlessly bridges **Students (Buyers)**, **Canteen Outlets (Sellers)**, **Campus Couriers (Delivery Partners)**, and **University Administration** in one synchronized system.
+A complete full-stack food ordering, fulfillment, and campus courier delivery ecosystem designed specifically for university campuses. The platform seamlessly connects **Students (Buyers)**, **Canteen Outlets (Sellers)**, **Student Couriers (Delivery Partners)**, and **University Administration** into a single synchronized workflow.
 
 ---
 
 ## 📑 Table of Contents
 
-- [Overview & Architecture](#-overview--architecture)
-- [Key Features by Role](#-key-features-by-role)
+- [Overview & System Architecture](#-overview--system-architecture)
+- [Comprehensive Role Breakdown & How It Works](#-comprehensive-role-breakdown--how-it-works)
+  - [1. Student / Buyer Role](#1-student--buyer-role)
+  - [2. Canteen Shop / Seller Role](#2-canteen-shop--seller-role)
+  - [3. Delivery Partner / Courier Role](#3-delivery-partner--courier-role)
+  - [4. Platform Administrator Role](#4-platform-administrator-role)
+- [End-to-End Order Lifecycle & State Machine](#-end-to-end-order-lifecycle--state-machine)
 - [Technology Stack](#-technology-stack)
-- [Project Structure](#-project-structure)
-- [Quick Start Guide](#-quick-start-guide)
+- [Project Directory Layout](#-project-directory-layout)
+- [Installation & Quick Start](#-installation--quick-start)
 - [Access Portals & Default Credentials](#-access-portals--default-credentials)
-- [Included PDF References](#-included-pdf-references)
+- [Printable PDF Reference Directories](#-printable-pdf-reference-directories)
 - [Commission & Fee Distribution Model](#-commission--fee-distribution-model)
 - [REST API Reference](#-rest-api-reference)
-- [Database Schema](#-database-schema)
+- [Database Schema & Entity Relations](#-database-schema--entity-relations)
 - [Troubleshooting & Maintenance](#-troubleshooting--maintenance)
 
 ---
 
-## 🏛 Overview & Architecture
+## 🏛 Overview & System Architecture
 
 ```
                                ┌────────────────────────────────┐
                                │   University Student / Buyer   │
                                │  - Browse Menu & Cart (৳ BDT)  │
                                │  - Place Order & Track Status  │
-                               │  - OTP Verification & Rating   │
+                               │  - Secure OTP Delivery Handover│
+                               │  - Leave Ratings & Feedback    │
                                └──────────────┬─────────────────┘
                                               │ Places Order
                                               ▼
 ┌──────────────────────────────┐        ┌──────────────────────────────┐
 │  Seller (Canteen Outlet)     │        │   FastAPI Core Application   │
 │  - Manage Stock & Menu Items │◄───────┤  - RESTful Endpoints & Auth  │
-│  - Live Order Acceptance     │ Orders │  - OTP Handshake Service     │
-│  - Mark Food "Ready"         │        │  - SQLite Database Engine    │
+│  - Live Incoming Orders Feed │ Orders │  - OTP Handshake Engine      │
+│  - Single-Click "Ready" Flag │        │  - SQLite Database Engine    │
 └──────────────┬───────────────┘        └──────────────┬───────────────┘
                │ Order Ready                           │
                ▼                                       │ Real-time Data
 ┌──────────────────────────────┐                       │
 │  Delivery Partner (Rider)    │                       ▼
-│  - Claim "Ready" Orders      │        ┌──────────────────────────────┐
+│  - Claim "Ready" Orders Pool │        ┌──────────────────────────────┐
 │  - Out-for-Delivery Flow     │        │   Admin Control Center       │
-│  - OTP Confirmation          │        │  - Live KPI Counters & Trend │
-│  - Payout & Balance Tracker  │        │  - Fee Policy Simulator      │
+│  - OTP Verification Handshake│        │  - Live KPI Badges & Trends  │
+│  - Balance & Earnings Ledger │        │  - Dynamic Fee Split Policy  │
 └──────────────────────────────┘        │  - Shop & Rider Oversight    │
-                                        │  - Notification & Audit Logs │
+                                        │  - Notifications & Audit Log │
                                         └──────────────────────────────┘
 ```
 
 ---
 
-## 👥 Key Features by Role
+## 👥 Comprehensive Role Breakdown & How It Works
 
-### 1. 🛒 Buyer Portal (`/buyer`)
-- **Responsive 2-Column Mobile Grid**: Designed for mobile food browsing with compact action buttons and clear price tags.
-- **Smart Category Filtering**: Instant filtering across **Breakfast**, **Lunch**, **Snacks**, **Beverages**, and specific shop outlets.
-- **Real-Time Cart & Checkout**: Calculate item subtotals in Bangladeshi Taka (`৳`) with campus delivery location selection.
-- **Live Order Status Tracking**: Real-time progress updates through four stages:
-  $$\text{Pending} \longrightarrow \text{Ready} \longrightarrow \text{Out for Delivery} \longrightarrow \text{Delivered}$$
-- **Secure OTP Delivery Confirmation**: Buyer verifies handover with the rider using a secure one-time passcode.
-- **Ratings & Reviews**: 5-star ratings and written feedback directly associated with purchased food items.
+### 1. Student / Buyer Role
 
-### 2. 🏪 Seller Portal (`/seller`)
-- **Shop Session Persistence**: Seamless login with unique Shop ID and persistent session recovery.
-- **Menu & Inventory Control**: Add, edit, or toggle availability of food items with image links, prices, and descriptions.
-- **Order Pipeline Management**: Live order feed with single-click status updates (`Accept` $\rightarrow$ `Mark as Ready for Pickup`).
-- **Revenue Dashboard**: Track shop gross sales, commission deductions, and net payouts.
-- **Broadcast Notifications**: Receive real-time announcements and alerts from University Administration.
+The **Buyer Portal (`/buyer`)** gives students an intuitive, fast, and mobile-friendly food ordering experience across all campus dining options.
 
-### 3. 🚴 Delivery Partner Portal (`/delivery`)
-- **Rider Authentication**: Login via unique Delivery Boy ID (e.g., `DB001` – `DB154`).
-- **Open Order Claim Pool**: View all canteen orders flagged as `Ready` for pickup across campus.
-- **Pickup & Delivery Workflow**: Mark orders as `Out for Delivery` and complete delivery upon entering the student's OTP.
-- **Earnings & Commission Ledger**: Live tracking of rider payouts per order based on configured platform fee shares.
+```
+Browse Menu ➔ Filter by Meal / Shop ➔ Add to Cart ➔ Checkout (Name, ID, Phone, Building) ➔ Track Order ➔ OTP Handover ➔ Submit Rating
+```
 
-### 4. 🛡️ Central Admin Dashboard (`/admin`)
-- **Live Statistical Overview**: Real-time counter badges across all 10 management modules:
-  - 🏪 **Shops** (14 active outlets)
-  - 🍱 **Foods** (180+ menu items)
-  - 📦 **Orders** (6,000+ historical & active orders)
-  - 🚴 **Delivery Riders** (154 registered student couriers)
-  - ⭐ **Ratings & Reviews** (2,400+ verified buyer reviews)
-  - 📢 **Complaints & Tickets** (650+ student feedback items)
-  - 📜 **Activity Logs** (Chronological system audit trail)
-  - 🔔 **Notifications Hub** (Dedicated alert dispatcher with pagination & status filters)
-  - ⚙️ **Commission & Fee Policy** (Interactive live split simulator with instant preset chips)
-- **Interactive Analytics**: Visual Chart.js charts for revenue trends, shop order volumes, rating distributions, and top-selling foods.
-- **Anti-Flash Section Navigation**: Fast client-side section switching with zero reload delay.
+#### Detailed Functionality:
+* **Interactive Food Discovery**:
+  - Browse food items from all 14 university canteen shops in an optimized 2-column mobile responsive grid.
+  - Filter meals instantly by category: **Breakfast**, **Lunch**, **Snacks**, **Beverages**, or specific campus shops.
+  - View food availability, item descriptions, price tags in Bangladeshi Taka (`৳`), and star ratings.
+* **Smart Cart & Real-Time Price Engine**:
+  - Add items from multiple outlets, adjust quantities on the fly, and view itemized sub-totals with zero page reloads.
+* **Campus Checkout Flow**:
+  - Enter student details: **Full Name**, **Student ID**, **Phone Number**, and **Campus Delivery Spot** (Faculty Building, Department Room, Hall of Residence, or Library).
+  - Generates a unique numeric **Order ID** and creates a cryptographically secure 4-digit **Delivery OTP**.
+* **Live Order Tracking**:
+  - Live progress tracker showing order state transitions in real time:
+    $$\text{Pending (Kitchen Prep)} \longrightarrow \text{Ready (Pickup)} \longrightarrow \text{Out for Delivery} \longrightarrow \text{Delivered}$$
+* **Secure OTP Handover**:
+  - When the rider arrives at the student's location, the student provides their 4-digit OTP to confirm delivery.
+* **Ratings & Feedback**:
+  - Once delivered, students submit 1-to-5 star ratings and reviews to help maintain high culinary standards across campus.
+
+---
+
+### 2. Canteen Shop / Seller Role
+
+The **Seller Portal (`/seller`)** empowers campus kitchen managers to operate their digital storefront, control their inventory, and process incoming student meal tickets.
+
+```
+Seller Login (Shop ID + Password) ➔ Manage Menu & Pricing ➔ Receive Incoming Order ➔ Prepare Food ➔ Click "Mark as Ready" ➔ Track Payouts
+```
+
+#### Detailed Functionality:
+* **Authentication & Session Persistence**:
+  - Canteen vendors log in with their assigned Shop ID (`shop_1` to `shop_14`) and password.
+  - Browser session persistence keeps vendors logged in even across refreshes and tab reopens.
+* **Menu & Stock Management**:
+  - **Add New Dishes**: Upload food title, price (`৳`), stock count, category tag (Breakfast, Lunch, Snacks, etc.), and food image URL.
+  - **Edit & Adjust**: Change pricing, update descriptions, and toggle in-stock / out-of-stock statuses with single-click modal forms.
+  - **Delete Items**: Safely remove discontinued food items from the public marketplace.
+* **Order Fulfillment Pipeline**:
+  - **Incoming Order Feed**: Displays new student orders with buyer name, contact phone, item quantities, and special notes.
+  - **Preparation Stage**: Kitchen cooks prepare the food while the order remains in `Pending`.
+  - **Mark as Ready**: Once cooked and packaged, the seller clicks **"Mark as Ready"**, which instantly pushes the order into the active Courier Claim Pool for pickup.
+* **Financial Summary & Broadcast Alerts**:
+  - View gross revenue, deducted platform commission fees, and net shop earnings.
+  - Receive direct announcements and notifications broadcasted by university administrators.
+
+---
+
+### 3. Delivery Partner / Courier Role
+
+The **Delivery Portal (`/delivery`)** serves student couriers who earn income delivering hot meals between canteen kitchens and campus faculty buildings or dormitories.
+
+```
+Rider Login (Boy ID + Pass) ➔ View Available Orders Pool ➔ Claim Order (Out for Delivery) ➔ Pick Up from Shop ➔ Handover & Verify OTP ➔ Earn Commission
+```
+
+#### Detailed Functionality:
+* **Courier Authentication**:
+  - Registered riders log in using their unique Delivery Boy ID (`DB001` – `DB154`) and secure password.
+* **Real-time Order Claiming Pool**:
+  - Couriers view an active pool of orders that have been marked as **"Ready"** by canteen shops.
+  - Each listing displays the pickup canteen name, customer delivery destination, order items, and delivery fee bounty.
+* **Claim & Route Management**:
+  - Claiming an order immediately assigns the rider to the ticket and updates its status to **`Out for Delivery`**, notifying the student that their food is on its way.
+* **OTP Verification Handshake**:
+  - Couriers navigate to the destination building, meet the student, and ask for their 4-digit OTP.
+  - The courier submits the OTP in their portal; once validated by the backend engine, the order is marked **`Delivered`**.
+* **Earnings Ledger**:
+  - Automatically accrues delivery share earnings per completed trip (e.g. 3.0% of order value or fixed delivery fee).
+  - Displays lifetime earnings and total successful deliveries.
+
+---
+
+### 4. Platform Administrator Role
+
+The **Admin Portal (`/admin`)** provides full administrative governance, analytics, moderation, and policy configuration for university authorities.
+
+```
+Admin Login (/admin) ➔ Live KPI Dashboard ➔ Analytics Charts ➔ Shops & Foods Roster ➔ Rider Management ➔ Moderation ➔ Notifications Hub ➔ Dynamic Fee Settings
+```
+
+#### Detailed Functionality:
+* **Live KPI Badges & Section Totals**:
+  - Every sidebar menu item and section header displays dynamic live counter badges:
+    - 🏪 **Shops**: 14 active campus outlets
+    - 🍱 **Foods**: 180+ menu items
+    - 📦 **Orders**: 6,000+ completed & active orders
+    - 🚴 **Delivery Riders**: 154 registered student couriers
+    - ⭐ **Ratings**: 2,400+ customer reviews
+    - 📢 **Complaints**: 650+ student support tickets
+    - 📜 **Activity Logs**: 130+ timestamped audit logs
+    - 🔔 **Notifications**: 1,000+ targeted alert messages
+* **Visual Analytics Engine (Chart.js)**:
+  - **14-Day Revenue Trend**: Daily gross sales in BDT (`৳`).
+  - **Order Status Distribution**: Doughnut breakdown of Pending, Ready, Out for Delivery, and Delivered orders.
+  - **Orders by Shop**: Comparative bar chart of order volume across canteen outlets.
+  - **Customer Rating Distribution**: Star rating sentiment breakdown (1★ to 5★).
+  - **Top 5 Bestselling Foods**: Most frequently ordered meals on campus.
+* **Full Moderation & Audit Control**:
+  - Add or ban shops, update canteen contact info, and inspect menu items.
+  - Review student complaints with attached evidence images and update ticket resolution statuses.
+  - Review chronological system audit logs for administrative actions, logins, and policy adjustments.
+* **Dedicated Notifications Dispatcher**:
+  - Centralized notification management page with status filters (Read / Unread) and pagination (`10`, `25`, `50`, `100`, `All`).
+  - Broadcast administrative notices to individual canteen shops or all outlets simultaneously.
+* **Commission & Fee Policy Management (with Live Simulator)**:
+  - Configure the **Platform Admin Commission** (e.g. `4.0%`) and **Delivery Rider Share** (e.g. `3.0%`).
+  - Interactive quick-preset chips (`1.0%`, `1.5%`, `2.0%`, `3.0%`, `4.0%`, `5.0%`, `10.0%`).
+  - **Live Order Split Simulator**: Drag the slider (`৳50` – `৳2,500`) to preview 3-part payout allocations (Shop Net, Admin Revenue, Rider Earnings) with real-time visual progress bars.
+
+---
+
+## 🔄 End-to-End Order Lifecycle & State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Student places order at /buyer
+    Pending --> Ready: Kitchen prepares meal & clicks "Mark as Ready" at /seller
+    Ready --> Out_for_Delivery: Courier claims order at /delivery
+    Out_for_Delivery --> Delivered: Courier verifies Student 4-digit OTP
+    Delivered --> [*]: Payout split computed & Student submits 5★ Rating
+```
+
+| Step | Triggering Role | Action | System Status | Data Updates |
+|---|---|---|---|---|
+| **1. Checkout** | Student (Buyer) | Submits cart at `/buyer` | `Pending` | Generates Order ID, assigns 4-digit OTP, reserves food stock |
+| **2. Prep** | Canteen Shop | Clicks "Mark as Ready" at `/seller` | `Ready` | Moves order to courier claim pool, notifies student |
+| **3. Claim** | Delivery Courier | Clicks "Accept Order" at `/delivery` | `Out for Delivery` | Binds rider ID to order, displays delivery destination |
+| **4. Handover** | Courier & Student | Courier enters student's OTP | `Delivered` | Validates OTP match, marks complete, credits rider balance |
+| **5. Feedback**| Student (Buyer) | Submits review & stars | `Delivered` | Links rating to food item and updates average score |
 
 ---
 
@@ -96,24 +203,24 @@ A production-ready full-stack food ordering and delivery ecosystem engineered fo
 
 | Layer | Technologies | Purpose |
 |---|---|---|
-| **Backend Framework** | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.9+) | High-speed asynchronous REST API engine |
-| **Server Engine** | [Uvicorn](https://www.uvicorn.org/) | Lightning-fast ASGI web server |
+| **Backend Engine** | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.9+) | Asynchronous REST API framework |
+| **ASGI Server** | [Uvicorn](https://www.uvicorn.org/) | Lightning-fast Python web server |
 | **Database & ORM** | [SQLAlchemy](https://www.sqlalchemy.org/) + [SQLite](https://www.sqlite.org/) | Relational database mapping with disk persistence |
-| **Templating** | [Jinja2](https://palletsprojects.com/p/jinja/) | Server-side template rendering for all portals |
-| **Frontend Styling** | Vanilla CSS3 + [Bootstrap 5.3](https://getbootstrap.com/) | Custom glassmorphic styles, responsive grid, animations |
-| **Icons & Typography** | Bootstrap Icons + Google Fonts (Outfit) | Modern UI iconography and clean sans-serif typography |
-| **Client-side Logic** | Modern Vanilla JavaScript (ES6+) | Real-time fetch requests, DOM reactivity, local storage state |
-| **Data Visualization**| [Chart.js 4.4](https://www.chartjs.org/) | Responsive charts for admin analytics |
+| **Templating Engine** | [Jinja2](https://palletsprojects.com/p/jinja/) | Server-side template rendering for all portals |
+| **Frontend Styling** | Vanilla CSS3 + [Bootstrap 5.3](https://getbootstrap.com/) | Custom glassmorphism components, responsive layout |
+| **Icons & Typography** | Bootstrap Icons + Google Fonts (Outfit) | Modern iconography and clean typography |
+| **Client-Side Scripts**| Modern Vanilla JavaScript (ES6+) | Real-time fetch calls, state management, interactive DOM |
+| **Data Analytics** | [Chart.js 4.4](https://www.chartjs.org/) | Interactive admin charts and metrics |
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Directory Layout
 
 ```
 canteen-food-delivery-system/
 ├── backend/
 │   ├── database/
-│   │   └── canteen.db               # SQLite database file
+│   │   └── canteen.db               # SQLite persistent database file
 │   ├── routers/
 │   │   ├── complaints.py            # Complaints and dispute endpoints
 │   │   ├── delivery.py              # Delivery partner operations & OTP flow
@@ -164,7 +271,7 @@ canteen-food-delivery-system/
 ├── backup.py                        # Automated database backup utility script
 ├── run.py                           # Single-command launcher for all services
 ├── requirements.txt                 # Python project dependencies
-├── README.md                        # Documentation
+├── README.md                        # Comprehensive system documentation
 ├── Shop_List_Directory.pdf          # PDF directory of all 14 shops & credentials
 ├── shop_credentials_and_food_menu.pdf
 └── delivery_boys_credentials.pdf   # PDF directory of all 154 delivery partners
@@ -172,21 +279,21 @@ canteen-food-delivery-system/
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Installation & Quick Start
 
 ### Prerequisites
 - **Python 3.8+** (Python 3.9+ recommended)
 - **pip** package manager
 
-### 1. Clone & Set Up Environment
+### 1. Set Up Virtual Environment
 ```bash
-# Navigate to the project directory
+# Clone or open the project folder
 cd canteen-food-delivery-system
 
 # Create a virtual environment
 python3 -m venv venv
 
-# Activate the virtual environment
+# Activate the virtual environment:
 # On macOS / Linux:
 source venv/bin/activate
 # On Windows:
@@ -196,8 +303,8 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Launch the Application
-Start all backend services, customer portals, and the administration panel with a single command:
+### 2. Run the Application
+Start the entire full-stack system with a single command:
 ```bash
 python3 run.py
 ```
@@ -212,18 +319,18 @@ $$\text{http://127.0.0.1:8000}$$
 | Portal | URL Path | Role | Default Credentials |
 |---|---|---|---|
 | **Landing Page** | [`/`](http://127.0.0.1:8000/) | General Public | Open access |
-| **Buy Food** | [`/buyer`](http://127.0.0.1:8000/buyer) | Student / Buyer | Enter Student ID at Checkout |
-| **Sell Food** | [`/seller`](http://127.0.0.1:8000/seller) | Canteen Shop | `shop_1` / `password` *(See PDF for full list)* |
-| **Delivery Partner** | [`/delivery`](http://127.0.0.1:8000/delivery) | Delivery Rider | `DB001` / `password` *(See PDF for full list)* |
+| **Buy Food** | [`/buyer`](http://127.0.0.1:8000/buyer) | Student / Buyer | Open access (Provide Student ID at checkout) |
+| **Sell Food** | [`/seller`](http://127.0.0.1:8000/seller) | Canteen Shop | `shop_1` / `password` *(See PDF for shops 1–14)* |
+| **Delivery Partner** | [`/delivery`](http://127.0.0.1:8000/delivery) | Delivery Rider | `DB001` / `password` *(See PDF for riders 1–154)* |
 | **Admin Control** | [`/admin`](http://127.0.0.1:8000/admin) | Platform Admin | **User:** `admin`<br>**Password:** `canteen@2024` or `admin123` |
 
 ---
 
-## 📄 Included PDF References
+## 📄 Printable PDF Reference Directories
 
-The root directory and static folders include official printable PDF directories for deployment and credential verification:
+The workspace contains official PDF documents for physical verification and staff onboarding:
 
-1. **`Shop_List_Directory.pdf`**: Complete list of all 14 registered campus food outlets, shop IDs, passcodes, and contact details.
+1. **`Shop_List_Directory.pdf`**: Complete roster of all 14 campus food outlets, shop names, manager contacts, and access credentials.
 2. **`shop_credentials_and_food_menu.pdf`**: Itemized food catalogues, pricing in BDT (`৳`), and menu breakdown per shop.
 3. **`delivery_boys_credentials.pdf`**: Directory of 154 registered student delivery partners with IDs (`DB001`–`DB154`).
 
@@ -231,57 +338,60 @@ The root directory and static folders include official printable PDF directories
 
 ## 💰 Commission & Fee Distribution Model
 
-The platform dynamically calculates revenue distribution on every transaction:
+Revenue distribution on every completed order is governed by dynamic platform policy:
 
 $$\text{Order Total} = \text{Shop Net Payout} + \text{Platform Admin Fee} + \text{Delivery Rider Share}$$
 
 ```
-Sample Order: ৳500.00
-├── Shop Net Payout (93.0%):        ৳465.00
-├── Platform Admin Fee (4.0%):       ৳20.00
-└── Delivery Boy Earnings (3.0%):    ৳15.00
+Example: Student places a ৳500.00 order
+├── 🟡 Shop Net Payout (93.0%):        ৳465.00
+├── 🔵 Platform Admin Fee (4.0%):       ৳20.00
+└── 🟢 Delivery Boy Earnings (3.0%):    ৳15.00
 ```
 
-- **Configurable via Admin UI**: Rates can be customized in real-time under the **Fee Settings** section with interactive sliders and quick preset chips (`1.0%`, `1.5%`, `2.0%`, `3.0%`, `4.0%`, `5.0%`, `10.0%`).
-- **Live Split Simulator**: Allows administrators to preview how any order value from `৳50` to `৳2,500` is divided.
+- **Interactive Configuration**: Sliders and percentage inputs allow the university to configure fee parameters in real time.
+- **Preset Quick-Select Chips**: Instantly switch rates (`1.0%`, `1.5%`, `2.0%`, `3.0%`, `4.0%`, `5.0%`, `10.0%`).
+- **Live Simulator**: Test order amounts between `৳50` and `৳2,500` to preview financial allocations before saving policy updates.
 
 ---
 
 ## 📡 REST API Reference
 
-### Public & Buyer Endpoints
-- `GET /api/shops` — Retrieve list of all registered canteen shops.
-- `GET /api/foods` — Retrieve food menu items with optional category filters.
-- `POST /api/orders` — Place a new food order with buyer details and item list.
-- `GET /api/orders/{order_id}` — Check live tracking status of an order.
-- `POST /api/ratings` — Submit a 5-star rating and review for a completed order.
+### 🛒 Buyer & Public Endpoints
+- `GET /api/shops` — Retrieve list of all active canteen shops.
+- `GET /api/foods` — Retrieve all menu items with category / meal filters.
+- `POST /api/orders` — Submit a new order with cart items and customer delivery info.
+- `GET /api/orders/{order_id}` — Get real-time status and tracking details for an order.
+- `POST /api/ratings` — Submit a 5-star rating and written review.
 
-### Seller Endpoints
-- `POST /api/seller/login` — Authenticate canteen outlet credentials.
-- `GET /api/seller/foods` — Retrieve items belonging to the authenticated shop.
-- `POST /api/seller/foods` — Add a new food item to the menu.
-- `PUT /api/seller/foods/{food_id}` — Update item details, pricing, or stock.
-- `PUT /api/orders/{order_id}/ready` — Update order status to `Ready`.
+### 🏪 Seller Endpoints
+- `POST /api/seller/login` — Authenticate canteen shop ID and password.
+- `GET /api/seller/foods` — List all items in the authenticated shop's catalog.
+- `POST /api/seller/foods` — Add a new food item with price, stock, and meal category.
+- `PUT /api/seller/foods/{food_id}` — Update food pricing, description, or stock.
+- `DELETE /api/seller/foods/{food_id}` — Remove a food item from the menu.
+- `PUT /api/orders/{order_id}/ready` — Transition order state from `Pending` to `Ready`.
 
-### Delivery Partner Endpoints
-- `POST /api/delivery/login` — Courier login using Delivery Boy ID.
-- `GET /api/delivery/available-orders` — List all orders ready for pickup.
-- `PUT /api/delivery/orders/{order_id}/claim` — Assign order to the active rider (`Out for Delivery`).
-- `POST /api/delivery/orders/{order_id}/verify-otp` — Verify customer OTP and mark order `Delivered`.
-- `GET /api/delivery/earnings` — Retrieve total payout balance and delivery history.
+### 🚴 Delivery Partner Endpoints
+- `POST /api/delivery/login` — Authenticate Delivery Boy ID and password.
+- `GET /api/delivery/available-orders` — List orders currently marked as `Ready` for pickup.
+- `PUT /api/delivery/orders/{order_id}/claim` — Claim an order and mark `Out for Delivery`.
+- `POST /api/delivery/orders/{order_id}/verify-otp` — Verify customer 4-digit OTP and complete delivery.
+- `GET /api/delivery/earnings` — Retrieve historical earnings and trip records.
 
-### Admin Endpoints
-- `GET /admin/api/stats` — Retrieve platform KPI counts and trend metrics.
-- `GET /admin/api/settings` — Get current commission fee percentages.
-- `PUT /admin/api/settings` — Update commission rates for admin and delivery share.
-- `GET /admin/api/notifications` — Fetch paginated list of broadcast notifications.
-- `POST /admin/api/notifications` — Send announcement alerts to shop outlets.
+### 🛡️ Administrator Endpoints
+- `GET /admin/api/stats` — Fetch live platform counter badges and dashboard metrics.
+- `GET /admin/api/settings` — Get active platform commission percentages.
+- `PUT /admin/api/settings` — Update commission rates for admin and delivery riders.
+- `GET /admin/api/notifications` — Fetch paginated broadcast notification records.
+- `POST /admin/api/notifications` — Dispatch broadcast alerts to canteen shops.
+- `GET /admin/api/activity-logs` — Retrieve chronological audit log records.
 
 ---
 
-## 🗄️ Database Schema
+## 🗄️ Database Schema & Entity Relations
 
-All transactional records are stored in `backend/database/canteen.db` across the following core models:
+All data is persistently stored in `backend/database/canteen.db` across the following SQLAlchemy models:
 
 - **`Shop`**: `id`, `name`, `password`, `contact`, `image_url`, `created_at`
 - **`Food`**: `id`, `shop_id`, `name`, `price`, `stock`, `description`, `image_url`, `meal_type`
@@ -298,20 +408,19 @@ All transactional records are stored in `backend/database/canteen.db` across the
 
 ## 🛡️ Troubleshooting & Maintenance
 
-### Automated Backups
-To create a timestamped snapshot of the database:
+### Creating Database Backups
+To create an instant timestamped backup in the `backups/` directory:
 ```bash
 python3 backup.py
 ```
-Snapshots are automatically placed in the `backups/` folder.
 
-### Database Integrity
-If you need to verify or inspect the active SQLite database directly:
+### Direct SQLite Inspection
+To verify tables and row counts directly from the command line:
 ```bash
-sqlite3 backend/database/canteen.db ".tables"
+sqlite3 backend/database/canteen.db "SELECT count(*) FROM orders;"
 ```
 
 ---
 
 ## 📄 License
-This project is developed for educational and campus operations purposes. Distributed under the MIT License.
+Developed for university campus food operations and educational purposes. Distributed under the MIT License.
