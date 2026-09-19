@@ -40,15 +40,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Security Headers Middleware
-@app.middleware("http")
-async def add_security_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    return response
+# Security Shield Middleware (Rate Limiting, Scanner Defense, Payload Limiting, Headers)
+from backend.security import SecurityShieldMiddleware
+app.add_middleware(SecurityShieldMiddleware)
 
 # Mount static files
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

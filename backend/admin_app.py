@@ -58,6 +58,8 @@ async def admin_login_page(request: Request):
         return RedirectResponse(url="/admin", status_code=302)
     return templates.TemplateResponse("admin/login.html", {"request": request, "error": None})
 
+from backend.security import safe_compare
+
 @admin_app.post("/admin/login", response_class=HTMLResponse)
 async def admin_login_submit(
     request: Request,
@@ -65,7 +67,7 @@ async def admin_login_submit(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+    if safe_compare(username, ADMIN_USERNAME) and safe_compare(password, ADMIN_PASSWORD):
         request.session["admin_logged_in"] = True
         log_activity(db, "admin", "login", "Admin logged in successfully")
         return RedirectResponse(url="/admin", status_code=302)
