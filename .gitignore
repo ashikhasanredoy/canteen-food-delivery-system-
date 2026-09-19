@@ -1,6 +1,10 @@
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.log
 .env
 venv/
 env/
 .DS_Store
+*.tmp
+
