@@ -19,22 +19,34 @@ def _log(db, category, action, summary, detail=None):
 
 
 @router.post("/upload-image")
-def upload_complaint_image(file: UploadFile = File(...)):
+async def upload_complaint_image(file: UploadFile = File(...)):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    upload_dir = os.path.join(BASE_DIR, "frontend", "static", "images", "complaints")
+    upload_dir = os.path.abspath(os.path.join(BASE_DIR, "frontend", "static", "images", "complaints"))
     os.makedirs(upload_dir, exist_ok=True)
+
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
 
     file_extension = os.path.splitext(file.filename or "")[1].lower()
     allowed = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
     if file_extension not in allowed:
-        raise HTTPException(status_code=400, detail="Only image files are allowed (jpg, png, gif, webp)")
+        raise HTTPException(status_code=400, detail="Only image files are allowed (.jpg, .jpeg, .png, .gif, .webp)")
+
+    # Limit to 5MB
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size exceeds the 5MB maximum limit.")
 
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(upload_dir, unique_filename)
+    file_path = os.path.abspath(os.path.join(upload_dir, unique_filename))
+
+    # Path traversal check
+    if not file_path.startswith(upload_dir):
+        raise HTTPException(status_code=400, detail="Invalid destination file path.")
 
     try:
         with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            buffer.write(contents)
     except Exception:
         raise HTTPException(status_code=500, detail="Could not save uploaded image file.")
 

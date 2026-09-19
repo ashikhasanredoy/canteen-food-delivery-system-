@@ -1,16 +1,31 @@
-from pydantic import BaseModel, Field
+import html
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import List, Optional
 
+def sanitize_string(v: Optional[str]) -> Optional[str]:
+    if v is None:
+        return None
+    # Strip whitespace and escape HTML entities to prevent XSS / script injection
+    cleaned = v.strip()
+    return html.escape(cleaned)
+
 # Food Schemas
 class FoodBase(BaseModel):
-    shop_name: str = Field(..., min_length=1)
-    food_name: str = Field(..., min_length=1)
-    price: float = Field(..., gt=0)
-    quantity: int = Field(..., ge=0)
-    description: Optional[str] = None
-    image_url: Optional[str] = None
+    shop_name: str = Field(..., min_length=1, max_length=100)
+    food_name: str = Field(..., min_length=1, max_length=120)
+    price: float = Field(..., gt=0, le=50000)
+    quantity: int = Field(..., ge=0, le=5000)
+    description: Optional[str] = Field(None, max_length=1000)
+    image_url: Optional[str] = Field(None, max_length=500)
     meal_type: Optional[str] = "both"  # breakfast | lunch | both
+
+    @field_validator("food_name", "shop_name", "description", mode="before")
+    @classmethod
+    def sanitize_text(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 class FoodCreate(FoodBase):
     pass
@@ -31,12 +46,19 @@ class FoodResponse(FoodBase):
 # Order Schemas
 class OrderCreate(BaseModel):
     food_id: int
-    student_name: str = Field(..., min_length=1)
+    student_name: str = Field(..., min_length=1, max_length=100)
     student_id: str = Field(..., min_length=9, max_length=11, pattern=r"^\d{9,11}$")
-    email: Optional[str] = None
-    phone: str = Field(..., min_length=1)
-    delivery_location: str = Field(..., min_length=1)
-    quantity: int = Field(..., gt=0)
+    email: Optional[str] = Field(None, max_length=120)
+    phone: str = Field(..., min_length=7, max_length=20)
+    delivery_location: str = Field(..., min_length=1, max_length=200)
+    quantity: int = Field(..., gt=0, le=100)
+
+    @field_validator("student_name", "delivery_location", mode="before")
+    @classmethod
+    def sanitize_order_text(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 class OrderItemResponse(BaseModel):
     id: Optional[int] = None
@@ -80,23 +102,30 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 class OTPRequest(BaseModel):
-    email: str = Field(..., min_length=5)
+    email: str = Field(..., min_length=5, max_length=120)
 
 class OTPVerify(BaseModel):
-    email: str = Field(..., min_length=5)
-    otp: str = Field(..., min_length=4, max_length=4)
+    email: str = Field(..., min_length=5, max_length=120)
+    otp: str = Field(..., min_length=4, max_length=4, pattern=r"^\d{4}$")
 
 class CartItemCreate(BaseModel):
     food_id: int
-    quantity: int = Field(..., gt=0)
+    quantity: int = Field(..., gt=0, le=100)
 
 class CartCheckoutCreate(BaseModel):
-    student_name: str = Field(..., min_length=1)
+    student_name: str = Field(..., min_length=1, max_length=100)
     student_id: str = Field(..., min_length=9, max_length=11, pattern=r"^\d{9,11}$")
-    email: str = Field(..., min_length=5)
-    phone: str = Field(..., min_length=1)
-    delivery_location: str = Field(..., min_length=1)
-    items: List[CartItemCreate] = Field(..., min_length=1)
+    email: str = Field(..., min_length=5, max_length=120)
+    phone: str = Field(..., min_length=7, max_length=20)
+    delivery_location: str = Field(..., min_length=1, max_length=200)
+    items: List[CartItemCreate] = Field(..., min_length=1, max_length=50)
+
+    @field_validator("student_name", "delivery_location", mode="before")
+    @classmethod
+    def sanitize_checkout_text(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 class CartCheckoutResponse(BaseModel):
     order: Optional[OrderResponse] = None
@@ -122,7 +151,14 @@ class RatingCreate(BaseModel):
     food_id: int
     student_id: str = Field(..., min_length=9, max_length=11, pattern=r"^\d{9,11}$")
     stars: int = Field(..., ge=1, le=5)
-    comment: Optional[str] = None
+    comment: Optional[str] = Field(None, max_length=1000)
+
+    @field_validator("comment", mode="before")
+    @classmethod
+    def sanitize_comment(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 class RatingResponse(BaseModel):
     id: int
@@ -137,32 +173,58 @@ class RatingResponse(BaseModel):
 
 # Shop Auth Schemas
 class ShopLogin(BaseModel):
-    shop_name: Optional[str] = ""
-    shop_id: Optional[str] = ""
+    shop_name: Optional[str] = Field("", max_length=100)
+    shop_id: Optional[str] = Field("", max_length=50)
 
+    @field_validator("shop_name", "shop_id", mode="before")
+    @classmethod
+    def sanitize_shop_login(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 # Delivery Boy Auth Schemas
 class DeliveryBoyAuth(BaseModel):
-    name: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1, max_length=100)
     delivery_boy_id: str = Field(..., min_length=9, max_length=11, pattern=r"^\d{9,11}$")
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def sanitize_boy_name(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 class DeliveryBoyStatusUpdate(BaseModel):
     delivery_boy_id: str = Field(..., min_length=9, max_length=11, pattern=r"^\d{9,11}$")
     status: str = Field(..., pattern=r"^(Online|Offline)$")
 
 class DeliveryBoyUpdate(BaseModel):
-    name: str = Field(..., min_length=1)
-    delivery_boy_id: str = Field(..., min_length=1)
+    name: str = Field(..., min_length=1, max_length=100)
+    delivery_boy_id: str = Field(..., min_length=1, max_length=50)
 
+    @field_validator("name", mode="before")
+    @classmethod
+    def sanitize_boy_name(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 # Complaint Schemas
 class ComplaintCreate(BaseModel):
     role: str = Field(..., pattern=r"^(buyer|seller|delivery)$")
-    name: str = Field(..., min_length=1)
-    contact: Optional[str] = None
-    shop_name: Optional[str] = None
-    message: str = Field(..., min_length=5)
-    image_url: Optional[str] = None
+    name: str = Field(..., min_length=1, max_length=100)
+    contact: Optional[str] = Field(None, max_length=100)
+    shop_name: Optional[str] = Field(None, max_length=100)
+    message: str = Field(..., min_length=5, max_length=3000)
+    image_url: Optional[str] = Field(None, max_length=500)
+
+    @field_validator("name", "contact", "shop_name", "message", mode="before")
+    @classmethod
+    def sanitize_complaint(cls, v):
+        if isinstance(v, str):
+            return sanitize_string(v)
+        return v
 
 class ComplaintResponse(BaseModel):
     id: int
