@@ -2,7 +2,11 @@ const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
 const CART_STORAGE_KEY = 'canteen_buyer_cart';
 let allFoods = [];
 let activeMealFilter = '';
+let activeShopFilter = '';
 let cart = [];
+let currentPage = 1;
+let itemsPerPage = 12;
+let currentFilteredFoods = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     loadCart();
@@ -10,16 +14,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
-    if (searchInput) searchInput.addEventListener('input', filterAndSortMenu);
-    if (sortSelect) sortSelect.addEventListener('change', filterAndSortMenu);
+    const shopFilterSelect = document.getElementById('shop-filter-select');
+    const perPageSelect = document.getElementById('per-page-select');
 
-    document.getElementById('clear-cart-btn').addEventListener('click', clearCart);
-    document.getElementById('checkout-btn').addEventListener('click', openCheckoutModal);
+    if (perPageSelect) {
+        itemsPerPage = parseInt(perPageSelect.value, 10) || 12;
+    }
 
-    document.getElementById('cart-checkout-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await submitCartCheckout();
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
+            filterAndSortMenu();
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            currentPage = 1;
+            filterAndSortMenu();
+        });
+    }
+
+    if (shopFilterSelect) {
+        shopFilterSelect.addEventListener('change', (e) => {
+            activeShopFilter = e.target.value;
+            currentPage = 1;
+            filterAndSortMenu();
+        });
+    }
+
+    const clearCartBtn = document.getElementById('clear-cart-btn');
+    if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
+
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) checkoutBtn.addEventListener('click', openCheckoutModal);
+
+    const checkoutForm = document.getElementById('cart-checkout-form');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await submitCartCheckout();
+        });
+    }
 
     const stars = document.querySelectorAll('#star-rating-input .star');
     stars.forEach(star => {
@@ -34,42 +70,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.getElementById('rating-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const starsVal = parseInt(document.getElementById('rating_stars').value);
-        if (!starsVal || starsVal < 1) {
-            showToast('Please select a star rating', 'warning');
-            return;
-        }
-        const ratingData = {
-            food_id: parseInt(document.getElementById('rating_food_id').value),
-            student_id: document.getElementById('rating_student_id').value,
-            stars: starsVal,
-            comment: document.getElementById('rating_comment').value || null
-        };
-        try {
-            const response = await fetch(`${API_BASE_URL}/ratings`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(ratingData)
-            });
-            if (response.ok) {
-                showToast('Thank you for your rating!', 'success');
-                const modal = bootstrap.Modal.getInstance(document.getElementById('ratingModal'));
-                modal.hide();
-                document.getElementById('rating-form').reset();
-                resetStars();
-                loadMenu();
-            } else {
-                const err = await response.json();
-                showToast(err.detail || 'Could not submit rating', 'danger');
+    const ratingForm = document.getElementById('rating-form');
+    if (ratingForm) {
+        ratingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const starsVal = parseInt(document.getElementById('rating_stars').value);
+            if (!starsVal || starsVal < 1) {
+                showToast('Please select a star rating', 'warning');
+                return;
             }
-        } catch (error) {
-            showToast('Network error', 'danger');
+            const ratingData = {
+                food_id: parseInt(document.getElementById('rating_food_id').value),
+                student_id: document.getElementById('rating_student_id').value,
+                stars: starsVal,
+                comment: document.getElementById('rating_comment').value || null
+            };
+            try {
+                const response = await fetch(`${API_BASE_URL}/ratings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ratingData)
+                });
+                if (response.ok) {
+                    showToast('Thank you for your rating!', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('ratingModal'));
+                    if (modal) modal.hide();
+                    document.getElementById('rating-form').reset();
+                    resetStars();
+                    await loadMenu();
+                } else {
+                    const err = await response.json();
+                    showToast(err.detail || 'Could not submit rating', 'danger');
+                }
+            } catch (error) {
+                showToast('Network error', 'danger');
+            }
+        });
+    }
+
+    // Safety backdrop cleanup when all modals close
+    document.addEventListener('hidden.bs.modal', () => {
+        if (!document.querySelector('.modal.show')) {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
         }
     });
 });
 
+// ── Cart Management ───────────────────────────────────────────────
 function loadCart() {
     try {
         const saved = localStorage.getItem(CART_STORAGE_KEY);
@@ -141,6 +191,7 @@ function addToCart(foodId) {
 
     saveCart();
     showToast(`${food.food_name} added to cart`, 'success');
+    renderFoodGridAndPagination();
 }
 
 function updateCartQuantity(foodId, delta) {
@@ -159,11 +210,13 @@ function updateCartQuantity(foodId, delta) {
     }
 
     saveCart();
+    renderFoodGridAndPagination();
 }
 
 function removeFromCart(foodId) {
     cart = cart.filter(item => item.food_id !== foodId);
     saveCart();
+    renderFoodGridAndPagination();
 }
 
 function clearCart() {
@@ -171,6 +224,7 @@ function clearCart() {
     cart = [];
     saveCart();
     showToast('Cart cleared', 'secondary');
+    renderFoodGridAndPagination();
 }
 
 function renderCart() {
@@ -218,7 +272,7 @@ function renderCart() {
         grouped[shopName].forEach(item => {
             html += `
                 <div class="cart-item d-flex gap-3 mb-3 p-2 rounded-3">
-                    <img src="${item.image_url}" alt="${escapeHtml(item.food_name)}" class="cart-item-img rounded">
+                    <img src="${item.image_url}" alt="${escapeHtml(item.food_name)}" class="cart-item-img rounded" onerror="this.src='/static/images/foods/default.jpg'">
                     <div class="flex-grow-1 min-w-0">
                         <div class="fw-semibold text-truncate">${escapeHtml(item.food_name)}</div>
                         <div class="text-primary fw-bold small">${formatCurrency(item.price)}</div>
@@ -259,8 +313,11 @@ function openCheckoutModal() {
     summary.innerHTML = summaryHtml;
     checkoutTotal.textContent = formatCurrency(getCartTotal());
 
-    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
-    if (offcanvas) offcanvas.hide();
+    const cartModalEl = document.getElementById('cartModal') || document.getElementById('cartOffcanvas');
+    if (cartModalEl) {
+        const cartModalInstance = bootstrap.Modal.getInstance(cartModalEl) || (bootstrap.Offcanvas ? bootstrap.Offcanvas.getInstance(cartModalEl) : null);
+        if (cartModalInstance) cartModalInstance.hide();
+    }
 
     const modal = new bootstrap.Modal(document.getElementById('cartCheckoutModal'));
     modal.show();
@@ -269,11 +326,48 @@ function openCheckoutModal() {
 async function submitCartCheckout() {
     if (!cart.length) return;
 
+    const email = document.getElementById('cart_email').value.trim();
+    const studentName = document.getElementById('cart_student_name').value.trim();
+    const studentId = document.getElementById('cart_student_id').value.trim();
+    const phone = document.getElementById('cart_phone').value.trim();
+    const deliveryLocation = document.getElementById('cart_delivery_location').value.trim();
+
+    if (!studentName) {
+        showToast('Please enter your Student Name', 'warning');
+        document.getElementById('cart_student_name').focus();
+        return;
+    }
+
+    if (!studentId || !/^\d{9,11}$/.test(studentId)) {
+        showToast('Student ID must be 9 to 11 digits', 'warning');
+        document.getElementById('cart_student_id').focus();
+        return;
+    }
+
+    if (!email || !email.includes('@') || !email.includes('.')) {
+        showToast('Please enter a valid Student Email address', 'warning');
+        document.getElementById('cart_email').focus();
+        return;
+    }
+
+    if (!phone) {
+        showToast('Please enter your contact Phone Number', 'warning');
+        document.getElementById('cart_phone').focus();
+        return;
+    }
+
+    if (!deliveryLocation) {
+        showToast('Please enter your Delivery Location', 'warning');
+        document.getElementById('cart_delivery_location').focus();
+        return;
+    }
+
     const payload = {
-        student_name: document.getElementById('cart_student_name').value.trim(),
-        student_id: document.getElementById('cart_student_id').value.trim(),
-        phone: document.getElementById('cart_phone').value.trim(),
-        delivery_location: document.getElementById('cart_delivery_location').value.trim(),
+        student_name: studentName,
+        student_id: studentId,
+        email: email,
+        phone: phone,
+        delivery_location: deliveryLocation,
         items: cart.map(item => ({
             food_id: item.food_id,
             quantity: item.quantity
@@ -281,8 +375,9 @@ async function submitCartCheckout() {
     };
 
     const submitBtn = document.querySelector('#cart-checkout-form button[type="submit"]');
+    const originalBtnHtml = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Placing orders...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Confirming Order...';
 
     try {
         const response = await fetch(`${API_BASE_URL}/orders/cart`, {
@@ -291,32 +386,65 @@ async function submitCartCheckout() {
             body: JSON.stringify(payload)
         });
 
+        const result = await response.json();
+
         if (response.ok) {
-            const result = await response.json();
-            showToast(`${result.order_count} order(s) placed successfully!`, 'success');
+            const orderCount = result.order_count || cart.length;
+            showToast(`🎉 Order Confirmed! Delivery OTP sent to ${email}`, 'success');
+            
             cart = [];
             saveCart();
             document.getElementById('cart-checkout-form').reset();
-            bootstrap.Modal.getInstance(document.getElementById('cartCheckoutModal')).hide();
+            
+            const checkoutModalEl = document.getElementById('cartCheckoutModal');
+            const checkoutModal = bootstrap.Modal.getInstance(checkoutModalEl);
+            if (checkoutModal) {
+                checkoutModal.hide();
+            }
+            
+            // Cleanly wait for checkout modal to finish closing before opening success modal
+            setTimeout(() => {
+                showOrderSuccessModal(result, email, orderCount);
+            }, 250);
+            
             loadMenu();
+            if (typeof loadOrders === 'function') loadOrders();
         } else {
-            const err = await response.json();
-            const detail = Array.isArray(err.detail)
-                ? err.detail.map(e => e.msg || e).join(', ')
-                : (err.detail || 'Failed to place order');
-            showToast(detail, 'danger');
-            loadMenu();
+            showToast(result.detail || 'Failed to place order. Please try again.', 'danger');
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Network error. Is backend running?', 'danger');
+    } catch (err) {
+        console.error('Checkout Error:', err);
+        showToast('Network error while placing order', 'danger');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Place All Orders';
+        submitBtn.innerHTML = originalBtnHtml;
     }
 }
 
+function showOrderSuccessModal(result, email, itemCount) {
+    const emailEl = document.getElementById('success-modal-email');
+    const emailDisplayEl = document.getElementById('success-modal-email-display');
+    const itemsEl = document.getElementById('success-modal-items');
+    const totalEl = document.getElementById('success-modal-total');
+
+    if (emailEl) emailEl.textContent = email;
+    if (emailDisplayEl) emailDisplayEl.textContent = email;
+    if (itemsEl) itemsEl.textContent = `${result.order_count || itemCount} item(s)`;
+    if (totalEl) totalEl.textContent = formatCurrency(result.total_amount || 0);
+
+    const modalEl = document.getElementById('orderSuccessModal');
+    if (modalEl) {
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl);
+        }
+        modal.show();
+    }
+}
+
+// ── Helpers & Star Ratings ────────────────────────────────────────
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -330,9 +458,12 @@ function highlightStars(value) {
 }
 
 function resetStars() {
-    document.getElementById('rating_stars').value = 0;
-    document.getElementById('rating-label').textContent = 'Click a star to rate';
-    document.getElementById('submit-rating-btn').disabled = true;
+    const ratingStars = document.getElementById('rating_stars');
+    const ratingLabel = document.getElementById('rating-label');
+    const submitBtn = document.getElementById('submit-rating-btn');
+    if (ratingStars) ratingStars.value = 0;
+    if (ratingLabel) ratingLabel.textContent = 'Click a star to rate';
+    if (submitBtn) submitBtn.disabled = true;
     highlightStars(0);
 }
 
@@ -346,39 +477,56 @@ function renderStars(avg, count) {
     return `<div class="d-flex align-items-center gap-1">${html}<span class="text-muted small ms-1">${avg} (${count})</span></div>`;
 }
 
+// ── Menu Loading, Filtering & Pagination ─────────────────────────
 async function loadMenu() {
     try {
-        const response = await fetch(`${API_BASE_URL}/foods`);
+        const response = await fetch(`${API_BASE_URL}/foods?limit=1000`);
         allFoods = await response.json();
+        populateShopFilterOptions();
         syncCartWithMenu();
         filterAndSortMenu();
     } catch (error) {
         console.error('Error loading menu:', error);
-        document.getElementById('food-menu').innerHTML = '<div class="col-12 text-center text-danger">Error loading menu.</div>';
+        const container = document.getElementById('food-menu');
+        if (container) {
+            container.innerHTML = '<div class="col-12 text-center py-5 text-danger"><h4>Error loading menu. Please check your connection.</h4></div>';
+        }
     }
 }
 
+function populateShopFilterOptions() {
+    const select = document.getElementById('shop-filter-select');
+    if (!select) return;
+
+    const currentVal = activeShopFilter || select.value;
+    const shops = [...new Set(allFoods.map(f => f.shop_name).filter(Boolean))].sort();
+
+    select.innerHTML = `<option value="">All Canteen Outlets (${shops.length})</option>` +
+        shops.map(shop => `<option value="${escapeHtml(shop)}"${shop === currentVal ? ' selected' : ''}>${escapeHtml(shop)}</option>`).join('');
+}
+
 function filterAndSortMenu() {
-    const container = document.getElementById('food-menu');
-    if (!container) return;
-
-    if (allFoods.length === 0) return;
-
     const searchEl = document.getElementById('search-input');
     const sortEl = document.getElementById('sort-select');
     const query = searchEl ? searchEl.value.toLowerCase().trim() : '';
     const sortBy = sortEl ? sortEl.value : 'default';
 
     let filtered = allFoods.filter(food => {
-        if (!activeMealFilter) return true;
-        const mt = (food.meal_type || 'both').toLowerCase();
-        return mt === activeMealFilter || mt === 'both';
+        if (activeMealFilter) {
+            const mt = (food.meal_type || 'both').toLowerCase();
+            if (mt !== activeMealFilter && mt !== 'both') return false;
+        }
+        if (activeShopFilter) {
+            if ((food.shop_name || '') !== activeShopFilter) return false;
+        }
+        if (query) {
+            const nameMatch = (food.food_name || '').toLowerCase().includes(query);
+            const shopMatch = (food.shop_name || '').toLowerCase().includes(query);
+            const descMatch = (food.description || '').toLowerCase().includes(query);
+            if (!nameMatch && !shopMatch && !descMatch) return false;
+        }
+        return true;
     });
-
-    filtered = filtered.filter(food =>
-        food.food_name.toLowerCase().includes(query) ||
-        food.shop_name.toLowerCase().includes(query)
-    );
 
     if (sortBy === 'price-asc') {
         filtered.sort((a, b) => a.price - b.price);
@@ -387,16 +535,90 @@ function filterAndSortMenu() {
     } else if (sortBy === 'rating-desc') {
         filtered.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
     } else if (sortBy === 'name-asc') {
-        filtered.sort((a, b) => a.food_name.localeCompare(b.food_name));
+        filtered.sort((a, b) => (a.food_name || '').localeCompare(b.food_name || ''));
     }
 
-    container.innerHTML = '';
-    if (filtered.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center py-5 text-muted"><h4>No food matches your search or selection.</h4></div>';
+    currentFilteredFoods = filtered;
+    renderFoodGridAndPagination();
+}
+
+function getPaginationArray(current, total) {
+    if (total <= 7) {
+        const pages = [];
+        for (let i = 1; i <= total; i++) pages.push(i);
+        return pages;
+    }
+    if (current <= 4) {
+        return [1, 2, 3, 4, 5, '...', total];
+    }
+    if (current >= total - 3) {
+        return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    }
+    return [1, '...', current - 1, current, current + 1, '...', total];
+}
+
+function renderFoodGridAndPagination() {
+    const container = document.getElementById('food-menu');
+    const paginationContainer = document.getElementById('pagination-container');
+    const paginationList = document.getElementById('pagination-list');
+    const paginationInfo = document.getElementById('pagination-info');
+    const paginationSummary = document.getElementById('pagination-summary');
+    const currentPageNum = document.getElementById('current-page-num');
+    const totalPagesNum = document.getElementById('total-pages-num');
+    const totalItemsCount = document.getElementById('total-items-count');
+
+    if (!container) return;
+
+    if (!allFoods || allFoods.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center py-5 text-muted"><h4>No food items available at this time.</h4></div>';
+        if (paginationContainer) paginationContainer.style.display = 'none';
+        if (paginationInfo) paginationInfo.textContent = 'Showing 0 foods';
         return;
     }
 
-    filtered.forEach(food => {
+    const totalItems = currentFilteredFoods.length;
+
+    if (totalItems === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <div class="p-4 rounded-4 bg-light d-inline-block text-muted shadow-sm">
+                    <i class="bi bi-search fs-1 d-block mb-3 opacity-50 text-warning"></i>
+                    <h5 class="fw-bold text-dark mb-1">No matching foods found</h5>
+                    <p class="small text-muted mb-3">Try adjusting your search terms, meal filter, or canteen shop.</p>
+                    <button class="btn btn-sm btn-primary rounded-pill px-4" onclick="resetFilters()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset All Filters
+                    </button>
+                </div>
+            </div>`;
+        if (paginationContainer) paginationContainer.style.display = 'none';
+        if (paginationInfo) paginationInfo.textContent = 'Showing 0 of 0 foods';
+        return;
+    }
+
+    const effectivePageSize = itemsPerPage > 0 ? itemsPerPage : 12;
+    const totalPages = Math.max(1, Math.ceil(totalItems / effectivePageSize));
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * effectivePageSize;
+    const endIdx = Math.min(startIdx + effectivePageSize, totalItems);
+    const pageFoods = currentFilteredFoods.slice(startIdx, endIdx);
+
+    // Update Top & Bottom Pagination Info
+    if (paginationInfo) {
+        paginationInfo.textContent = `Showing ${startIdx + 1}–${endIdx} of ${totalItems} foods`;
+    }
+    if (paginationSummary) {
+        paginationSummary.innerHTML = `Showing page <b class="text-dark">${currentPage}</b> of <b class="text-dark">${totalPages}</b> (<span class="fw-semibold text-dark">${totalItems}</span> foods)`;
+    }
+    if (currentPageNum) currentPageNum.textContent = currentPage;
+    if (totalPagesNum) totalPagesNum.textContent = totalPages;
+    if (totalItemsCount) totalItemsCount.textContent = totalItems;
+
+    // Render Food Cards
+    let html = '';
+    pageFoods.forEach(food => {
         const isAvailable = food.quantity > 0;
         const cartItem = cart.find(item => item.food_id === food.id);
         const inCartQty = cartItem ? cartItem.quantity : 0;
@@ -407,55 +629,182 @@ function filterAndSortMenu() {
         const mealColor = mealType === 'breakfast' ? '#f59e0b'
             : mealType === 'lunch' ? '#5C5CFF'
             : '#059669';
-        const card = document.createElement('div');
-        card.className = 'col-md-6 col-lg-4 mb-4';
-        card.innerHTML = `
-            <div class="card h-100 glass-card border-0 overflow-hidden">
-                <div class="position-relative">
-                    <img src="${food.image_url}" class="card-img-top food-img-top" alt="${escapeHtml(food.food_name)}">
-                    <div class="position-absolute top-0 end-0 m-3">
-                        <span class="badge ${isAvailable ? 'bg-success' : 'bg-danger'} rounded-pill shadow px-3 py-2 fs-6">
-                            ${isAvailable ? food.quantity + ' Left' : 'Sold Out'}
-                        </span>
+
+        const safeName = escapeHtml(food.food_name || '');
+        const safeShop = escapeHtml(food.shop_name || '');
+        const safeDesc = escapeHtml(food.description || 'A delicious meal freshly prepared for you.');
+        const safeNameArg = (food.food_name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const safeShopArg = (food.shop_name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const safeImgArg = (food.image_url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+        html += `
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 glass-card border-0 overflow-hidden shadow-sm hover-lift transition-all">
+                    <div class="position-relative">
+                        <img src="${food.image_url}" class="card-img-top food-img-top" alt="${safeName}" onerror="this.src='/static/images/foods/default.jpg'">
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge ${isAvailable ? 'bg-success' : 'bg-danger'} rounded-pill shadow px-3 py-2 fs-6">
+                                ${isAvailable ? food.quantity + ' Left' : 'Sold Out'}
+                            </span>
+                        </div>
+                        <div class="position-absolute top-0 start-0 m-3">
+                            <span class="badge rounded-pill px-3 py-2 shadow-sm text-white" style="background:${mealColor}; font-size:0.72rem; font-weight:700; letter-spacing:0.3px;">
+                                ${mealLabel}
+                            </span>
+                        </div>
+                        ${inCartQty > 0 ? `<div class="position-absolute bottom-0 end-0 m-3"><span class="badge bg-primary rounded-pill px-3 py-2 shadow">${inCartQty} in cart</span></div>` : ''}
                     </div>
-                    <div class="position-absolute top-0 start-0 m-3">
-                        <span class="badge rounded-pill px-3 py-2" style="background:${mealColor}; font-size:0.72rem; font-weight:700; letter-spacing:0.3px;">
-                            ${mealLabel}
-                        </span>
-                    </div>
-                    ${inCartQty > 0 ? `<div class="position-absolute bottom-0 end-0 m-3"><span class="badge bg-primary rounded-pill px-3 py-2">${inCartQty} in cart</span></div>` : ''}
-                </div>
-                <div class="card-body d-flex flex-column p-4">
-                    <h5 class="card-title fw-bold fs-4 mb-1">${escapeHtml(food.food_name)}</h5>
-                    <p class="text-primary fw-medium small mb-2">${escapeHtml(food.shop_name)}</p>
-                    <div class="mb-3">${renderStars(food.avg_rating, food.rating_count)}</div>
-                    <p class="card-text text-secondary flex-grow-1 opacity-75">${escapeHtml(food.description || 'A delicious meal freshly prepared for you.')}</p>
-                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-light">
-                        <span class="fs-3 fw-bold text-dark">${formatCurrency(food.price)}</span>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-warning rounded-pill px-3 hover-lift fw-medium"
-                                    onclick="openRatingModal(${food.id}, '${food.food_name.replace(/'/g, "\\'")}', '${food.shop_name.replace(/'/g, "\\'")}', '${food.image_url}')"
-                                    title="Rate this food">
-                                Rate
-                            </button>
-                            <button class="btn btn-primary rounded-pill px-4 hover-lift fw-bold"
-                                    ${!isAvailable ? 'disabled' : ''}
-                                    onclick="addToCart(${food.id})">
-                                ${isAvailable ? (inCartQty > 0 ? 'Add More' : 'Add to Cart') : 'Sold Out'}
-                            </button>
+                    <div class="card-body d-flex flex-column p-4">
+                        <h5 class="card-title fw-bold fs-4 mb-1">${safeName}</h5>
+                        <p class="text-primary fw-semibold small mb-2"><i class="bi bi-shop me-1"></i>${safeShop}</p>
+                        <div class="mb-3">${renderStars(food.avg_rating, food.rating_count)}</div>
+                        <p class="card-text text-secondary flex-grow-1 opacity-75 small">${safeDesc}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-light">
+                            <span class="fs-3 fw-bold text-dark">${formatCurrency(food.price)}</span>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-warning rounded-pill px-3 hover-lift fw-medium"
+                                        onclick="openRatingModal(${food.id}, '${safeNameArg}', '${safeShopArg}', '${safeImgArg}')"
+                                        title="Rate this food">
+                                    <i class="bi bi-star me-1"></i>Rate
+                                </button>
+                                <button type="button" class="btn btn-primary rounded-pill px-4 hover-lift fw-bold"
+                                        ${!isAvailable ? 'disabled' : ''}
+                                        onclick="addToCart(${food.id})">
+                                    <i class="bi bi-cart-plus me-1"></i>${isAvailable ? (inCartQty > 0 ? 'Add More' : 'Add to Cart') : 'Sold Out'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-        container.appendChild(card);
     });
+
+    container.innerHTML = html;
+
+    // Render Pagination Bar
+    if (!paginationContainer || !paginationList) return;
+
+    if (totalPages <= 1) {
+        paginationContainer.style.display = totalItems > 0 ? 'flex' : 'none';
+        paginationList.innerHTML = `
+            <li class="page-item active">
+                <button type="button" class="page-link">1</button>
+            </li>`;
+        return;
+    }
+
+    paginationContainer.style.display = 'flex';
+
+    let paginationHtml = '';
+
+    // First page jump (when totalPages > 5)
+    if (totalPages > 5) {
+        paginationHtml += `
+            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button type="button" class="page-link" onclick="goToPage(1)" title="First Page" aria-label="First">
+                    <i class="bi bi-chevron-double-left"></i>
+                </button>
+            </li>`;
+    }
+
+    // Previous page button
+    paginationHtml += `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <button type="button" class="page-link" onclick="goToPage(${currentPage - 1})" title="Previous Page" aria-label="Previous">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+        </li>`;
+
+    // Numeric page buttons
+    const pages = getPaginationArray(currentPage, totalPages);
+    pages.forEach(item => {
+        if (item === '...') {
+            paginationHtml += `
+                <li class="page-item disabled">
+                    <span class="page-link border-0 bg-transparent text-muted">…</span>
+                </li>`;
+        } else {
+            const isCurr = item === currentPage;
+            paginationHtml += `
+                <li class="page-item ${isCurr ? 'active' : ''}">
+                    <button type="button" class="page-link" onclick="goToPage(${item})">${item}</button>
+                </li>`;
+        }
+    });
+
+    // Next page button
+    paginationHtml += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <button type="button" class="page-link" onclick="goToPage(${currentPage + 1})" title="Next Page" aria-label="Next">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </li>`;
+
+    // Last page jump (when totalPages > 5)
+    if (totalPages > 5) {
+        paginationHtml += `
+            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button type="button" class="page-link" onclick="goToPage(${totalPages})" title="Last Page" aria-label="Last">
+                    <i class="bi bi-chevron-double-right"></i>
+                </button>
+            </li>`;
+    }
+
+    paginationList.innerHTML = paginationHtml;
+}
+
+function goToPage(pageNum, scrollToGrid = true) {
+    const totalItems = currentFilteredFoods.length;
+    const effectivePageSize = itemsPerPage > 0 ? itemsPerPage : 12;
+    const totalPages = Math.max(1, Math.ceil(totalItems / effectivePageSize));
+
+    if (pageNum < 1) pageNum = 1;
+    if (pageNum > totalPages) pageNum = totalPages;
+
+    currentPage = pageNum;
+    renderFoodGridAndPagination();
+
+    if (scrollToGrid) {
+        const menuEl = document.getElementById('food-menu');
+        if (menuEl) {
+            const yOffset = -100;
+            const y = menuEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    }
+}
+
+function changePerPage(val) {
+    const parsed = parseInt(val, 10);
+    itemsPerPage = isNaN(parsed) || parsed <= 0 ? 12 : parsed;
+    currentPage = 1;
+    renderFoodGridAndPagination();
 }
 
 function setMealFilter(btn, meal) {
     document.querySelectorAll('.meal-tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
     activeMealFilter = meal;
+    currentPage = 1;
+    filterAndSortMenu();
+}
+
+function resetFilters() {
+    const searchEl = document.getElementById('search-input');
+    const sortEl = document.getElementById('sort-select');
+    const shopEl = document.getElementById('shop-filter-select');
+    if (searchEl) searchEl.value = '';
+    if (sortEl) sortEl.value = 'default';
+    if (shopEl) {
+        shopEl.value = '';
+        activeShopFilter = '';
+    }
+    activeMealFilter = '';
+    document.querySelectorAll('.meal-tab-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.meal === '');
+    });
+    currentPage = 1;
     filterAndSortMenu();
 }
 
@@ -470,3 +819,17 @@ function openRatingModal(id, name, shop, img) {
     const modal = new bootstrap.Modal(document.getElementById('ratingModal'));
     modal.show();
 }
+
+// Expose globally for inline onclick/onchange handlers
+window.goToPage = goToPage;
+window.changePerPage = changePerPage;
+window.setMealFilter = setMealFilter;
+window.resetFilters = resetFilters;
+window.addToCart = addToCart;
+window.updateCartQuantity = updateCartQuantity;
+window.removeFromCart = removeFromCart;
+window.clearCart = clearCart;
+window.openRatingModal = openRatingModal;
+window.openCheckoutModal = openCheckoutModal;
+window.copyDeliveryOtp = copyDeliveryOtp;
+window.showOrderSuccessModal = showOrderSuccessModal;

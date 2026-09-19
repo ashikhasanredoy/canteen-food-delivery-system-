@@ -16,7 +16,7 @@ def get_db():
 def run_migrations():
     """Safely add new columns to existing tables (SQLite safe)."""
     with engine.connect() as conn:
-        for col in ["admin_fee REAL DEFAULT 0", "delivery_fee REAL DEFAULT 0", "delivery_boy_id TEXT"]:
+        for col in ["admin_fee REAL DEFAULT 0", "delivery_fee REAL DEFAULT 0", "delivery_boy_id TEXT", "email TEXT", "otp_code TEXT", "order_group_id TEXT"]:
             try:
                 conn.execute(text(f"ALTER TABLE orders ADD COLUMN {col}"))
                 conn.commit()
@@ -32,6 +32,12 @@ def run_migrations():
 
         try:
             conn.execute(text("ALTER TABLE complaints ADD COLUMN shop_name TEXT"))
+            conn.commit()
+        except Exception:
+            pass  # Column already exists
+
+        try:
+            conn.execute(text("ALTER TABLE delivery_boys ADD COLUMN last_seen DATETIME"))
             conn.commit()
         except Exception:
             pass  # Column already exists

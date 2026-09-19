@@ -10,71 +10,34 @@
 
     <!-- ── Stat Cards ──────────────────────────────────────────── -->
     <div class="row g-4 mb-5" id="stats-row">
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #10b981, #059669);">
-                <div class="stat-value" id="stat-foods">—</div>
-                <div class="stat-label">Total Foods</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #3b82f6, #2563eb);">
-                <div class="stat-value" id="stat-orders">—</div>
-                <div class="stat-label">Total Orders</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-md-4 col-xl">
             <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #f59e0b, #d97706);">
-                <div class="stat-value" id="stat-pending">—</div>
-                <div class="stat-label">Pending Deliveries</div>
+                <div class="stat-value" id="stat-shops">—</div>
+                <div class="stat-label">Total Shops</div>
             </div>
         </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                <div class="stat-value" id="stat-delivered">—</div>
-                <div class="stat-label">Completed</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #ec4899, #be185d);">
-                <div class="stat-value" id="stat-revenue">—</div>
-                <div class="stat-label">Total Revenue</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #14b8a6, #0f766e);">
-                <div class="stat-value" id="stat-admin-revenue">—</div>
-                <div class="stat-label">Admin Revenue Cut</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #6366f1, #4338ca);">
-                <div class="stat-value" id="stat-delivery-earnings">—</div>
-                <div class="stat-label">Delivery Earnings</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #f43f5e, #be123c);">
-                <div class="stat-value" id="stat-ratings">—</div>
-                <div class="stat-label">Total Ratings</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #84cc16, #4d7c0f);">
-                <div class="stat-value" id="stat-avg-rating">—</div>
-                <div class="stat-label">Avg Platform Rating</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-md-4 col-xl">
             <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #0284c7, #0369a1);">
                 <div class="stat-value" id="stat-delivery-boys">—</div>
                 <div class="stat-label">Delivery Boys</div>
             </div>
         </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #0ea5e9, #0284c7);">
-                <div class="stat-value small-text" id="stat-top-food"
-                    style="font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">—</div>
-                <div class="stat-label">Top Rated Food</div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #ec4899, #be185d);">
+                <div class="stat-value" id="stat-revenue">—</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #14b8a6, #0f766e);">
+                <div class="stat-value" id="stat-admin-revenue">—</div>
+                <div class="stat-label">Admin Revenue Cut</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+            <div class="stat-card" style="--bg-gradient: linear-gradient(135deg, #6366f1, #4338ca);">
+                <div class="stat-value" id="stat-delivery-earnings">—</div>
+                <div class="stat-label">Delivery Earnings</div>
             </div>
         </div>
     </div>
@@ -149,76 +112,30 @@
 
     </div>
 
-    <!-- ── Recent Orders + Ratings ─────────────────────────────── -->
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="admin-card h-100">
-                <div class="admin-card-header">
-                    <h6 class="mb-0">Recent Orders</h6>
-                    <a href="#orders-section" class="btn btn-sm btn-outline-light rounded-pill"
-                        onclick="showSection('orders-section')">View All</a>
-                </div>
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Student</th>
-                                <th>Food</th>
-                                <th>Status</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-orders-tbody">
-                            <tr>
-                                <td colspan="5" class="text-center py-3 text-muted">Loading…</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="admin-card h-100">
-                <div class="admin-card-header">
-                    <h6 class="mb-0">Recent Ratings</h6>
-                    <a href="#ratings-section" class="btn btn-sm btn-outline-light rounded-pill"
-                        onclick="showSection('ratings-section')">View All</a>
-                </div>
-                <div class="table-responsive">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Food</th>
-                                <th>Student</th>
-                                <th>Stars</th>
-                                <th>Comment</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-ratings-tbody">
-                            <tr>
-                                <td colspan="4" class="text-center py-3 text-muted">Loading…</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </section>
 
 <!-- ── Shops Section ──────────────────────────────────────── -->
 <section id="shops-section" class="admin-section">
     <div class="admin-card">
-        <div class="admin-card-header">
-            <h6 class="mb-0">Registered Shops</h6>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-primary rounded-pill" onclick="loadShops()">Refresh</button>
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <h6 class="mb-0 fw-bold">🏪 Registered Shops</h6>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="position-relative">
+                    <input type="text" id="shops-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search shops..." oninput="onShopsSearch()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="shops-page-size" class="table-toolbar-select" onchange="changeShopsPageSize(this.value)">
+                    <option value="5">5 / page</option>
+                    <option value="10" selected>10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="1000">All</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadShops()">Refresh</button>
             </div>
         </div>
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -232,21 +149,35 @@
                 </thead>
                 <tbody id="shops-tbody">
                     <tr>
-                        <td colspan="7" class="text-center py-3 text-muted">Loading…</td>
+                        <td colspan="7" class="text-center py-4 text-muted">Loading…</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <div id="shops-pagination"></div>
     </div>
 
     <!-- Notification History -->
     <div class="admin-card mt-4">
-        <div class="admin-card-header">
-            <h6 class="mb-0">Notification History</h6>
-            <button class="btn btn-sm btn-primary rounded-pill" onclick="loadNotifications()">Refresh</button>
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <h6 class="mb-0 fw-bold">🔔 Notification History</h6>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="position-relative">
+                    <input type="text" id="notifs-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search notifications..." oninput="onNotifsSearch()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="notifs-page-size" class="table-toolbar-select" onchange="changeNotifsPageSize(this.value)">
+                    <option value="5">5 / page</option>
+                    <option value="10" selected>10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="1000">All</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadNotifications()">Refresh</button>
+            </div>
         </div>
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -259,11 +190,12 @@
                 </thead>
                 <tbody id="notifications-tbody">
                     <tr>
-                        <td colspan="6" class="text-center py-3 text-muted">Loading…</td>
+                        <td colspan="6" class="text-center py-4 text-muted">Loading…</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <div id="notifs-pagination"></div>
     </div>
 </section>
 
@@ -272,14 +204,19 @@
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <h6 class="mb-0 fw-bold">🚴 Registered Delivery Boys</h6>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
-                    <input type="text" id="delivery-boy-search" class="form-control form-control-sm rounded-pill ps-4"
-                        placeholder="Search by ID or Name..." style="width: 220px; font-size: 0.85rem;"
-                        oninput="onDeliveryBoySearch()">
+                    <input type="text" id="delivery-boy-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search by ID or Name..." oninput="onDeliveryBoySearch()">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"
                         style="font-size: 0.75rem;"></i>
                 </div>
+                <select id="db-page-size" class="table-toolbar-select" onchange="changeDeliveryBoyPageSize(this.value)">
+                    <option value="5">5 / page</option>
+                    <option value="10" selected>10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="1000">All</option>
+                </select>
                 <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadDeliveryBoys()">
                     <i class="bi bi-arrow-clockwise me-1"></i>Refresh
                 </button>
@@ -308,15 +245,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top bg-light-subtle">
-            <span class="small text-muted" id="db-pagination-info">Showing 0 of 0 delivery boys</span>
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-secondary rounded-start-pill px-3" id="db-prev-btn"
-                    onclick="changeDeliveryBoyPage(-1)" disabled>Previous</button>
-                <button class="btn btn-outline-secondary rounded-end-pill px-3" id="db-next-btn"
-                    onclick="changeDeliveryBoyPage(1)" disabled>Next</button>
-            </div>
-        </div>
+        <div id="delivery-boys-pagination"></div>
     </div>
 </section>
 
@@ -408,12 +337,29 @@
 <!-- ── Foods Section ──────────────────────────────────────── -->
 <section id="foods-section" class="admin-section">
     <div class="admin-card">
-        <div class="admin-card-header">
-            <h6 class="mb-0">Food Inventory</h6>
-            <button class="btn btn-sm btn-primary rounded-pill" onclick="loadFoods()">Refresh</button>
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <h6 class="mb-0 fw-bold">🍔 Food Inventory</h6>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="position-relative">
+                    <input type="text" id="foods-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search food or shop..." oninput="onFoodsSearch()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="foods-shop-filter" class="table-toolbar-select" onchange="onFoodsShopFilter(this.value)">
+                    <option value="">All Shops</option>
+                </select>
+                <select id="foods-page-size" class="table-toolbar-select" onchange="changeFoodsPageSize(this.value)">
+                    <option value="10">10 / page</option>
+                    <option value="15" selected>15 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="1000">All foods</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadFoods()">Refresh</button>
+            </div>
         </div>
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -429,30 +375,48 @@
                 </thead>
                 <tbody id="foods-tbody">
                     <tr>
-                        <td colspan="9" class="text-center py-3 text-muted">Loading…</td>
+                        <td colspan="9" class="text-center py-4 text-muted">Loading…</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <div id="foods-pagination"></div>
     </div>
 </section>
 
 <!-- ── Orders Section ─────────────────────────────────────── -->
 <section id="orders-section" class="admin-section">
     <div class="admin-card">
-        <div class="admin-card-header flex-wrap gap-2">
-            <h6 class="mb-0">All Orders</h6>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-light rounded-pill filter-btn active" data-filter=""
-                    onclick="setOrderFilter(this, '')">All</button>
-                <button class="btn btn-sm btn-outline-warning rounded-pill filter-btn" data-filter="Pending"
-                    onclick="setOrderFilter(this, 'Pending')">Pending</button>
-                <button class="btn btn-sm btn-outline-success rounded-pill filter-btn" data-filter="Delivered"
-                    onclick="setOrderFilter(this, 'Delivered')">Delivered</button>
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h6 class="mb-0 fw-bold">📦 All Orders</h6>
+                <div class="d-flex gap-1 ms-md-2">
+                    <button class="btn btn-sm btn-outline-light rounded-pill filter-btn active" data-filter=""
+                        onclick="setOrderFilter(this, '')">All</button>
+                    <button class="btn btn-sm btn-outline-warning rounded-pill filter-btn" data-filter="Pending"
+                        onclick="setOrderFilter(this, 'Pending')">Pending</button>
+                    <button class="btn btn-sm btn-outline-success rounded-pill filter-btn" data-filter="Delivered"
+                        onclick="setOrderFilter(this, 'Delivered')">Delivered</button>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="position-relative">
+                    <input type="text" id="orders-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search student, id, shop, loc..." oninput="onOrdersSearch()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="orders-page-size" class="table-toolbar-select" onchange="changeOrdersPageSize(this.value)">
+                    <option value="10">10 / page</option>
+                    <option value="25" selected>25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                    <option value="1000">All</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadOrders()">Refresh</button>
             </div>
         </div>
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -472,23 +436,46 @@
                 </thead>
                 <tbody id="orders-tbody">
                     <tr>
-                        <td colspan="13" class="text-center py-3 text-muted">Loading…</td>
+                        <td colspan="13" class="text-center py-4 text-muted">Loading…</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <div id="orders-pagination"></div>
     </div>
 </section>
 
 <!-- ── Ratings Section ────────────────────────────────────── -->
 <section id="ratings-section" class="admin-section">
     <div class="admin-card">
-        <div class="admin-card-header">
-            <h6 class="mb-0">All Ratings</h6>
-            <button class="btn btn-sm btn-primary rounded-pill" onclick="loadRatings()">Refresh</button>
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <h6 class="mb-0 fw-bold">⭐ All Ratings</h6>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="position-relative">
+                    <input type="text" id="ratings-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search food, student, comment..." oninput="onRatingsSearch()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="ratings-star-filter" class="table-toolbar-select" onchange="onRatingsStarFilter(this.value)">
+                    <option value="">All Stars</option>
+                    <option value="5">5 Stars ★★★★★</option>
+                    <option value="4">4 Stars ★★★★</option>
+                    <option value="3">3 Stars ★★★</option>
+                    <option value="2">2 Stars ★★</option>
+                    <option value="1">1 Star ★</option>
+                </select>
+                <select id="ratings-page-size" class="table-toolbar-select" onchange="changeRatingsPageSize(this.value)">
+                    <option value="10">10 / page</option>
+                    <option value="15" selected>15 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="1000">All</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadRatings()">Refresh</button>
+            </div>
         </div>
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -502,26 +489,46 @@
                 </thead>
                 <tbody id="ratings-tbody">
                     <tr>
-                        <td colspan="7" class="text-center py-3 text-muted">Loading…</td>
+                        <td colspan="7" class="text-center py-4 text-muted">Loading…</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <div id="ratings-pagination"></div>
     </div>
 </section>
 
 <!-- ── Complaints Section ─────────────────────────────────────── -->
 <section id="complaints-section" class="admin-section">
     <div class="admin-card">
-        <div class="admin-card-header flex-wrap gap-2">
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-                <h6 class="mb-0">User Complaints</h6>
+                <h6 class="mb-0 fw-bold">📢 User Complaints</h6>
                 <span class="text-muted small">Reports from buyers, sellers, and delivery boys</span>
             </div>
-            <button class="btn btn-sm btn-primary rounded-pill" onclick="loadComplaints()">Refresh</button>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="position-relative">
+                    <input type="text" id="complaints-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search complaints..." oninput="onComplaintsSearch()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="complaints-status-filter" class="table-toolbar-select" onchange="onComplaintsStatusFilter(this.value)">
+                    <option value="">All Statuses</option>
+                    <option value="Open">Open</option>
+                    <option value="Reviewed">Reviewed</option>
+                    <option value="Resolved">Resolved</option>
+                </select>
+                <select id="complaints-page-size" class="table-toolbar-select" onchange="changeComplaintsPageSize(this.value)">
+                    <option value="5">5 / page</option>
+                    <option value="10" selected>10 / page</option>
+                    <option value="25">25 / page</option>
+                    <option value="1000">All</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadComplaints()">Refresh</button>
+            </div>
         </div>
         <div class="table-responsive">
-            <table class="admin-table">
+            <table class="admin-table mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -538,11 +545,12 @@
                 </thead>
                 <tbody id="complaints-tbody">
                     <tr>
-                        <td colspan="9" class="text-center py-3 text-muted">Loading…</td>
+                        <td colspan="10" class="text-center py-4 text-muted">Loading…</td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <div id="complaints-pagination"></div>
     </div>
 </section>
 
@@ -550,7 +558,7 @@
 <section id="settings-section" class="admin-section">
     <div class="admin-card" style="max-width: 560px;">
         <div class="admin-card-header">
-            <h6 class="mb-0">Fee Settings</h6>
+            <h6 class="mb-0 fw-bold">⚙️ Fee Settings</h6>
             <span class="text-muted small">Changes apply to new orders immediately</span>
         </div>
         <div class="p-4">
@@ -590,21 +598,28 @@
 <!-- ── Activity Log Section ──────────────────────────────── -->
 <section id="activity-section" class="admin-section">
     <div class="admin-card">
-        <div class="admin-card-header flex-wrap gap-2">
+        <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2">
-                <h6 class="mb-0">Activity Log</h6>
+                <h6 class="mb-0 fw-bold">📜 Activity Log</h6>
                 <span class="live-badge"
                     style="font-size: 0.72rem; padding: 2px 8px; border-color: rgba(92, 92, 255, 0.4); color: var(--primary);">●
                     LIVE</span>
                 <span id="last-updated" class="text-muted small ms-1" style="font-size: 0.75rem;">Refreshing…</span>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <!-- Search -->
-                <input type="text" id="activity-search" class="form-control form-control-sm"
-                    placeholder="Search events..." oninput="filterActivityLog()" style="width:180px; border-radius:20px; border:1.5px solid #d0d0ff;
-                           font-size:0.83rem; background:#f8f8ff;">
-                <!-- Refresh -->
-                <button class="btn btn-sm btn-primary rounded-pill" onclick="loadActivityLog()">Refresh</button>
+                <div class="position-relative">
+                    <input type="text" id="activity-search" class="form-control form-control-sm table-search-input"
+                        placeholder="Search events..." oninput="filterActivityLog()">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
+                </div>
+                <select id="activity-page-size" class="table-toolbar-select" onchange="changeActivityPageSize(this.value)">
+                    <option value="10">10 / page</option>
+                    <option value="20" selected>20 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                    <option value="1000">All</option>
+                </select>
+                <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadActivityLog()">Refresh</button>
             </div>
         </div>
 
@@ -626,6 +641,7 @@
         <div class="activity-timeline px-3 pb-4" id="activity-timeline">
             <div class="act-empty-state">Loading activity log...</div>
         </div>
+        <div id="activity-pagination"></div>
     </div>
 </section>
 

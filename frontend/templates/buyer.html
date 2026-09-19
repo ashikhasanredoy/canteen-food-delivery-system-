@@ -13,20 +13,29 @@
 <!-- Search & Sort Controls -->
 <div class="glass-card p-3 mb-3">
     <div class="row g-3 align-items-center">
-        <div class="col-md-7">
+        <div class="col-md-5">
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 text-muted">Search</span>
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                 <input type="text" class="form-control border-start-0" id="search-input" placeholder="Search by food name or shop name...">
             </div>
         </div>
-        <div class="col-md-4 ms-auto">
+        <div class="col-md-4">
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0 text-muted">Sort</span>
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-shop"></i></span>
+                <select class="form-select border-start-0 fw-medium" id="shop-filter-select">
+                    <option value="">All Canteen Outlets (8)</option>
+                    <!-- Populated dynamically by JS -->
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-sort-down"></i></span>
                 <select class="form-select border-start-0 fw-medium" id="sort-select">
                     <option value="default">Default Sort</option>
+                    <option value="rating-desc">Highest Rated ★</option>
                     <option value="price-asc">Price: Low to High</option>
                     <option value="price-desc">Price: High to Low</option>
-                    <option value="rating-desc">Highest Rated</option>
                     <option value="name-asc">Name: A to Z</option>
                 </select>
             </div>
@@ -34,17 +43,30 @@
     </div>
 </div>
 
-<!-- Meal Type Filter Tabs -->
-<div class="d-flex gap-2 mb-4 flex-wrap" id="meal-filter-tabs">
-    <button class="btn meal-tab-btn active rounded-pill px-4 fw-semibold" data-meal="" onclick="setMealFilter(this, '')">
-        All Foods
-    </button>
-    <button class="btn meal-tab-btn rounded-pill px-4 fw-semibold" data-meal="breakfast" onclick="setMealFilter(this, 'breakfast')">
-        Breakfast
-    </button>
-    <button class="btn meal-tab-btn rounded-pill px-4 fw-semibold" data-meal="lunch" onclick="setMealFilter(this, 'lunch')">
-        Lunch
-    </button>
+<!-- Meal Type Filter Tabs & Per-Page Bar -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex gap-2 flex-wrap" id="meal-filter-tabs">
+        <button class="btn meal-tab-btn active rounded-pill px-3.5 py-1.5 fw-semibold" data-meal="" onclick="setMealFilter(this, '')">
+            All Foods
+        </button>
+        <button class="btn meal-tab-btn rounded-pill px-3.5 py-1.5 fw-semibold" data-meal="breakfast" onclick="setMealFilter(this, 'breakfast')">
+            Breakfast
+        </button>
+        <button class="btn meal-tab-btn rounded-pill px-3.5 py-1.5 fw-semibold" data-meal="lunch" onclick="setMealFilter(this, 'lunch')">
+            Lunch
+        </button>
+    </div>
+    <div class="d-flex align-items-center gap-2 ms-auto">
+        <span class="small text-muted fw-semibold d-none d-sm-inline" id="pagination-info">Showing 1-12 of 100 foods</span>
+        <select class="form-select form-select-sm rounded-pill px-3 py-1.5 fw-medium border-warning border-opacity-50" id="per-page-select" style="width: auto; font-size: 0.85rem;" onchange="changePerPage(this.value)">
+            <option value="6">6 per page</option>
+            <option value="9">9 per page</option>
+            <option value="12" selected>12 per page</option>
+            <option value="18">18 per page</option>
+            <option value="24">24 per page</option>
+            <option value="1000">All foods</option>
+        </select>
+    </div>
 </div>
 
 <!-- Food Menu Grid -->
@@ -57,35 +79,54 @@
     </div>
 </div>
 
+<!-- Pagination Navigation Container -->
+<div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 my-5 pt-3 border-top" id="pagination-container">
+    <div class="text-muted small" id="pagination-summary">
+        Showing page <b id="current-page-num" class="text-dark">1</b> of <b id="total-pages-num" class="text-dark">9</b> (<span id="total-items-count">100</span> foods)
+    </div>
+    <nav aria-label="Food menu pagination">
+        <ul class="pagination pagination-md mb-0 gap-1" id="pagination-list">
+            <!-- Populated dynamically by JS -->
+        </ul>
+    </nav>
+</div>
+
 <!-- Floating Cart Button -->
-<button type="button" class="cart-fab btn btn-primary shadow-lg" id="cart-fab" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas">
+<button type="button" class="cart-fab btn btn-primary shadow-lg hover-lift" id="cart-fab" data-bs-toggle="modal" data-bs-target="#cartModal" aria-label="View Cart">
     <i class="bi bi-cart3 fs-4"></i>
     <span class="cart-fab-badge" id="cart-badge">0</span>
 </button>
 
-<!-- Cart Offcanvas -->
-<div class="offcanvas offcanvas-end cart-offcanvas" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
-    <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel">
-            <i class="bi bi-cart3 me-2 text-primary"></i>Your Cart
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body d-flex flex-column p-0">
-        <div id="cart-items" class="cart-items flex-grow-1 overflow-auto p-3">
-            <div class="text-center text-muted py-5" id="cart-empty-state">
-                <i class="bi bi-basket fs-1 d-block mb-3 opacity-50"></i>
-                <p class="mb-0">Your cart is empty.<br>Add items from different shops!</p>
+<!-- Cart Popup Modal (Centered in Window) -->
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 520px;">
+        <div class="modal-content glass-card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom py-3 px-4 bg-white d-flex align-items-center justify-content-between">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0" id="cartModalLabel">
+                    <span class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-cart3 fs-5"></i>
+                    </span>
+                    <span>Your Cart</span>
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-        <div class="cart-footer border-top p-3 bg-light">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fw-medium text-muted">Grand Total</span>
-                <span class="fw-bold fs-4 text-primary" id="cart-grand-total">৳0.00</span>
+            <div class="modal-body p-3 p-md-4" style="max-height: 60vh; overflow-y: auto;">
+                <div id="cart-items" class="cart-items">
+                    <div class="text-center text-muted py-5" id="cart-empty-state">
+                        <i class="bi bi-basket fs-1 d-block mb-3 opacity-50"></i>
+                        <p class="mb-0">Your cart is empty.<br>Add items from different shops!</p>
+                    </div>
+                </div>
             </div>
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-secondary rounded-pill flex-grow-1" id="clear-cart-btn" disabled>Clear</button>
-                <button type="button" class="btn btn-primary rounded-pill flex-grow-1 fw-bold" id="checkout-btn" disabled>Checkout</button>
+            <div class="modal-footer border-top p-3 px-4 bg-light d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <span class="fw-semibold text-muted">Grand Total</span>
+                    <span class="fw-bold fs-3 text-primary" id="cart-grand-total">৳0.00</span>
+                </div>
+                <div class="d-flex gap-2 w-100 mt-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill py-2.5 px-4 fw-semibold flex-grow-1" id="clear-cart-btn" disabled>Clear</button>
+                    <button type="button" class="btn btn-primary rounded-pill py-2.5 px-4 fw-bold flex-grow-1 hover-lift shadow-sm" id="checkout-btn" disabled>Checkout</button>
+                </div>
             </div>
         </div>
     </div>
@@ -94,37 +135,58 @@
 <!-- Cart Checkout Modal -->
 <div class="modal fade" id="cartCheckoutModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content glass-card border-0">
-            <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold">Checkout Cart</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content glass-card border-0 shadow-2xl rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom py-3 px-4 bg-white d-flex align-items-center justify-content-between">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0">
+                    <span class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-shield-check fs-5"></i>
+                    </span>
+                    <span>Checkout Cart</span>
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="checkout-summary mb-4 p-3 rounded-3 bg-light border border-white" id="checkout-summary"></div>
                 <form id="cart-checkout-form">
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-medium">Student Name</label>
-                        <input type="text" class="form-control" id="cart_student_name" required placeholder="John Doe">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Student Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="cart_student_name" required placeholder="e.g. John Doe">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-medium">Student ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="cart_student_id" required placeholder="e.g. 0112310001" pattern="\d{9,11}" minlength="9" maxlength="11" title="Student ID must be 9 to 11 digits">
+                        </div>
                     </div>
+
+                    <!-- Student Email Input -->
                     <div class="mb-3">
-                        <label class="form-label text-muted small fw-medium">Student ID <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="cart_student_id" required placeholder="e.g. 0112310001" pattern="\d{9,11}" minlength="9" maxlength="11" title="Student ID must be 9 to 11 digits">
+                        <label class="form-label text-muted small fw-medium">Student Email / Gmail <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white text-muted"><i class="bi bi-envelope-at"></i></span>
+                            <input type="email" class="form-control" id="cart_email" required placeholder="e.g. student@gmail.com" autocomplete="email">
+                        </div>
+                        <small class="text-muted small mt-1 d-block"><i class="bi bi-info-circle text-primary me-1"></i>Your 4-digit order confirmation & delivery OTP will be sent to your Gmail upon placing order.</small>
                     </div>
+
                     <div class="row mb-3 g-3">
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-medium">Phone Number</label>
+                            <label class="form-label text-muted small fw-medium">Phone Number <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="cart_phone" required placeholder="017...">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-medium">Delivery Location</label>
-                            <input type="text" class="form-control" id="cart_delivery_location" required placeholder="Building / Room No">
+                            <label class="form-label text-muted small fw-medium">Delivery Location <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="cart_delivery_location" required placeholder="e.g. Library 3rd Floor / Room 402">
                         </div>
                     </div>
+
                     <div class="d-flex justify-content-between align-items-center bg-dark text-white p-3 rounded-4 mb-4 shadow-sm">
                         <span class="fw-medium opacity-75">Total Amount:</span>
                         <span id="checkout_total" class="fw-bold fs-3 text-primary">৳0.00</span>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-lg py-3 fw-bold fs-5 hover-lift">Place All Orders</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill shadow-lg py-3 fw-bold fs-5 hover-lift" id="place-orders-submit-btn">
+                        <span>Place All Orders</span> <i class="bi bi-arrow-right"></i>
+                    </button>
                 </form>
             </div>
         </div>
@@ -181,8 +243,69 @@
         </div>
     </div>
 </div>
+
+<!-- Order Success Modal (Glassmorphic Design) -->
+<div class="modal fade" id="orderSuccessModal" tabindex="-1" aria-labelledby="orderSuccessModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+        <div class="modal-content glass-card border-0 shadow-2xl rounded-4 overflow-hidden text-center p-0 position-relative">
+            <!-- Top Gradient Header -->
+            <div class="py-4 px-4 position-relative" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-inline-flex align-items-center justify-content-center bg-white text-success rounded-circle shadow-lg mb-2" style="width: 70px; height: 70px; animation: bounceIn 0.5s ease;">
+                    <i class="bi bi-check-lg" style="font-size: 2.2rem; -webkit-text-stroke: 1px;"></i>
+                </div>
+                <h3 class="text-white fw-bold mb-1">Order Confirmed!</h3>
+                <p class="text-white text-opacity-90 small mb-0">Your canteen food order has been placed</p>
+            </div>
+
+            <div class="modal-body p-4 pt-3">
+                <!-- Email Inbox OTP Notice Box (OTP only sent to email inbox) -->
+                <div class="p-3.5 my-3 rounded-4 position-relative" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1.5px solid #bfdbfe;">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px; font-size: 1.2rem;">
+                            <i class="bi bi-envelope-check-fill"></i>
+                        </div>
+                        <h6 class="fw-bold text-primary mb-0" style="font-size: 1.05rem;">Delivery OTP Sent to Email</h6>
+                    </div>
+
+                    <p class="text-secondary small mb-2 text-center" style="font-size: 0.88rem; line-height: 1.45;">
+                        Your secure <strong>4-digit Delivery OTP</strong> has been sent to your email inbox:
+                    </p>
+                    
+                    <div class="bg-white py-2 px-3 rounded-3 border border-primary border-opacity-25 text-center fw-bold text-primary mb-2 shadow-xs" style="font-size: 0.95rem; word-break: break-all;">
+                        <i class="bi bi-mailbox2 me-1.5"></i><span id="success-modal-email-display"></span>
+                    </div>
+
+                    <div class="small text-muted text-center" style="font-size: 0.8rem;">
+                        <i class="bi bi-shield-lock-fill text-primary me-1"></i>Please check your email inbox and provide the OTP to the delivery rider upon arrival.
+                    </div>
+                </div>
+
+                <!-- Order Details Card -->
+                <div class="bg-light p-3 rounded-3 text-start small mb-3 border">
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="text-muted"><i class="bi bi-envelope-check text-primary me-1.5"></i>Confirmation Sent:</span>
+                        <span class="fw-bold text-dark text-truncate" id="success-modal-email" style="max-width: 220px;"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <span class="text-muted"><i class="bi bi-bag-check text-primary me-1.5"></i>Total Items:</span>
+                        <span class="fw-bold text-dark" id="success-modal-items"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                        <span class="fw-semibold text-dark">Total Amount:</span>
+                        <span class="fw-bold fs-5 text-primary" id="success-modal-total">৳0.00</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-primary w-100 rounded-pill py-3 fw-bold fs-5 shadow-lg hover-lift" data-bs-dismiss="modal">
+                    <span>Done & Continue</span> <i class="bi bi-check2-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/buyer.js?v=4"></script>
+<script src="/static/js/buyer.js?v=12"></script>
 {% endblock %}

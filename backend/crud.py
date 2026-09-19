@@ -6,7 +6,7 @@ from backend import models, schemas
 def get_food(db: Session, food_id: int):
     return db.query(models.Food).filter(models.Food.id == food_id).first()
 
-def get_foods(db: Session, skip: int = 0, limit: int = 100):
+def get_foods(db: Session, skip: int = 0, limit: int = 1000):
     return db.query(models.Food).offset(skip).limit(limit).all()
 
 def create_food(db: Session, food: schemas.FoodCreate):
@@ -43,14 +43,36 @@ def get_pending_orders(db: Session):
     return db.query(models.Order).filter(models.Order.status == "Pending").all()
 
 def create_order(db: Session, order: schemas.OrderCreate, total_price: float,
-                 admin_fee: float = 0.0, delivery_fee: float = 0.0):
+                 admin_fee: float = 0.0, delivery_fee: float = 0.0, otp_code: str = None):
+    food = get_food(db, order.food_id)
     db_order = models.Order(
-        **order.model_dump(),
+        student_name=order.student_name,
+        student_id=order.student_id,
+        email=order.email,
+        phone=order.phone,
+        delivery_location=order.delivery_location,
         total_price=total_price,
         admin_fee=admin_fee,
-        delivery_fee=delivery_fee
+        delivery_fee=delivery_fee,
+        otp_code=otp_code,
+        status="Pending",
+        delivery_request_status="None"
     )
     db.add(db_order)
+    db.flush()
+
+    if food:
+        order_item = models.OrderItem(
+            order_id=db_order.id,
+            food_id=food.id,
+            food_name=food.food_name,
+            shop_name=food.shop_name,
+            price=food.price,
+            quantity=order.quantity,
+            total_price=total_price
+        )
+        db.add(order_item)
+
     db.commit()
     db.refresh(db_order)
     return db_order

@@ -1,11 +1,48 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from backend import schemas, models
 from backend.database import get_db
 from backend.services import delivery_service
 
 router = APIRouter(prefix="/delivery", tags=["delivery"])
 
+@router.get("/stats/{delivery_boy_id}")
+def get_delivery_boy_stats(delivery_boy_id: str, db: Session = Depends(get_db)):
+    completed_count = db.query(models.Order).filter(
+        models.Order.delivery_boy_id == delivery_boy_id,
+        models.Order.status == "Delivered"
+    ).count()
+
+    pending_count = db.query(models.Order).filter(
+        models.Order.delivery_boy_id == delivery_boy_id,
+        models.Order.status.in_(["Pending", "On Road"])
+    ).count()
+
+    total_income = db.query(func.sum(models.Order.delivery_fee)).filter(
+        models.Order.delivery_boy_id == delivery_boy_id,
+        models.Order.status == "Delivered"
+    ).scalar() or 0.0
+
+    return {
+        "completed_count": completed_count,
+        "pending_count": pending_count,
+        "total_income": round(total_income, 2)
+    }
+
+@router.get("/profile/{delivery_boy_id}")
+def get_delivery_boy_profile(delivery_boy_id: str, db: Session = Depends(get_db)):
+    boy = db.query(models.DeliveryBoy).filter(models.DeliveryBoy.delivery_boy_id == delivery_boy_id.strip()).first()
+    if not boy:
+        raise HTTPException(status_code=404, detail="Delivery boy not found")
+    return {
+        "id": boy.id,
+        "name": boy.name,
+        "delivery_boy_id": boy.delivery_boy_id,
+        "status": boy.status
+    }
+
+from datetime import datetime
 
 @router.post("/register")
 def register_delivery_boy(payload: schemas.DeliveryBoyAuth, db: Session = Depends(get_db)):
@@ -19,7 +56,8 @@ def register_delivery_boy(payload: schemas.DeliveryBoyAuth, db: Session = Depend
             detail=f"Delivery Boy ID '{db_id_clean}' is already registered to '{existing.name}'."
         )
 
-    new_boy = models.DeliveryBoy(name=name_clean, delivery_boy_id=db_id_clean, status="Online")
+    now = datetime.utcnow()
+    new_boy = models.DeliveryBoy(name=name_clean, delivery_boy_id=db_id_clean, status="Online", last_seen=now)
     db.add(new_boy)
     try:
         db.commit()
@@ -51,24 +89,40 @@ def register_delivery_boy(payload: schemas.DeliveryBoyAuth, db: Session = Depend
 def login_delivery_boy(payload: schemas.DeliveryBoyAuth, db: Session = Depends(get_db)):
     name_clean = payload.name.strip()
     db_id_clean = payload.delivery_boy_id.strip()
+    now = datetime.utcnow()
 
     boy = db.query(models.DeliveryBoy).filter(models.DeliveryBoy.delivery_boy_id == db_id_clean).first()
     if not boy:
-        boy = models.DeliveryBoy(name=name_clean, delivery_boy_id=db_id_clean, status="Online")
+        boy = models.DeliveryBoy(name=name_clean, delivery_boy_id=db_id_clean, status="Online", last_seen=now)
         db.add(boy)
         db.commit()
         db.refresh(boy)
     else:
         boy.status = "Online"
+        boy.last_seen = now
+        if name_clean:
+            boy.name = name_clean
         db.commit()
         db.refresh(boy)
 
     return {
         "message": "Login successful",
-        "name": boy.name,
+        "name": boy.name or name_clean or "Rider",
         "delivery_boy_id": boy.delivery_boy_id,
         "status": boy.status
     }
+
+
+@router.post("/heartbeat")
+def heartbeat(payload: schemas.DeliveryBoyStatusUpdate, db: Session = Depends(get_db)):
+    db_id_clean = payload.delivery_boy_id.strip()
+    boy = db.query(models.DeliveryBoy).filter(models.DeliveryBoy.delivery_boy_id == db_id_clean).first()
+    if boy:
+        boy.status = payload.status or "Online"
+        boy.last_seen = datetime.utcnow()
+        db.commit()
+        return {"status": boy.status}
+    return {"status": "Offline"}
 
 
 @router.post("/status")
@@ -79,6 +133,7 @@ def update_status(payload: schemas.DeliveryBoyStatusUpdate, db: Session = Depend
         raise HTTPException(status_code=404, detail="Delivery boy not found")
 
     boy.status = payload.status
+    boy.last_seen = datetime.utcnow() if payload.status == "Online" else None
     db.commit()
     db.refresh(boy)
     return {"message": "Status updated successfully", "status": boy.status}
@@ -117,11 +172,12 @@ def pickup_delivery(payload: schemas.DeliveryRequestPayload, db: Session = Depen
     }
 
 
+@router.post("/complete")
 @router.post("/verify")
-def verify_delivery(delivery: schemas.DeliveryVerify, db: Session = Depends(get_db)):
+def complete_delivery(delivery: schemas.DeliveryVerify, db: Session = Depends(get_db)):
     updated_order = delivery_service.verify_and_deliver(db, delivery)
     return {
-        "message": "Order Delivered Successfully ✅",
+        "message": "Order Delivered Successfully! Buyer has been notified via email. ✅",
         "status": updated_order.status
     }
 

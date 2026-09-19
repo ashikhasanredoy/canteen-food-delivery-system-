@@ -122,10 +122,12 @@ def get_stats(db: Session = Depends(get_db)):
     admin_pct_row = db.query(models.Setting).filter(models.Setting.key == "admin_fee_percent").first()
     delivery_pct_row = db.query(models.Setting).filter(models.Setting.key == "delivery_fee_percent").first()
 
-    # Total registered delivery boys
+    # Total registered delivery boys & shops
     total_delivery_boys = db.query(models.DeliveryBoy).count()
+    total_shops = db.query(models.Shop).count()
 
     return {
+        "total_shops": total_shops,
         "total_foods": total_foods,
         "total_orders": total_orders,
         "pending_orders": pending_orders,
@@ -139,6 +141,29 @@ def get_stats(db: Session = Depends(get_db)):
         "top_food": top_food_query.food_name if top_food_query else None,
         "admin_fee_percent": float(admin_pct_row.value) if admin_pct_row else 1.0,
         "delivery_fee_percent": float(delivery_pct_row.value) if delivery_pct_row else 1.0,
+    }
+
+@admin_app.get("/delivery/api/stats/{delivery_boy_id}")
+def get_delivery_boy_api_stats(delivery_boy_id: str, db: Session = Depends(get_db)):
+    completed_count = db.query(models.Order).filter(
+        models.Order.delivery_boy_id == delivery_boy_id,
+        models.Order.status == "Delivered"
+    ).count()
+
+    pending_count = db.query(models.Order).filter(
+        models.Order.delivery_boy_id == delivery_boy_id,
+        models.Order.status.in_(["Pending", "On Road"])
+    ).count()
+
+    total_income = db.query(func.sum(models.Order.delivery_fee)).filter(
+        models.Order.delivery_boy_id == delivery_boy_id,
+        models.Order.status == "Delivered"
+    ).scalar() or 0.0
+
+    return {
+        "completed_count": completed_count,
+        "pending_count": pending_count,
+        "total_income": round(total_income, 2)
     }
 
 # ─── Foods API ───────────────────────────────────────────────────
@@ -168,19 +193,20 @@ def get_all_foods(db: Session = Depends(get_db)):
 # ─── Orders API ──────────────────────────────────────────────────
 @admin_app.get("/admin/api/orders")
 def get_all_orders(status: str = None, db: Session = Depends(get_db)):
-    q = db.query(models.Order, models.Food).outerjoin(
-        models.Food, models.Order.food_id == models.Food.id
-    )
+    q = db.query(models.Order)
     if status:
         q = q.filter(models.Order.status == status)
-    rows = q.order_by(models.Order.created_at.desc()).all()
+    orders = q.order_by(models.Order.created_at.desc()).all()
 
     result = []
-    for order, food in rows:
+    for order in orders:
         result.append({
             "id": order.id,
             "student_name": order.student_name,
             "student_id": order.student_id,
+            "email": order.email,
+            "otp_code": order.otp_code,
+            "order_group_id": order.order_group_id,
             "phone": order.phone,
             "delivery_location": order.delivery_location,
             "quantity": order.quantity,
@@ -190,8 +216,20 @@ def get_all_orders(status: str = None, db: Session = Depends(get_db)):
             "delivery_boy_id": order.delivery_boy_id,
             "status": order.status,
             "created_at": order.created_at.isoformat() if order.created_at else None,
-            "food_name": food.food_name if food else "Deleted",
-            "shop_name": food.shop_name if food else "—",
+            "food_name": order.food_name or "Food Item",
+            "shop_name": order.shop_name or "—",
+            "items": [
+                {
+                    "id": it.id,
+                    "food_id": it.food_id,
+                    "food_name": it.food_name,
+                    "shop_name": it.shop_name,
+                    "price": it.price,
+                    "quantity": it.quantity,
+                    "total_price": it.total_price
+                }
+                for it in order.items
+            ]
         })
     return result
 
@@ -275,6 +313,18 @@ def get_all_delivery_boys(db: Session = Depends(get_db)):
     logger = logging.getLogger("admin.delivery_boys")
 
     logger.info("[DeliveryBoys API] Request received — GET /api/admin/delivery-boys")
+
+    from datetime import datetime, timedelta
+    # ── Real Presence Check: Sweep any expired online sessions to Offline ──
+    try:
+        cutoff = datetime.utcnow() - timedelta(seconds=45)
+        db.query(models.DeliveryBoy).filter(
+            models.DeliveryBoy.status == "Online",
+            (models.DeliveryBoy.last_seen == None) | (models.DeliveryBoy.last_seen < cutoff)
+        ).update({"status": "Offline"}, synchronize_session=False)
+        db.commit()
+    except Exception:
+        db.rollback()
 
     # ── 1. Fetch all delivery boys ordered by id ASC (per spec) ──
     try:
@@ -477,7 +527,7 @@ def get_notifications(db: Session = Depends(get_db)):
 # ─── Activity Log API ────────────────────────────────────────
 @admin_app.get("/admin/api/activity-log")
 def get_activity_log(
-    limit: int = 100,
+    limit: int = 1000,
     category: str = None,
     db: Session = Depends(get_db)
 ):
@@ -581,11 +631,11 @@ def get_charts(db: Session = Depends(get_db)):
 
     # ── 3. Orders per shop (top 8) ────────────────────────────
     shop_order_rows = db.query(
-        models.Food.shop_name,
-        func.count(models.Order.id).label("cnt")
-    ).join(models.Order, models.Food.id == models.Order.food_id)\
-     .group_by(models.Food.shop_name)\
-     .order_by(func.count(models.Order.id).desc())\
+        models.OrderItem.shop_name,
+        func.count(models.OrderItem.id).label("cnt")
+    ).filter(models.OrderItem.shop_name.isnot(None))\
+     .group_by(models.OrderItem.shop_name)\
+     .order_by(func.count(models.OrderItem.id).desc())\
      .limit(8).all()
 
     shop_labels = [r.shop_name for r in shop_order_rows]
@@ -600,15 +650,15 @@ def get_charts(db: Session = Depends(get_db)):
 
     # ── 5. Top 6 foods by order volume ────────────────────────
     food_order_rows = db.query(
-        models.Food.food_name,
-        func.sum(models.Order.quantity).label("total_qty")
-    ).join(models.Order, models.Food.id == models.Order.food_id)\
-     .group_by(models.Food.id)\
-     .order_by(func.sum(models.Order.quantity).desc())\
+        models.OrderItem.food_name,
+        func.sum(models.OrderItem.quantity).label("total_qty")
+    ).filter(models.OrderItem.food_name.isnot(None))\
+     .group_by(models.OrderItem.food_name)\
+     .order_by(func.sum(models.OrderItem.quantity).desc())\
      .limit(6).all()
 
     food_labels = [r.food_name for r in food_order_rows]
-    food_data   = [int(r.total_qty) for r in food_order_rows]
+    food_data   = [int(r.total_qty) if r.total_qty else 0 for r in food_order_rows]
 
     return {
         "revenue_by_day": {"labels": revenue_labels, "data": revenue_data},

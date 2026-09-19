@@ -232,15 +232,6 @@ body {
 .stat-card:hover::before {
     opacity: 1;
 }
-.stat-card::after {
-    content: '';
-    position: absolute;
-    bottom: -20px; right: -20px;
-    width: 100px; height: 100px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(5px);
-}
 .stat-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -509,12 +500,29 @@ code {
 }
 
 /* ══════════════════════════════════════════════
-   SCROLLBAR
+   SCROLLBAR REMOVAL (INVISIBLE SCROLLBARS)
 ══════════════════════════════════════════════ */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--blue-50); }
-::-webkit-scrollbar-thumb { background: var(--blue-300); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--blue-500); }
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}
+::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+}
+::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
+}
 
 /* ══════════════════════════════════════════════
    RESPONSIVE
@@ -660,3 +668,92 @@ code {
     padding: 48px 0;
     font-style: italic;
 }
+
+/* ══════════════════════════════════════════════
+   ADMIN PAGINATION & TABLE TOOLBARS
+══════════════════════════════════════════════ */
+.admin-pagination-bar {
+    background: #fafaff;
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-card .pagination {
+    --bs-pagination-border-radius: 8px;
+    margin-bottom: 0;
+}
+
+.admin-card .pagination .page-item .page-link {
+    border-radius: 8px !important;
+    margin: 0 2px;
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.35rem 0.75rem;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(92, 92, 255, 0.04);
+}
+
+.admin-card .pagination .page-item .page-link:hover {
+    background: var(--blue-50);
+    color: var(--primary);
+    border-color: var(--blue-200);
+    transform: translateY(-1px);
+}
+
+.admin-card .pagination .page-item.active .page-link {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(92, 92, 255, 0.35);
+}
+
+.admin-card .pagination .page-item.disabled .page-link {
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    background: #f9fafb;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.table-toolbar-select {
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: 0.82rem;
+    padding: 0.25rem 0.75rem;
+    color: var(--text-sub);
+    background-color: #fff;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.table-toolbar-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(92, 92, 255, 0.12);
+}
+
+.table-search-input {
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    font-size: 0.83rem;
+    padding: 0.3rem 0.85rem 0.3rem 2rem;
+    background: #fdfdff;
+    width: 200px;
+    transition: all 0.2s;
+}
+
+.table-search-input:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(92, 92, 255, 0.12);
+    width: 240px;
+}
+

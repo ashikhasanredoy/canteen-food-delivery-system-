@@ -42,7 +42,7 @@ def _attach_ratings(food, db: Session) -> dict:
     return food_dict
 
 @router.get("", response_model=List[schemas.FoodResponse])
-def read_foods(shop_name: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_foods(shop_name: Optional[str] = None, skip: int = 0, limit: int = 1000, db: Session = Depends(get_db)):
     if shop_name:
         foods = db.query(models.Food).filter(models.Food.shop_name == shop_name).offset(skip).limit(limit).all()
     else:

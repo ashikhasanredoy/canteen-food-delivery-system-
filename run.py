@@ -124,8 +124,8 @@ if __name__ == "__main__":
             "backend.main:app",
             host=HOST,
             port=PORT,
-            reload=False,       # Set True for development auto-reload
-            log_level="warning" # Use "info" for verbose logs
+            reload=False,       # Set False so SQLite file writes don't trigger server reloads
+            log_level="warning" # Low overhead
         )
     except KeyboardInterrupt:
         print()

@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from backend.database import Base
 
@@ -19,19 +20,60 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    food_id = Column(Integer)
     student_name = Column(String)
     student_id = Column(String)
+    email = Column(String, nullable=True)
+    otp_code = Column(String, nullable=True)
+    order_group_id = Column(String, nullable=True, index=True)
     phone = Column(String)
     delivery_location = Column(String)
-    quantity = Column(Integer)
-    total_price = Column(Float)
+    total_price = Column(Float, default=0.0)
     admin_fee = Column(Float, default=0.0)       # admin's cut (%)
     delivery_fee = Column(Float, default=0.0)    # delivery boy's cut (%)
     delivery_boy_id = Column(String, nullable=True) # delivery boy's ID
-    delivery_request_status = Column(String, default="None") # None, Requested, Approved
-    status = Column(String, default="Pending")   # Pending, Delivered
+    delivery_request_status = Column(String, default="None") # None, Accepted
+    status = Column(String, default="Pending")   # Pending, On Road, Delivered
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan", lazy="joined")
+
+    @property
+    def food_id(self):
+        return self.items[0].food_id if self.items else None
+
+    @property
+    def quantity(self):
+        return sum(item.quantity for item in self.items) if self.items else 0
+
+    @property
+    def food_name(self):
+        if not self.items:
+            return ""
+        if len(self.items) == 1:
+            return self.items[0].food_name
+        return ", ".join(f"{it.food_name} (x{it.quantity})" for it in self.items)
+
+    @property
+    def shop_name(self):
+        if not self.items:
+            return ""
+        shops = list(dict.fromkeys(it.shop_name for it in self.items if it.shop_name))
+        return ", ".join(shops)
+
+
+class OrderItem(Base):
+    __tablename__ = "order_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), index=True)
+    food_id = Column(Integer, index=True)
+    food_name = Column(String)
+    shop_name = Column(String, index=True)
+    price = Column(Float)
+    quantity = Column(Integer, default=1)
+    total_price = Column(Float)
+
+    order = relationship("Order", back_populates="items")
 
 class Rating(Base):
     __tablename__ = "ratings"
@@ -96,6 +138,7 @@ class DeliveryBoy(Base):
     name = Column(String, index=True)
     delivery_boy_id = Column(String, unique=True, index=True)  # 10-digit ID
     status = Column(String, default="Offline")                 # Online | Offline
+    last_seen = Column(DateTime, nullable=True)                # Real-time activity heartbeat
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

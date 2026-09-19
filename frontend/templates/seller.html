@@ -5,60 +5,60 @@
 {% block content %}
 
 <!-- ── Seller Login View ────────────────────────────── -->
-<div id="seller-login-view" class="row g-0 justify-content-center mt-4 rounded-4 shadow-lg overflow-hidden glass-card p-0 seller-auth-shell" style="min-height: 520px; border: none;">
+<div id="seller-login-view" class="row g-0 justify-content-center rounded-4 shadow-lg overflow-hidden glass-card p-0 seller-auth-shell mx-auto w-100">
     <!-- Left panel (Shop / Seller branding) -->
-    <div class="col-md-5 d-flex flex-column justify-content-between p-5 text-white seller-auth-hero">
+    <div class="col-md-5 d-flex flex-column justify-content-between p-4 p-lg-4 text-white seller-auth-hero">
         <div>
-            <div class="d-flex align-items-center gap-2 mb-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
                 <span class="seller-auth-logo d-inline-flex align-items-center justify-content-center rounded-circle fw-bold">
                     <i class="bi bi-shop"></i>
                 </span>
                 <span class="fw-semibold tracking-wider seller-auth-eyebrow">UNIVERSITY CANTEEN</span>
             </div>
-            <h1 class="display-5 fw-bold mt-5 text-white seller-auth-headline" style="line-height: 1.2;">Shop<br>Portal</h1>
+            <h2 class="fw-bold my-3 text-white seller-auth-headline">Shop<br>Portal</h2>
         </div>
-        <div class="mt-auto">
+        <div class="mt-2">
             <span class="small opacity-75">List your menu, manage orders, and serve campus customers.</span>
         </div>
     </div>
 
     <!-- Right panel (Auth form) -->
-    <div class="col-md-7 bg-white p-5 d-flex align-items-center justify-content-center">
-        <div class="w-100" style="max-width: 380px;">
-            <ul class="nav nav-pills nav-fill mb-4 p-1 seller-auth-tabs rounded-pill border" id="auth-tabs" style="font-size: 0.9rem;">
+    <div class="col-md-7 bg-white p-4 p-lg-4 d-flex align-items-center justify-content-center">
+        <div class="w-100" style="max-width: 360px;">
+            <ul class="nav nav-pills nav-fill mb-3 p-1 seller-auth-tabs rounded-pill border" id="auth-tabs" style="font-size: 0.88rem;">
                 <li class="nav-item">
-                    <button type="button" class="nav-link active rounded-pill fw-bold py-2" id="tab-login">Login</button>
+                    <button type="button" class="nav-link active rounded-pill fw-bold py-1.5" id="tab-login">Login</button>
                 </li>
                 <li class="nav-item">
-                    <button type="button" class="nav-link rounded-pill fw-bold py-2" id="tab-register">Register</button>
+                    <button type="button" class="nav-link rounded-pill fw-bold py-1.5" id="tab-register">Register</button>
                 </li>
             </ul>
 
-            <div class="text-center mb-4">
-                <div class="seller-auth-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-3">
-                    <i class="bi bi-shop-window fs-2"></i>
+            <div class="text-center mb-3">
+                <div class="seller-auth-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-2">
+                    <i class="bi bi-shop-window fs-3"></i>
                 </div>
-                <h3 class="fw-bold mb-1 text-dark" id="auth-title">Shop Login</h3>
-                <p class="text-muted small" id="auth-subtitle">Enter Shop Name and Shop ID to access dashboard</p>
+                <h4 class="fw-bold mb-1 text-dark" id="auth-title">Shop Login</h4>
+                <p class="text-muted small mb-0" id="auth-subtitle">Enter Shop Name and Shop ID to access dashboard</p>
             </div>
 
-            <form id="seller-login-form">
+            <form id="seller-login-form" onsubmit="handleSellerAuthSubmit(event); return false;">
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-medium">Shop Name</label>
-                    <input type="text" class="form-control form-control-lg seller-auth-input" id="login_shop_name" required placeholder="e.g. Khan Kitchen">
+                    <label class="form-label fw-semibold mb-1" style="font-size:0.9rem;">Shop Name</label>
+                    <input type="text" class="form-control seller-auth-input" id="login_shop_name" placeholder="e.g. Royal Biryani & Kebab House" autocomplete="organization">
                 </div>
-                <div class="mb-4">
-                    <label class="form-label text-muted small fw-medium">Shop ID</label>
-                    <input type="text" class="form-control form-control-lg text-center seller-auth-input" id="login_shop_id" required placeholder="e.g. 0223" autocomplete="off">
-                    <small class="text-muted d-block mt-1 text-center" id="auth-help-text">Enter your registered shop credentials.</small>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold mb-1" style="font-size:0.9rem;">Shop ID</label>
+                    <input type="text" class="form-control text-center seller-auth-input" id="login_shop_id" placeholder="e.g. 1009 (or enter name above)" autocomplete="off">
+                    <small class="text-muted d-block mt-1 text-center" id="auth-help-text" style="font-size: 0.78rem;">Enter your Shop Name, Shop ID, or both to enter portal.</small>
                 </div>
-                <button type="submit" class="btn btn-lg w-100 rounded-pill py-3 fw-bold hover-lift shadow seller-auth-submit d-flex align-items-center justify-content-center gap-2" id="auth-submit-btn">
+                <button type="submit" class="btn w-100 rounded-pill py-2.5 fw-bold hover-lift shadow seller-auth-submit d-flex align-items-center justify-content-center gap-2" id="auth-submit-btn">
                     <span>Enter Portal</span> <i class="bi bi-arrow-right"></i>
                 </button>
             </form>
 
-            <div class="text-center mt-4">
-                <span class="text-muted small"><i class="bi bi-shield-lock-fill me-1"></i> Secure • seller portal</span>
+            <div class="text-center mt-3">
+                <span class="text-muted small" style="font-size: 0.78rem;"><i class="bi bi-shield-lock-fill me-1"></i> Secure • seller portal</span>
             </div>
         </div>
     </div>
@@ -88,26 +88,51 @@
 
         <!-- ── Left: Food Inventory Table ─────────────────── -->
         <div class="col-lg-8">
-            <div class="glass-card p-4 h-100">
-                <div class="d-flex align-items-center mb-3">
-                    <h6 class="fw-bold mb-0">My Food Inventory</h6>
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                        <h6 class="fw-bold mb-0">My Food Inventory</h6>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="small text-muted mb-0 text-nowrap">Show:</label>
+                            <select id="inventory-page-size" class="form-select form-select-sm" style="width: 75px;" onchange="changeInventoryPageSize(this.value)">
+                                <option value="5" selected>5</option>
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group input-group-sm mb-3">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0" id="inventory-search" placeholder="Search menu items by name, price..." oninput="onInventorySearchChange()">
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">Image</th>
+                                    <th class="border-0">Food Name</th>
+                                    <th class="border-0">Shop Name</th>
+                                    <th class="border-0">Price</th>
+                                    <th class="border-0">Quantity</th>
+                                    <th class="border-0">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-list">
+                                <tr><td colspan="6" class="text-center py-4">Loading inventory...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="border-0">Image</th>
-                                <th class="border-0">Food Name</th>
-                                <th class="border-0">Shop Name</th>
-                                <th class="border-0">Price</th>
-                                <th class="border-0">Quantity</th>
-                                <th class="border-0">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-list">
-                            <tr><td colspan="6" class="text-center py-4">Loading inventory...</td></tr>
-                        </tbody>
-                    </table>
+
+                <!-- Inventory Pagination Controls -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top" id="inventory-pagination-wrap">
+                    <div class="small text-muted" id="inventory-pagination-info">Showing 0 to 0 of 0 items</div>
+                    <nav aria-label="Inventory pagination">
+                        <ul class="pagination pagination-sm mb-0" id="inventory-pagination-list"></ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -193,26 +218,199 @@
         </div>
     </div>
 
+    <!-- ── Food Performance & Menu Analytics Graphs ───────────── -->
+    <div class="row mt-4 g-4">
+        <!-- Section Header -->
+        <div class="col-12">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1.5 rounded-pill fw-bold small text-uppercase">PERFORMANCE INSIGHTS</span>
+                    <h4 class="fw-bold text-dark mt-2 mb-1">Menu Analytics &amp; Dish Performance</h4>
+                    <p class="text-muted small mb-0">Identify your top rated stars, under-rated dishes, bestsellers, and low-selling items.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="renderSellerAnalytics()">
+                        <i class="bi bi-arrow-repeat"></i> Reload Charts
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 Quick Insight Cards -->
+        <div class="col-md-6 col-xl-3">
+            <div class="seller-insight-card card-top-star">
+                <div class="card-top-row">
+                    <span class="card-category-label text-warning-emphasis">
+                        <i class="bi bi-star-fill text-warning"></i> Highest Rated
+                    </span>
+                    <span class="card-pill-tag bg-warning bg-opacity-15 text-warning-emphasis">Top Star</span>
+                </div>
+                <h6 class="card-dish-name" id="insight-top-rated-name" title="Highest rated dish">—</h6>
+                <div class="card-metrics-row">
+                    <span class="card-main-val text-warning" id="insight-top-rated-val">0.0 ★</span>
+                    <span class="card-sub-val" id="insight-top-rated-cnt">(0 reviews)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="seller-insight-card card-under-rated">
+                <div class="card-top-row">
+                    <span class="card-category-label text-danger">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i> Under-Rated
+                    </span>
+                    <span class="card-pill-tag bg-danger bg-opacity-10 text-danger">Needs Action</span>
+                </div>
+                <h6 class="card-dish-name" id="insight-low-rated-name" title="Under-rated dish">—</h6>
+                <div class="card-metrics-row">
+                    <span class="card-main-val text-danger" id="insight-low-rated-val">0.0 ★</span>
+                    <span class="card-sub-val" id="insight-low-rated-cnt">(0 reviews)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="seller-insight-card card-best-seller">
+                <div class="card-top-row">
+                    <span class="card-category-label text-success">
+                        <i class="bi bi-fire text-danger"></i> #1 Best Seller
+                    </span>
+                    <span class="card-pill-tag bg-success bg-opacity-15 text-success">Top Volume</span>
+                </div>
+                <h6 class="card-dish-name" id="insight-top-selling-name" title="Top selling food item">—</h6>
+                <div class="card-metrics-row">
+                    <span class="card-main-val text-success" id="insight-top-selling-val">0 sold</span>
+                    <span class="card-sub-val" id="insight-top-selling-rev">৳0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="seller-insight-card card-low-demand">
+                <div class="card-top-row">
+                    <span class="card-category-label text-secondary">
+                        <i class="bi bi-graph-down-arrow text-secondary"></i> Low Selling Dish
+                    </span>
+                    <span class="card-pill-tag bg-secondary bg-opacity-15 text-secondary">Low Demand</span>
+                </div>
+                <h6 class="card-dish-name" id="insight-low-selling-name" title="Low selling food item">—</h6>
+                <div class="card-metrics-row">
+                    <span class="card-main-val text-secondary" id="insight-low-selling-val">0 sold</span>
+                    <span class="card-sub-val" id="insight-low-selling-rev">৳0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph 1: Ratings Chart (Top Rated vs Under-Rated) -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100 shadow-sm" style="border: 1px solid rgba(226, 232, 240, 0.8);">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-warning bg-opacity-15 text-warning-emphasis p-1.5 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px; height:28px;">
+                                <i class="bi bi-star-fill text-warning" style="font-size:0.85rem;"></i>
+                            </span>
+                            <h6 class="fw-bold mb-0 text-dark">Food Ratings (Top vs Under-Rated)</h6>
+                        </div>
+                        <small class="text-muted ps-1">Star rating benchmark across your active menu</small>
+                    </div>
+                    <!-- Ratings Filter Pills -->
+                    <div class="btn-group btn-group-sm bg-light p-1 rounded-pill border" role="group" id="ratings-chart-filter-group">
+                        <button type="button" class="btn btn-sm btn-white active rounded-pill px-2.5 py-0.5 fw-semibold" data-rfilter="all" onclick="setRatingsChartFilter('all', this)">All</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold text-success" data-rfilter="top" onclick="setRatingsChartFilter('top', this)">⭐ Top Rated</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold text-danger" data-rfilter="under" onclick="setRatingsChartFilter('under', this)">⚠️ Under-Rated</button>
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="chart-scroll-wrapper" style="position: relative; height: 340px; overflow-y: auto;">
+                    <canvas id="sellerRatingsChart"></canvas>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 gap-md-4 mt-3 pt-3 border-top small text-muted">
+                    <span class="d-flex align-items-center gap-1.5"><span class="d-inline-block rounded-pill" style="background: linear-gradient(135deg, #059669, #34d399); width:14px; height:10px;"></span> <strong>Top Rated</strong> (&ge; 4.5 ★)</span>
+                    <span class="d-flex align-items-center gap-1.5"><span class="d-inline-block rounded-pill" style="background: linear-gradient(135deg, #d97706, #fbbf24); width:14px; height:10px;"></span> <strong>Good</strong> (4.0 - 4.4 ★)</span>
+                    <span class="d-flex align-items-center gap-1.5"><span class="d-inline-block rounded-pill" style="background: linear-gradient(135deg, #dc2626, #f87171); width:14px; height:10px;"></span> <strong>Under-Rated</strong> (&lt; 4.0 ★)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph 2: Sales Volume Chart (Top Selling vs Low/Bad Selling) -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100 shadow-sm" style="border: 1px solid rgba(226, 232, 240, 0.8);">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary bg-opacity-15 text-primary p-1.5 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:28px; height:28px;">
+                                <i class="bi bi-fire text-danger" style="font-size:0.85rem;"></i>
+                            </span>
+                            <h6 class="fw-bold mb-0 text-dark">Sales Volume (Top vs Low Selling)</h6>
+                        </div>
+                        <small class="text-muted ps-1">Total units ordered by campus students</small>
+                    </div>
+                    <!-- Sales Filter Pills -->
+                    <div class="btn-group btn-group-sm bg-light p-1 rounded-pill border" role="group" id="sales-chart-filter-group">
+                        <button type="button" class="btn btn-sm btn-white active rounded-pill px-2.5 py-0.5 fw-semibold" data-sfilter="all" onclick="setSalesChartFilter('all', this)">All</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold text-warning-emphasis" data-sfilter="top" onclick="setSalesChartFilter('top', this)">🔥 Bestsellers</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold text-secondary" data-sfilter="low" onclick="setSalesChartFilter('low', this)">📉 Low Demand</button>
+                    </div>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="chart-scroll-wrapper" style="position: relative; height: 340px; overflow-y: auto;">
+                    <canvas id="sellerSalesChart"></canvas>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 gap-md-4 mt-3 pt-3 border-top small text-muted">
+                    <span class="d-flex align-items-center gap-1.5"><span class="d-inline-block rounded-pill" style="background: linear-gradient(135deg, #ea580c, #fb923c); width:14px; height:10px;"></span> <strong>Bestsellers</strong></span>
+                    <span class="d-flex align-items-center gap-1.5"><span class="d-inline-block rounded-pill" style="background: linear-gradient(135deg, #2563eb, #60a5fa); width:14px; height:10px;"></span> <strong>Moderate</strong></span>
+                    <span class="d-flex align-items-center gap-1.5"><span class="d-inline-block rounded-pill" style="background: linear-gradient(135deg, #475569, #94a3b8); width:14px; height:10px;"></span> <strong>Low / Bad Selling</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Order History -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="glass-card p-4">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
                     <div>
                         <h6 class="fw-bold mb-1">Order History</h6>
-                        <p class="text-muted small mb-0">All orders for your shop — net revenue shown after admin & delivery fees.</p>
+                        <p class="text-muted small mb-0">All orders for your shop — net revenue shown after admin &amp; delivery fees.</p>
                     </div>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="loadOrderHistory()">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" onclick="loadOrderHistory()">
                         <i class="bi bi-arrow-clockwise"></i> Refresh
                     </button>
                 </div>
-                <div class="mb-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control border-start-0 seller-auth-input" id="order-history-search"
-                               placeholder="Search by order ID, date, food, student, amount, fees, revenue, status...">
+
+                <!-- Order History Filter Toolbar -->
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-5 col-lg-5">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control border-start-0" id="order-history-search"
+                                   placeholder="Search order ID, student, food, location..." oninput="onOrderHistorySearchChange()">
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-4">
+                        <div class="btn-group btn-group-sm w-100" role="group" id="order-status-filter-group">
+                            <button type="button" class="btn btn-outline-primary active" data-status="all" onclick="setOrderHistoryStatusFilter('all', this)">All</button>
+                            <button type="button" class="btn btn-outline-primary" data-status="Delivered" onclick="setOrderHistoryStatusFilter('Delivered', this)">Delivered</button>
+                            <button type="button" class="btn btn-outline-primary" data-status="Pending" onclick="setOrderHistoryStatusFilter('Pending', this)">Pending</button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-3 d-flex align-items-center justify-content-md-end gap-2">
+                        <label class="small text-muted mb-0 text-nowrap">Show:</label>
+                        <select id="order-history-page-size" class="form-select form-select-sm" style="width: 80px;" onchange="changeOrderHistoryPageSize(this.value)">
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
                     </div>
                 </div>
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -232,6 +430,14 @@
                             <tr><td colspan="9" class="text-center py-4 text-muted">Loading order history...</td></tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Order History Pagination Controls -->
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top" id="order-history-pagination-wrap">
+                    <div class="small text-muted" id="order-history-pagination-info">Showing 0 to 0 of 0 orders</div>
+                    <nav aria-label="Order History pagination">
+                        <ul class="pagination pagination-sm mb-0" id="order-history-pagination-list"></ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -290,8 +496,45 @@
         </div>
     </div>
 </div>
+
+<!-- Notification Detail Modal -->
+<div class="modal fade" id="notificationDetailModal" tabindex="-1" aria-labelledby="notificationDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header px-4 pt-4 pb-3 border-0" style="background: linear-gradient(135deg, #16a34a, #22c55e);">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="bg-white text-success rounded-circle p-2 d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;">
+                        <i class="bi bi-bell-fill fs-6"></i>
+                    </span>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="notificationDetailModalLabel">Admin Notification</h5>
+                        <small class="text-white text-opacity-75" id="modal-notif-date">—</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1.5 fw-semibold" id="modal-notif-status">
+                        <i class="bi bi-check-circle-fill me-1"></i> Marked as Read
+                    </span>
+                    <span class="text-muted small" id="modal-notif-shop">Shop Portal</span>
+                </div>
+                
+                <div class="p-3.5 rounded-3 bg-light border mb-4" style="line-height: 1.65; font-size: 0.95rem; color: #1e293b;" id="modal-notif-message">
+                    <!-- Notification text here -->
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/seller.js?v=10"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/seller.js?v=24"></script> 
 {% endblock %}

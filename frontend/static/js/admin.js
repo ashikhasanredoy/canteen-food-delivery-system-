@@ -1,10 +1,9 @@
 const ADMIN_BASE = '';
-let currentOrderFilter = '';
 let refreshTimer = null;
 
 // ─── Format helpers ──────────────────────────────────────────
 function fmt$(amount) {
-    return '৳' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    return '৳' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount || 0);
 }
 
 function fmtDate(iso) {
@@ -28,6 +27,107 @@ function statusBadge(status) {
         : `<span class="badge-delivered">${status}</span>`;
 }
 
+function escHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ─── Universal Pagination Array Helper ───────────────────────
+function getPaginationArray(current, total) {
+    if (total <= 7) {
+        const pages = [];
+        for (let i = 1; i <= total; i++) pages.push(i);
+        return pages;
+    }
+    if (current <= 4) {
+        return [1, 2, 3, 4, 5, '...', total];
+    }
+    if (current >= total - 3) {
+        return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    }
+    return [1, '...', current - 1, current, current + 1, '...', total];
+}
+
+function renderPaginationBar(containerId, state, pageChangeFuncName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const totalItems = state.filtered.length;
+    const effectivePageSize = state.pageSize > 0 ? state.pageSize : 25;
+    const totalPages = Math.max(1, Math.ceil(totalItems / effectivePageSize));
+
+    if (state.currentPage > totalPages) state.currentPage = totalPages;
+    if (state.currentPage < 1) state.currentPage = 1;
+
+    const startIdx = totalItems === 0 ? 0 : (state.currentPage - 1) * effectivePageSize + 1;
+    const endIdx = Math.min(state.currentPage * effectivePageSize, totalItems);
+
+    let html = `
+        <div class="admin-pagination-bar">
+            <span class="small text-muted fw-medium">
+                ${totalItems === 0 ? 'Showing 0 items' : `Showing <b class="text-dark">${startIdx}–${endIdx}</b> of <b class="text-dark">${totalItems}</b> (Page ${state.currentPage} of ${totalPages})`}
+            </span>
+            <nav aria-label="Table pagination">
+                <ul class="pagination pagination-sm mb-0 gap-1">`;
+
+    if (totalPages > 1) {
+        if (totalPages > 5) {
+            html += `
+                <li class="page-item ${state.currentPage === 1 ? 'disabled' : ''}">
+                    <button type="button" class="page-link" onclick="${pageChangeFuncName}(1)" title="First Page" aria-label="First">«</button>
+                </li>`;
+        }
+
+        html += `
+            <li class="page-item ${state.currentPage === 1 ? 'disabled' : ''}">
+                <button type="button" class="page-link" onclick="${pageChangeFuncName}(${state.currentPage - 1})" title="Previous Page" aria-label="Previous">‹</button>
+            </li>`;
+
+        const pageList = getPaginationArray(state.currentPage, totalPages);
+        pageList.forEach(item => {
+            if (item === '...') {
+                html += `<li class="page-item disabled"><span class="page-link border-0 bg-transparent text-muted">…</span></li>`;
+            } else {
+                html += `
+                    <li class="page-item ${item === state.currentPage ? 'active' : ''}">
+                        <button type="button" class="page-link" onclick="${pageChangeFuncName}(${item})">${item}</button>
+                    </li>`;
+            }
+        });
+
+        html += `
+            <li class="page-item ${state.currentPage === totalPages ? 'disabled' : ''}">
+                <button type="button" class="page-link" onclick="${pageChangeFuncName}(${state.currentPage + 1})" title="Next Page" aria-label="Next">›</button>
+            </li>`;
+
+        if (totalPages > 5) {
+            html += `
+                <li class="page-item ${state.currentPage === totalPages ? 'disabled' : ''}">
+                    <button type="button" class="page-link" onclick="${pageChangeFuncName}(${totalPages})" title="Last Page" aria-label="Last">»</button>
+                </li>`;
+        }
+    }
+
+    html += `
+                </ul>
+            </nav>
+        </div>`;
+
+    container.innerHTML = html;
+}
+
+// ─── States ──────────────────────────────────────────────────
+const shopsState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '' };
+const notifsState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '' };
+const deliveryBoysState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '' };
+const foodsState = { data: [], filtered: [], currentPage: 1, pageSize: 15, search: '', shop: '' };
+const ordersState = { data: [], filtered: [], currentPage: 1, pageSize: 25, search: '', status: '' };
+const ratingsState = { data: [], filtered: [], currentPage: 1, pageSize: 15, search: '', stars: '' };
+const complaintsState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '', status: '' };
+const activityState = { data: [], filtered: [], currentPage: 1, pageSize: 20, search: '', cat: '' };
+
 // ─── Sidebar nav ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     initSidebar();
@@ -40,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initSidebar() {
-    // Toggle sidebar on mobile
     const toggleBtn = document.getElementById('sidebar-toggle');
     const sidebar = document.getElementById('sidebar');
     if (toggleBtn) {
@@ -49,7 +148,6 @@ function initSidebar() {
         });
     }
 
-    // Section nav
     document.querySelectorAll('[data-section]').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -59,7 +157,6 @@ function initSidebar() {
         });
     });
 
-    // Restore active section smoothly
     let initialSection = 'dashboard-section';
     if (window.location.hash) {
         const hashSection = window.location.hash.replace('#', '');
@@ -78,7 +175,6 @@ function initSidebar() {
 function showSection(id) {
     if (!id || !document.getElementById(id)) id = 'dashboard-section';
 
-    // Remove temporary initial anti-flash style tag if present
     const flashStyle = document.getElementById('anti-flash-style');
     if (flashStyle) flashStyle.remove();
 
@@ -104,7 +200,6 @@ function showSection(id) {
         }
     } catch (e) { }
 
-    // Load section data on demand
     if (id === 'shops-section') { loadShops(); loadNotifications(); }
     if (id === 'delivery-boys-section') loadDeliveryBoys();
     if (id === 'foods-section') loadFoods();
@@ -117,9 +212,11 @@ function showSection(id) {
 
 // ─── Load All ────────────────────────────────────────────────
 async function loadAll() {
-    await Promise.all([loadStats(), loadRecentOrders(), loadRecentRatings(), loadCharts(), loadShops(), loadDeliveryBoys()]);
-    document.getElementById('last-updated').textContent =
-        'Updated ' + new Date().toLocaleTimeString();
+    await Promise.all([loadStats(), loadCharts(), loadShops(), loadDeliveryBoys()]);
+    const updatedEl = document.getElementById('last-updated');
+    if (updatedEl) {
+        updatedEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+    }
 }
 
 // ─── Stats ───────────────────────────────────────────────────
@@ -127,19 +224,32 @@ async function loadStats() {
     try {
         const res = await fetch(`${ADMIN_BASE}/admin/api/stats`);
         const d = await res.json();
-        document.getElementById('stat-foods').textContent = d.total_foods;
-        document.getElementById('stat-orders').textContent = d.total_orders;
-        document.getElementById('stat-pending').textContent = d.pending_orders;
-        document.getElementById('stat-delivered').textContent = d.delivered_orders;
-        const boyStatEl = document.getElementById('stat-delivery-boys');
-        if (boyStatEl) boyStatEl.textContent = d.total_delivery_boys || 0;
-        document.getElementById('stat-revenue').textContent = fmt$(d.total_revenue);
-        document.getElementById('stat-admin-revenue').textContent = fmt$(d.total_admin_revenue);
-        document.getElementById('stat-delivery-earnings').textContent = fmt$(d.total_delivery_earnings);
-        document.getElementById('stat-ratings').textContent = d.total_ratings;
-        document.getElementById('stat-avg-rating').textContent =
-            d.avg_platform_rating ? d.avg_platform_rating + ' ★' : 'N/A';
-        document.getElementById('stat-top-food').textContent = d.top_food || 'N/A';
+        
+        const setEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+
+        if (d.total_shops != null) {
+            setEl('stat-shops', d.total_shops);
+        } else {
+            fetch(`${ADMIN_BASE}/admin/api/shops`)
+                .then(r => r.json())
+                .then(shops => setEl('stat-shops', shops.length))
+                .catch(() => setEl('stat-shops', 8));
+        }
+
+        setEl('stat-foods', d.total_foods);
+        setEl('stat-orders', d.total_orders);
+        setEl('stat-pending', d.pending_orders);
+        setEl('stat-delivered', d.delivered_orders);
+        setEl('stat-delivery-boys', d.total_delivery_boys || 0);
+        setEl('stat-revenue', fmt$(d.total_revenue));
+        setEl('stat-admin-revenue', fmt$(d.total_admin_revenue));
+        setEl('stat-delivery-earnings', fmt$(d.total_delivery_earnings));
+        setEl('stat-ratings', d.total_ratings);
+        setEl('stat-avg-rating', d.avg_platform_rating ? d.avg_platform_rating + ' ★' : 'N/A');
+        setEl('stat-top-food', d.top_food || 'N/A');
     } catch (e) {
         console.error('Stats error', e);
     }
@@ -153,22 +263,29 @@ async function loadRecentOrders() {
         const tbody = document.getElementById('recent-orders-tbody');
         if (!tbody) return;
         tbody.innerHTML = '';
-        const recent = orders.slice(0, 8);
-        if (recent.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No orders yet</td></tr>';
+        if (orders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No orders found</td></tr>';
             return;
         }
-        recent.forEach(o => {
+        orders.slice(0, 6).forEach(o => {
             tbody.innerHTML += `
                 <tr>
-                    <td class="fw-bold">#${o.id}</td>
-                    <td>${o.student_name}</td>
-                    <td>${o.food_name}</td>
+                    <td>
+                        <span class="fw-bold">#${o.id}</span>
+                        ${o.otp_code ? `<br><span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle px-1.5 py-0.5 rounded font-monospace fw-bold" style="font-size:0.72rem;"><i class="bi bi-key-fill me-0.5"></i>OTP: ${o.otp_code}</span>` : ''}
+                    </td>
+                    <td>
+                        <div class="fw-medium">${escHtml(o.student_name)}</div>
+                        ${o.email ? `<small class="text-muted d-block" style="font-size:0.7rem;"><i class="bi bi-envelope me-0.5"></i>${escHtml(o.email)}</small>` : ''}
+                    </td>
+                    <td>${escHtml(o.food_name)}</td>
                     <td>${statusBadge(o.status)}</td>
                     <td>${fmt$(o.total_price)}</td>
                 </tr>`;
         });
-    } catch (e) { console.error('Recent orders error', e); }
+    } catch (e) {
+        console.error('Recent orders error', e);
+    }
 }
 
 // ─── Recent Ratings (dashboard widget) ───────────────────────
@@ -179,67 +296,141 @@ async function loadRecentRatings() {
         const tbody = document.getElementById('recent-ratings-tbody');
         if (!tbody) return;
         tbody.innerHTML = '';
-        const recent = ratings.slice(0, 8);
-        if (recent.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No ratings yet</td></tr>';
+        if (ratings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">No ratings found</td></tr>';
             return;
         }
-        recent.forEach(r => {
+        ratings.slice(0, 6).forEach(r => {
             tbody.innerHTML += `
                 <tr>
-                    <td>${r.food_name}</td>
-                    <td>${r.student_id}</td>
+                    <td class="fw-medium">${escHtml(r.food_name)}</td>
+                    <td><code>${escHtml(r.student_id)}</code></td>
                     <td>${renderStars(r.stars)}</td>
-                    <td class="text-muted" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.comment || '—'}</td>
+                    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(r.comment || '—')}</td>
                 </tr>`;
         });
-    } catch (e) { console.error('Recent ratings error', e); }
+    } catch (e) {
+        console.error('Recent ratings error', e);
+    }
 }
 
-// ─── Full Foods Table ─────────────────────────────────────────
+// ─── 1. Foods Management & Pagination ─────────────────────────
 async function loadFoods() {
+    const tbody = document.getElementById('foods-tbody');
+    if (!tbody) return;
     try {
         const res = await fetch(`${ADMIN_BASE}/admin/api/foods`);
-        const foods = await res.json();
-        const tbody = document.getElementById('foods-tbody');
-        tbody.innerHTML = '';
-        if (foods.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No foods found</td></tr>';
-            return;
+        foodsState.data = await res.json();
+        populateFoodsShopDropdown();
+        filterAndRenderFoods();
+    } catch (e) {
+        console.error('Foods error', e);
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Failed to load foods.</td></tr>';
+    }
+}
+
+function populateFoodsShopDropdown() {
+    const select = document.getElementById('foods-shop-filter');
+    if (!select) return;
+    const curr = select.value;
+    const shops = [...new Set(foodsState.data.map(f => f.shop_name).filter(Boolean))].sort();
+    select.innerHTML = '<option value="">All Shops</option>' +
+        shops.map(s => `<option value="${escHtml(s)}"${s === curr ? ' selected' : ''}>${escHtml(s)}</option>`).join('');
+}
+
+function filterAndRenderFoods() {
+    const tbody = document.getElementById('foods-tbody');
+    if (!tbody) return;
+
+    const query = foodsState.search.toLowerCase().trim();
+    foodsState.filtered = foodsState.data.filter(f => {
+        if (foodsState.shop && f.shop_name !== foodsState.shop) return false;
+        if (query) {
+            const nameMatch = (f.food_name || '').toLowerCase().includes(query);
+            const shopMatch = (f.shop_name || '').toLowerCase().includes(query);
+            const idMatch = String(f.id).includes(query);
+            if (!nameMatch && !shopMatch && !idMatch) return false;
         }
-        foods.forEach(f => {
-            const stockBadge = f.quantity > 0
-                ? `<span class="badge-delivered">${f.quantity}</span>`
-                : `<span class="badge-pending">Out</span>`;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${f.id}</td>
-                    <td><img src="${f.image_url}" class="food-thumb" onerror="this.src='https://via.placeholder.com/44'"></td>
-                    <td class="fw-medium">${f.food_name}</td>
-                    <td>${f.shop_name}</td>
-                    <td>${fmt$(f.price)}</td>
-                    <td>${stockBadge}</td>
-                    <td>${f.avg_rating ? f.avg_rating + ' ★' : '—'}</td>
-                    <td>${f.rating_count}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="adminDeleteFood(${f.id}, this)">Delete</button>
-                    </td>
-                </tr>`;
-        });
-    } catch (e) { console.error('Foods error', e); }
+        return true;
+    });
+
+    const totalItems = foodsState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No foods match your search or filter.</td></tr>';
+        renderPaginationBar('foods-pagination', foodsState, 'goToFoodsPage');
+        return;
+    }
+
+    const pageSize = foodsState.pageSize > 0 ? foodsState.pageSize : 15;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (foodsState.currentPage > totalPages) foodsState.currentPage = totalPages;
+    if (foodsState.currentPage < 1) foodsState.currentPage = 1;
+
+    const startIdx = (foodsState.currentPage - 1) * pageSize;
+    const pageItems = foodsState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((f, idx) => {
+        const rowNum = startIdx + idx + 1;
+        const stockBadge = f.quantity > 0
+            ? `<span class="badge-delivered">${f.quantity}</span>`
+            : `<span class="badge-pending">Out</span>`;
+        rowsHtml += `
+            <tr>
+                <td class="text-muted small">${rowNum}</td>
+                <td><img src="${f.image_url}" class="food-thumb" onerror="this.src='/static/images/foods/default.jpg'"></td>
+                <td class="fw-bold text-dark">${escHtml(f.food_name)}</td>
+                <td><span class="badge bg-light text-dark border px-2 py-1">${escHtml(f.shop_name)}</span></td>
+                <td class="fw-bold">${fmt$(f.price)}</td>
+                <td>${stockBadge}</td>
+                <td><span class="text-warning fw-bold">${f.avg_rating ? f.avg_rating + ' ★' : '—'}</span></td>
+                <td>${f.rating_count || 0}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="adminDeleteFood(${f.id}, this)">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                </td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('foods-pagination', foodsState, 'goToFoodsPage');
+}
+
+function onFoodsSearch() {
+    foodsState.search = document.getElementById('foods-search')?.value || '';
+    foodsState.currentPage = 1;
+    filterAndRenderFoods();
+}
+
+function onFoodsShopFilter(val) {
+    foodsState.shop = val;
+    foodsState.currentPage = 1;
+    filterAndRenderFoods();
+}
+
+function changeFoodsPageSize(val) {
+    foodsState.pageSize = parseInt(val, 10) || 15;
+    foodsState.currentPage = 1;
+    filterAndRenderFoods();
+}
+
+function goToFoodsPage(page) {
+    foodsState.currentPage = page;
+    filterAndRenderFoods();
 }
 
 async function adminDeleteFood(id, btn) {
     showConfirm(
         '🗑️ Delete Food Item',
-        'This food will be permanently removed. Orders linked to it may show "Deleted". This cannot be undone.',
+        'This food will be permanently removed. Orders linked to it will preserve historical data. This cannot be undone.',
         async () => {
             btn.disabled = true;
             try {
                 const res = await fetch(`${ADMIN_BASE}/admin/api/foods/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    btn.closest('tr').remove();
-                    loadStats();
+                    await loadFoods();
+                    await loadStats();
                 } else {
                     showAlert('Failed to delete food item. Please try again.');
                     btn.disabled = false;
@@ -252,77 +443,895 @@ async function adminDeleteFood(id, btn) {
     );
 }
 
-// ─── Full Orders Table ────────────────────────────────────────
+// ─── 2. Orders Management & Pagination ────────────────────────
 async function loadOrders(filter) {
-    if (filter !== undefined) currentOrderFilter = filter;
+    if (filter !== undefined) ordersState.status = filter;
+    const tbody = document.getElementById('orders-tbody');
+    if (!tbody) return;
+
     try {
         let url = `${ADMIN_BASE}/admin/api/orders`;
-        if (currentOrderFilter) url += `?status=${currentOrderFilter}`;
+        if (ordersState.status) url += `?status=${ordersState.status}`;
         const res = await fetch(url);
-        const orders = await res.json();
-        const tbody = document.getElementById('orders-tbody');
-        tbody.innerHTML = '';
-        if (orders.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted">No orders found</td></tr>';
-            return;
+        ordersState.data = await res.json();
+        filterAndRenderOrders();
+    } catch (e) {
+        console.error('Orders error', e);
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-danger">Failed to load orders.</td></tr>';
+    }
+}
+
+function filterAndRenderOrders() {
+    const tbody = document.getElementById('orders-tbody');
+    if (!tbody) return;
+
+    const query = ordersState.search.toLowerCase().trim();
+    ordersState.filtered = ordersState.data.filter(o => {
+        if (query) {
+            const studentMatch = (o.student_name || '').toLowerCase().includes(query);
+            const studentIdMatch = (o.student_id || '').toLowerCase().includes(query);
+            const foodMatch = (o.food_name || '').toLowerCase().includes(query);
+            const shopMatch = (o.shop_name || '').toLowerCase().includes(query);
+            const locMatch = (o.delivery_location || '').toLowerCase().includes(query);
+            const boyMatch = (o.delivery_boy_id || '').toLowerCase().includes(query);
+            const idMatch = String(o.id).includes(query);
+            if (!studentMatch && !studentIdMatch && !foodMatch && !shopMatch && !locMatch && !boyMatch && !idMatch) return false;
         }
-        orders.forEach(o => {
-            const adminFee = o.admin_fee != null ? fmt$(o.admin_fee) : '—';
-            const deliveryFee = o.delivery_fee != null ? fmt$(o.delivery_fee) : '—';
-            const deliveryBoy = o.delivery_boy_id ? `<code>${o.delivery_boy_id}</code>` : '<span class="text-muted small">—</span>';
-            tbody.innerHTML += `
-                <tr>
-                    <td>#${o.id}</td>
-                    <td class="fw-medium">${o.student_name}</td>
-                    <td><code>${o.student_id}</code></td>
-                    <td>${o.food_name}</td>
-                    <td>${o.shop_name}</td>
-                    <td>${o.quantity}</td>
-                    <td>${fmt$(o.total_price)}</td>
-                    <td><span class="fee-badge fee-admin">${adminFee}</span></td>
-                    <td><span class="fee-badge fee-delivery">${deliveryFee}</span></td>
-                    <td>${deliveryBoy}</td>
-                    <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.delivery_location}</td>
-                    <td>${statusBadge(o.status)}</td>
-                    <td style="white-space:nowrap">${fmtDate(o.created_at)}</td>
-                </tr>`;
-        });
-    } catch (e) { console.error('Orders error', e); }
+        return true;
+    });
+
+    const totalItems = ordersState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted">No orders match your search or filter.</td></tr>';
+        renderPaginationBar('orders-pagination', ordersState, 'goToOrdersPage');
+        return;
+    }
+
+    const pageSize = ordersState.pageSize > 0 ? ordersState.pageSize : 25;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (ordersState.currentPage > totalPages) ordersState.currentPage = totalPages;
+    if (ordersState.currentPage < 1) ordersState.currentPage = 1;
+
+    const startIdx = (ordersState.currentPage - 1) * pageSize;
+    const pageItems = ordersState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((o, idx) => {
+        const rowNum = startIdx + idx + 1;
+        const adminFee = o.admin_fee != null ? fmt$(o.admin_fee) : '—';
+        const deliveryFee = o.delivery_fee != null ? fmt$(o.delivery_fee) : '—';
+        const deliveryBoy = o.delivery_boy_id ? `<code>${escHtml(o.delivery_boy_id)}</code>` : '<span class="text-muted small">—</span>';
+        const otpBadge = o.otp_code ? `<br><span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle px-1.5 py-0.5 rounded font-monospace fw-bold mt-1 d-inline-block" style="font-size:0.72rem;"><i class="bi bi-key-fill me-0.5"></i>OTP: ${escHtml(o.otp_code)}</span>` : '';
+        const emailLine = o.email ? `<small class="text-muted d-block text-truncate" style="font-size:0.72rem; max-width: 140px;" title="${escHtml(o.email)}"><i class="bi bi-envelope me-0.5"></i>${escHtml(o.email)}</small>` : '';
+        rowsHtml += `
+            <tr>
+                <td>
+                    <span class="fw-bold fs-6">#${o.id || rowNum}</span>
+                    ${otpBadge}
+                </td>
+                <td>
+                    <div class="fw-bold text-dark">${escHtml(o.student_name)}</div>
+                    ${emailLine}
+                </td>
+                <td><code>${escHtml(o.student_id)}</code></td>
+                <td class="fw-medium">${escHtml(o.food_name)}</td>
+                <td><span class="badge bg-light text-dark border px-2 py-1">${escHtml(o.shop_name)}</span></td>
+                <td class="fw-bold">${o.quantity}</td>
+                <td class="fw-bold text-dark">${fmt$(o.total_price)}</td>
+                <td><span class="fee-badge fee-admin">${adminFee}</span></td>
+                <td><span class="fee-badge fee-delivery">${deliveryFee}</span></td>
+                <td>${deliveryBoy}</td>
+                <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(o.delivery_location)}">${escHtml(o.delivery_location)}</td>
+                <td>${statusBadge(o.status)}</td>
+                <td class="small text-muted" style="white-space:nowrap">${fmtDate(o.created_at)}</td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('orders-pagination', ordersState, 'goToOrdersPage');
+}
+
+function onOrdersSearch() {
+    ordersState.search = document.getElementById('orders-search')?.value || '';
+    ordersState.currentPage = 1;
+    filterAndRenderOrders();
 }
 
 function setOrderFilter(btn, filter) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    ordersState.currentPage = 1;
     loadOrders(filter);
 }
 
-// ─── Full Ratings Table ───────────────────────────────────────
-async function loadRatings() {
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/ratings`);
-        const ratings = await res.json();
-        const tbody = document.getElementById('ratings-tbody');
-        tbody.innerHTML = '';
-        if (ratings.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No ratings yet</td></tr>';
-            return;
-        }
-        ratings.forEach(r => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${r.id}</td>
-                    <td class="fw-medium">${r.food_name}</td>
-                    <td>${r.shop_name}</td>
-                    <td><code>${r.student_id}</code></td>
-                    <td>${renderStars(r.stars)}</td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.comment || '—'}</td>
-                    <td style="white-space:nowrap">${fmtDate(r.created_at)}</td>
-                </tr>`;
-        });
-    } catch (e) { console.error('Ratings error', e); }
+function changeOrdersPageSize(val) {
+    ordersState.pageSize = parseInt(val, 10) || 25;
+    ordersState.currentPage = 1;
+    filterAndRenderOrders();
 }
 
-// ─── Settings ────────────────────────────────────────────────
+function goToOrdersPage(page) {
+    ordersState.currentPage = page;
+    filterAndRenderOrders();
+}
+
+// ─── 3. Ratings Management & Pagination ───────────────────────
+async function loadRatings() {
+    const tbody = document.getElementById('ratings-tbody');
+    if (!tbody) return;
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/ratings`);
+        ratingsState.data = await res.json();
+        filterAndRenderRatings();
+    } catch (e) {
+        console.error('Ratings error', e);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load ratings.</td></tr>';
+    }
+}
+
+function filterAndRenderRatings() {
+    const tbody = document.getElementById('ratings-tbody');
+    if (!tbody) return;
+
+    const query = ratingsState.search.toLowerCase().trim();
+    ratingsState.filtered = ratingsState.data.filter(r => {
+        if (ratingsState.stars && String(r.stars) !== String(ratingsState.stars)) return false;
+        if (query) {
+            const foodMatch = (r.food_name || '').toLowerCase().includes(query);
+            const shopMatch = (r.shop_name || '').toLowerCase().includes(query);
+            const studentMatch = (r.student_id || '').toLowerCase().includes(query);
+            const commentMatch = (r.comment || '').toLowerCase().includes(query);
+            if (!foodMatch && !shopMatch && !studentMatch && !commentMatch) return false;
+        }
+        return true;
+    });
+
+    const totalItems = ratingsState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No ratings match your search or star filter.</td></tr>';
+        renderPaginationBar('ratings-pagination', ratingsState, 'goToRatingsPage');
+        return;
+    }
+
+    const pageSize = ratingsState.pageSize > 0 ? ratingsState.pageSize : 15;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (ratingsState.currentPage > totalPages) ratingsState.currentPage = totalPages;
+    if (ratingsState.currentPage < 1) ratingsState.currentPage = 1;
+
+    const startIdx = (ratingsState.currentPage - 1) * pageSize;
+    const pageItems = ratingsState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((r, idx) => {
+        const rowNum = startIdx + idx + 1;
+        rowsHtml += `
+            <tr>
+                <td class="text-muted small">${rowNum}</td>
+                <td class="fw-bold text-dark">${escHtml(r.food_name)}</td>
+                <td><span class="badge bg-light text-dark border px-2 py-1">${escHtml(r.shop_name)}</span></td>
+                <td><code>${escHtml(r.student_id)}</code></td>
+                <td>${renderStars(r.stars)}</td>
+                <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(r.comment || '')}">${escHtml(r.comment || '—')}</td>
+                <td class="small text-muted" style="white-space:nowrap">${fmtDate(r.created_at)}</td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('ratings-pagination', ratingsState, 'goToRatingsPage');
+}
+
+function onRatingsSearch() {
+    ratingsState.search = document.getElementById('ratings-search')?.value || '';
+    ratingsState.currentPage = 1;
+    filterAndRenderRatings();
+}
+
+function onRatingsStarFilter(val) {
+    ratingsState.stars = val;
+    ratingsState.currentPage = 1;
+    filterAndRenderRatings();
+}
+
+function changeRatingsPageSize(val) {
+    ratingsState.pageSize = parseInt(val, 10) || 15;
+    ratingsState.currentPage = 1;
+    filterAndRenderRatings();
+}
+
+function goToRatingsPage(page) {
+    ratingsState.currentPage = page;
+    filterAndRenderRatings();
+}
+
+// ─── 4. Delivery Boys Management & Pagination ─────────────────
+async function loadDeliveryBoys() {
+    const tbody = document.getElementById('delivery-boys-tbody');
+    if (!tbody) return;
+    try {
+        const res = await fetch('/admin/api/delivery-boys');
+        const d = await res.json();
+        deliveryBoysState.data = (d && d.deliveryBoys) ? d.deliveryBoys : (Array.isArray(d) ? d : []);
+        filterAndRenderDeliveryBoys();
+    } catch (e) {
+        console.error('Delivery boys error', e);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load delivery boys.</td></tr>';
+    }
+}
+
+function filterAndRenderDeliveryBoys() {
+    const tbody = document.getElementById('delivery-boys-tbody');
+    if (!tbody) return;
+
+    const query = deliveryBoysState.search.toLowerCase().trim();
+    deliveryBoysState.filtered = deliveryBoysState.data.filter(b => {
+        if (query) {
+            const nameMatch = (b.delivery_boy_name || b.name || '').toLowerCase().includes(query);
+            const idMatch = (b.delivery_boy_id || '').toLowerCase().includes(query);
+            if (!nameMatch && !idMatch) return false;
+        }
+        return true;
+    });
+
+    const totalItems = deliveryBoysState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No delivery boys match your search.</td></tr>';
+        renderPaginationBar('delivery-boys-pagination', deliveryBoysState, 'goToDeliveryBoyPage');
+        return;
+    }
+
+    const pageSize = deliveryBoysState.pageSize > 0 ? deliveryBoysState.pageSize : 10;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (deliveryBoysState.currentPage > totalPages) deliveryBoysState.currentPage = totalPages;
+    if (deliveryBoysState.currentPage < 1) deliveryBoysState.currentPage = 1;
+
+    const startIdx = (deliveryBoysState.currentPage - 1) * pageSize;
+    const pageItems = deliveryBoysState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((boy, i) => {
+        const rowNum = startIdx + i + 1;
+        const isOnline = boy.status === 'Online';
+        const statusBadgeEl = isOnline
+            ? `<span class="badge bg-success rounded-pill px-3 py-1">🟢 Online</span>`
+            : `<span class="badge bg-secondary rounded-pill px-3 py-1">⚫ Offline</span>`;
+        const nameStr = boy.delivery_boy_name || boy.name || 'Delivery Boy';
+        const boyIdStr = boy.delivery_boy_id || '—';
+        const doneCount = boy.deliveries_done || 0;
+
+        const safeNameEsc = nameStr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeIdEsc = boyIdStr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        rowsHtml += `
+            <tr>
+                <td class="text-muted small">${rowNum}</td>
+                <td class="fw-bold text-dark">${escHtml(nameStr)}</td>
+                <td><code class="px-2 py-1 bg-light rounded text-primary fw-semibold">${escHtml(boyIdStr)}</code></td>
+                <td>${statusBadgeEl}</td>
+                <td class="fw-bold">${doneCount}</td>
+                <td class="text-muted small" style="white-space:nowrap">${fmtDate(boy.created_at)}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                onclick="openEditDeliveryBoyModal(${boy.id}, '${safeNameEsc}', '${safeIdEsc}')">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                onclick="adminDeleteDeliveryBoy(${boy.id}, this)">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('delivery-boys-pagination', deliveryBoysState, 'goToDeliveryBoyPage');
+}
+
+function onDeliveryBoySearch() {
+    deliveryBoysState.search = document.getElementById('delivery-boy-search')?.value || '';
+    deliveryBoysState.currentPage = 1;
+    filterAndRenderDeliveryBoys();
+}
+
+function changeDeliveryBoyPageSize(val) {
+    deliveryBoysState.pageSize = parseInt(val, 10) || 10;
+    deliveryBoysState.currentPage = 1;
+    filterAndRenderDeliveryBoys();
+}
+
+function goToDeliveryBoyPage(page) {
+    deliveryBoysState.currentPage = page;
+    filterAndRenderDeliveryBoys();
+}
+
+function openEditDeliveryBoyModal(id, name, dbId) {
+    document.getElementById('edit_db_id_pk').value = id;
+    document.getElementById('edit_db_name').value = name;
+    document.getElementById('edit_db_id_code').value = dbId;
+    const modal = new bootstrap.Modal(document.getElementById('editDeliveryBoyModal'));
+    modal.show();
+}
+
+async function saveEditDeliveryBoy(event) {
+    event.preventDefault();
+    const id = document.getElementById('edit_db_id_pk').value;
+    const name = document.getElementById('edit_db_name').value.trim();
+    const code = document.getElementById('edit_db_id_code').value.trim();
+    const saveBtn = document.getElementById('edit-db-save-btn');
+
+    if (!/^\d{9,11}$/.test(code)) {
+        showAlert('Delivery Boy ID must be 9 to 11 digits');
+        return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+        const res = await fetch(`/admin/api/delivery-boys/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, delivery_boy_id: code })
+        });
+        const d = await res.json();
+        if (res.ok && d.success) {
+            bootstrap.Modal.getInstance(document.getElementById('editDeliveryBoyModal')).hide();
+            await loadDeliveryBoys();
+            await loadStats();
+        } else {
+            showAlert(d.detail || d.error || 'Failed to update delivery boy');
+        }
+    } catch (e) {
+        showAlert('Network error updating delivery boy');
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Changes';
+    }
+}
+
+async function adminDeleteDeliveryBoy(id, btn) {
+    showConfirm('Delete Delivery Boy', 'Are you sure you want to remove this delivery boy?', async () => {
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/admin/api/delivery-boys/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                await loadDeliveryBoys();
+                await loadStats();
+            } else {
+                showAlert('Failed to delete delivery boy');
+                btn.disabled = false;
+            }
+        } catch (e) {
+            showAlert('Network error deleting delivery boy');
+            btn.disabled = false;
+        }
+    });
+}
+
+// ─── 5. Shops Management & Pagination ─────────────────────────
+async function loadShops() {
+    const tbody = document.getElementById('shops-tbody');
+    if (!tbody) return;
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/shops`);
+        shopsState.data = await res.json();
+        const statShopsEl = document.getElementById('stat-shops');
+        if (statShopsEl && (statShopsEl.textContent === '—' || statShopsEl.textContent === '0' || !statShopsEl.textContent)) {
+            statShopsEl.textContent = shopsState.data.length;
+        }
+        filterAndRenderShops();
+    } catch (e) {
+        console.error('Shops error', e);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load shops.</td></tr>';
+    }
+}
+
+function filterAndRenderShops() {
+    const tbody = document.getElementById('shops-tbody');
+    if (!tbody) return;
+
+    const query = shopsState.search.toLowerCase().trim();
+    shopsState.filtered = shopsState.data.filter(s => {
+        if (query) {
+            const nameMatch = (s.shop_name || '').toLowerCase().includes(query);
+            const idMatch = (s.shop_id || '').toLowerCase().includes(query);
+            if (!nameMatch && !idMatch) return false;
+        }
+        return true;
+    });
+
+    const totalItems = shopsState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No shops match your search.</td></tr>';
+        renderPaginationBar('shops-pagination', shopsState, 'goToShopsPage');
+        return;
+    }
+
+    const pageSize = shopsState.pageSize > 0 ? shopsState.pageSize : 10;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (shopsState.currentPage > totalPages) shopsState.currentPage = totalPages;
+    if (shopsState.currentPage < 1) shopsState.currentPage = 1;
+
+    const startIdx = (shopsState.currentPage - 1) * pageSize;
+    const pageItems = shopsState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((s, idx) => {
+        const rowNum = startIdx + idx + 1;
+        const unreadBadge = s.unread_notifications > 0
+            ? `<span class="badge bg-danger rounded-pill px-2.5 py-1">${s.unread_notifications} unread</span>`
+            : '<span class="text-muted small">0</span>';
+        const safeNameEsc = (s.shop_name || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeIdEsc = (s.shop_id || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        rowsHtml += `
+            <tr>
+                <td class="text-muted small">${rowNum}</td>
+                <td class="fw-bold text-dark">${escHtml(s.shop_name)}</td>
+                <td><code class="px-2 py-1 bg-light rounded text-primary fw-semibold">${escHtml(s.shop_id)}</code></td>
+                <td><span class="badge bg-primary rounded-pill px-3 py-1">${s.food_count} items</span></td>
+                <td>${unreadBadge}</td>
+                <td class="text-muted small" style="white-space:nowrap">${fmtDate(s.created_at)}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                onclick="openSendNotifModal('${safeIdEsc}', '${safeNameEsc}')">
+                            <i class="bi bi-bell me-1"></i>Notify
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                onclick="adminDeleteShop(${s.id}, '${safeNameEsc}', this)">
+                            <i class="bi bi-trash me-1"></i>Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('shops-pagination', shopsState, 'goToShopsPage');
+}
+
+function onShopsSearch() {
+    shopsState.search = document.getElementById('shops-search')?.value || '';
+    shopsState.currentPage = 1;
+    filterAndRenderShops();
+}
+
+function changeShopsPageSize(val) {
+    shopsState.pageSize = parseInt(val, 10) || 10;
+    shopsState.currentPage = 1;
+    filterAndRenderShops();
+}
+
+function goToShopsPage(page) {
+    shopsState.currentPage = page;
+    filterAndRenderShops();
+}
+
+function openSendNotifModal(shopId, shopName) {
+    document.getElementById('notif-shop-id').value = shopId;
+    document.getElementById('notif-shop-name').value = shopName;
+    document.getElementById('notif-target-label').textContent = `${shopName} (${shopId})`;
+    document.getElementById('notif-message').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('sendNotifModal'));
+    modal.show();
+}
+
+async function submitNotification() {
+    const shopId = document.getElementById('notif-shop-id').value;
+    const shopName = document.getElementById('notif-shop-name').value;
+    const message = document.getElementById('notif-message').value.trim();
+
+    if (!message) {
+        showAlert('Please enter a message.');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/notifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shop_id: shopId, shop_name: shopName, message })
+        });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('sendNotifModal')).hide();
+            showAlert('Notification sent successfully!');
+            await loadShops();
+            await loadNotifications();
+            await loadActivityLog();
+        } else {
+            showAlert('Failed to send notification.');
+        }
+    } catch (e) {
+        showAlert('Network error. Please try again.');
+    }
+}
+
+async function adminDeleteShop(id, name, btn) {
+    showConfirm(
+        '🗑️ Delete Shop',
+        `Are you sure you want to remove shop "${name}"? Its foods will also be deleted.`,
+        async () => {
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${ADMIN_BASE}/admin/api/shops/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await loadShops();
+                    await loadFoods();
+                    await loadStats();
+                } else {
+                    showAlert('Failed to delete shop.');
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                showAlert('Network error. Please try again.');
+                btn.disabled = false;
+            }
+        }
+    );
+}
+
+// ─── 6. Notifications History & Pagination ────────────────────
+async function loadNotifications() {
+    const tbody = document.getElementById('notifications-tbody');
+    if (!tbody) return;
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/notifications`);
+        notifsState.data = await res.json();
+        filterAndRenderNotifs();
+    } catch (e) {
+        console.error('Notifications error', e);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Failed to load notifications.</td></tr>';
+    }
+}
+
+function filterAndRenderNotifs() {
+    const tbody = document.getElementById('notifications-tbody');
+    if (!tbody) return;
+
+    const query = notifsState.search.toLowerCase().trim();
+    notifsState.filtered = notifsState.data.filter(n => {
+        if (query) {
+            const nameMatch = (n.shop_name || '').toLowerCase().includes(query);
+            const idMatch = (n.shop_id || '').toLowerCase().includes(query);
+            const msgMatch = (n.message || '').toLowerCase().includes(query);
+            if (!nameMatch && !idMatch && !msgMatch) return false;
+        }
+        return true;
+    });
+
+    const totalItems = notifsState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No notifications sent yet.</td></tr>';
+        renderPaginationBar('notifs-pagination', notifsState, 'goToNotifsPage');
+        return;
+    }
+
+    const pageSize = notifsState.pageSize > 0 ? notifsState.pageSize : 10;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (notifsState.currentPage > totalPages) notifsState.currentPage = totalPages;
+    if (notifsState.currentPage < 1) notifsState.currentPage = 1;
+
+    const startIdx = (notifsState.currentPage - 1) * pageSize;
+    const pageItems = notifsState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((n, idx) => {
+        const rowNum = startIdx + idx + 1;
+        const readBadge = n.is_read
+            ? `<span class="badge bg-success rounded-pill px-2.5 py-1">Read</span>`
+            : `<span class="badge bg-warning text-dark rounded-pill px-2.5 py-1">Unread</span>`;
+
+        rowsHtml += `
+            <tr>
+                <td class="text-muted small">${rowNum}</td>
+                <td class="fw-bold text-dark">${escHtml(n.shop_name || '—')}</td>
+                <td><code class="px-2 py-1 bg-light rounded text-primary fw-semibold">${escHtml(n.shop_id)}</code></td>
+                <td style="max-width:320px; white-space:normal;">${escHtml(n.message)}</td>
+                <td>${readBadge}</td>
+                <td class="text-muted small" style="white-space:nowrap">${fmtDate(n.created_at)}</td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('notifs-pagination', notifsState, 'goToNotifsPage');
+}
+
+function onNotifsSearch() {
+    notifsState.search = document.getElementById('notifs-search')?.value || '';
+    notifsState.currentPage = 1;
+    filterAndRenderNotifs();
+}
+
+function changeNotifsPageSize(val) {
+    notifsState.pageSize = parseInt(val, 10) || 10;
+    notifsState.currentPage = 1;
+    filterAndRenderNotifs();
+}
+
+function goToNotifsPage(page) {
+    notifsState.currentPage = page;
+    filterAndRenderNotifs();
+}
+
+// ─── 7. Activity Log & Pagination ─────────────────────────────
+const ACT_META = {
+    order: { color: '#5C5CFF', bg: '#eeeeff', icon: 'O', label: 'Order' },
+    delivery: { color: '#059669', bg: '#d1fae5', icon: 'D', label: 'Delivery' },
+    food: { color: '#d97706', bg: '#fef3c7', icon: 'F', label: 'Food' },
+    shop: { color: '#7c3aed', bg: '#ede9fe', icon: 'S', label: 'Shop' },
+    notification: { color: '#0ea5e9', bg: '#e0f2fe', icon: 'N', label: 'Notif' },
+    settings: { color: '#64748b', bg: '#f1f5f9', icon: 'G', label: 'Settings' },
+    admin: { color: '#3b82f6', bg: '#dbeafe', icon: 'A', label: 'Admin' },
+    complaint: { color: '#dc2626', bg: '#fee2e2', icon: 'C', label: 'Complaint' },
+};
+
+async function loadActivityLog() {
+    const timeline = document.getElementById('activity-timeline');
+    if (!timeline) return;
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/activity-log?limit=1000`);
+        activityState.data = await res.json();
+        filterAndRenderActivity();
+    } catch (e) {
+        timeline.innerHTML = '<div class="act-empty-state text-danger">Failed to load activity log.</div>';
+        console.error('Activity log error', e);
+    }
+}
+
+function setActivityCat(btn, cat) {
+    document.querySelectorAll('.act-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activityState.cat = cat;
+    activityState.currentPage = 1;
+    filterAndRenderActivity();
+}
+
+function filterActivityLog() {
+    activityState.search = document.getElementById('activity-search')?.value || '';
+    activityState.currentPage = 1;
+    filterAndRenderActivity();
+}
+
+function changeActivityPageSize(val) {
+    activityState.pageSize = parseInt(val, 10) || 20;
+    activityState.currentPage = 1;
+    filterAndRenderActivity();
+}
+
+function goToActivityPage(page) {
+    activityState.currentPage = page;
+    filterAndRenderActivity();
+}
+
+function filterAndRenderActivity() {
+    const timeline = document.getElementById('activity-timeline');
+    if (!timeline) return;
+
+    const query = activityState.search.toLowerCase().trim();
+    activityState.filtered = activityState.data.filter(l => {
+        if (activityState.cat && l.category !== activityState.cat) return false;
+        if (query) {
+            const summaryMatch = (l.summary || '').toLowerCase().includes(query);
+            const detailMatch = (l.detail || '').toLowerCase().includes(query);
+            const actionMatch = (l.action || '').toLowerCase().includes(query);
+            if (!summaryMatch && !detailMatch && !actionMatch) return false;
+        }
+        return true;
+    });
+
+    const totalItems = activityState.filtered.length;
+    if (totalItems === 0) {
+        timeline.innerHTML = '<div class="act-empty-state">No activity records found.</div>';
+        renderPaginationBar('activity-pagination', activityState, 'goToActivityPage');
+        return;
+    }
+
+    const pageSize = activityState.pageSize > 0 ? activityState.pageSize : 20;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (activityState.currentPage > totalPages) activityState.currentPage = totalPages;
+    if (activityState.currentPage < 1) activityState.currentPage = 1;
+
+    const startIdx = (activityState.currentPage - 1) * pageSize;
+    const pageItems = activityState.filtered.slice(startIdx, startIdx + pageSize);
+
+    timeline.innerHTML = pageItems.map(log => {
+        const m = ACT_META[log.category] || { color: '#5C5CFF', bg: '#eeeeff', icon: '?', label: log.category };
+        const ago = timeAgo(log.created_at);
+        const detail = log.detail
+            ? `<div class="act-detail">${escHtml(log.detail)}</div>`
+            : '';
+        return `
+        <div class="act-item">
+            <div class="act-dot" style="background:${m.color}; color:#fff;">${m.icon}</div>
+            <div class="act-body">
+                <div class="act-head">
+                    <span class="act-badge" style="background:${m.bg}; color:${m.color};">${m.label}</span>
+                    <span class="act-action">${escHtml(log.action || '')}</span>
+                    <span class="act-time">${ago}</span>
+                </div>
+                <div class="act-summary">${escHtml(log.summary || '')}</div>
+                ${detail}
+            </div>
+        </div>`;
+    }).join('');
+
+    renderPaginationBar('activity-pagination', activityState, 'goToActivityPage');
+}
+
+function timeAgo(iso) {
+    if (!iso) return '—';
+    const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (diff < 60) return `${Math.max(1, diff)}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+}
+
+// ─── 8. Complaints & Pagination ───────────────────────────────
+function complaintRoleBadge(role) {
+    const map = {
+        buyer: '<span class="badge bg-danger rounded-pill">Buyer</span>',
+        seller: '<span class="badge bg-warning text-dark rounded-pill">Seller</span>',
+        delivery: '<span class="badge bg-primary rounded-pill">Delivery</span>',
+    };
+    return map[role] || `<span class="badge bg-secondary rounded-pill">${role || 'Unknown'}</span>`;
+}
+
+function complaintStatusBadge(status) {
+    if (status === 'Reviewed') return `<span class="badge bg-info text-dark rounded-pill px-2.5">${status}</span>`;
+    return status === 'Resolved'
+        ? `<span class="badge-delivered">${status}</span>`
+        : `<span class="badge-pending">${status}</span>`;
+}
+
+async function loadComplaints() {
+    const tbody = document.getElementById('complaints-tbody');
+    if (!tbody) return;
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/complaints`);
+        complaintsState.data = await res.json();
+        filterAndRenderComplaints();
+    } catch (e) {
+        console.error('Complaints error', e);
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Failed to load complaints.</td></tr>';
+    }
+}
+
+function filterAndRenderComplaints() {
+    const tbody = document.getElementById('complaints-tbody');
+    if (!tbody) return;
+
+    const query = complaintsState.search.toLowerCase().trim();
+    complaintsState.filtered = complaintsState.data.filter(c => {
+        if (complaintsState.status && c.status !== complaintsState.status) return false;
+        if (query) {
+            const nameMatch = (c.name || '').toLowerCase().includes(query);
+            const shopMatch = (c.shop_name || '').toLowerCase().includes(query);
+            const contactMatch = (c.contact || '').toLowerCase().includes(query);
+            const messageMatch = (c.message || '').toLowerCase().includes(query);
+            const roleMatch = (c.role || '').toLowerCase().includes(query);
+            if (!nameMatch && !shopMatch && !contactMatch && !messageMatch && !roleMatch) return false;
+        }
+        return true;
+    });
+
+    const totalItems = complaintsState.filtered.length;
+    if (totalItems === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No complaints match your search or filter.</td></tr>';
+        renderPaginationBar('complaints-pagination', complaintsState, 'goToComplaintsPage');
+        return;
+    }
+
+    const pageSize = complaintsState.pageSize > 0 ? complaintsState.pageSize : 10;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (complaintsState.currentPage > totalPages) complaintsState.currentPage = totalPages;
+    if (complaintsState.currentPage < 1) complaintsState.currentPage = 1;
+
+    const startIdx = (complaintsState.currentPage - 1) * pageSize;
+    const pageItems = complaintsState.filtered.slice(startIdx, startIdx + pageSize);
+
+    let rowsHtml = '';
+    pageItems.forEach((c, idx) => {
+        const rowNum = startIdx + idx + 1;
+        const photoCell = c.image_url
+            ? `<a href="${c.image_url}" target="_blank" rel="noopener"><img src="${c.image_url}" alt="Complaint photo" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;"></a>`
+            : '<span class="text-muted small">—</span>';
+        const msg = escHtml(c.message || '');
+        const shopCell = c.shop_name
+            ? `<span class="fw-medium text-capitalize">${escHtml(c.shop_name)}</span>`
+            : '<span class="text-muted small">—</span>';
+
+        rowsHtml += `
+            <tr>
+                <td class="text-muted small">${rowNum}</td>
+                <td>${complaintRoleBadge(c.role)}</td>
+                <td class="fw-bold text-dark">${escHtml(c.name || '—')}</td>
+                <td>${shopCell}</td>
+                <td><code class="px-2 py-1 bg-light rounded text-secondary">${escHtml(c.contact || '—')}</code></td>
+                <td style="max-width:240px; white-space:normal;">${msg}</td>
+                <td>${photoCell}</td>
+                <td>${complaintStatusBadge(c.status)}</td>
+                <td class="small text-muted" style="white-space:nowrap">${fmtDate(c.created_at)}</td>
+                <td>
+                    <div class="d-flex flex-wrap gap-1">
+                        <select class="form-select form-select-sm table-toolbar-select" style="width:105px;" onchange="updateComplaintStatus(${c.id}, this.value)">
+                            <option value="Open" ${c.status === 'Open' ? 'selected' : ''}>Open</option>
+                            <option value="Reviewed" ${c.status === 'Reviewed' ? 'selected' : ''}>Reviewed</option>
+                            <option value="Resolved" ${c.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-2.5" onclick="deleteComplaint(${c.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+    });
+
+    tbody.innerHTML = rowsHtml;
+    renderPaginationBar('complaints-pagination', complaintsState, 'goToComplaintsPage');
+}
+
+function onComplaintsSearch() {
+    complaintsState.search = document.getElementById('complaints-search')?.value || '';
+    complaintsState.currentPage = 1;
+    filterAndRenderComplaints();
+}
+
+function onComplaintsStatusFilter(val) {
+    complaintsState.status = val;
+    complaintsState.currentPage = 1;
+    filterAndRenderComplaints();
+}
+
+function changeComplaintsPageSize(val) {
+    complaintsState.pageSize = parseInt(val, 10) || 10;
+    complaintsState.currentPage = 1;
+    filterAndRenderComplaints();
+}
+
+function goToComplaintsPage(page) {
+    complaintsState.currentPage = page;
+    filterAndRenderComplaints();
+}
+
+async function updateComplaintStatus(id, status) {
+    try {
+        const res = await fetch(`${ADMIN_BASE}/admin/api/complaints/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        if (res.ok) {
+            await loadComplaints();
+            await loadActivityLog();
+        } else {
+            const err = await res.json();
+            showAlert(err.detail || 'Could not update complaint');
+        }
+    } catch (e) {
+        showAlert('Network error updating complaint');
+    }
+}
+
+async function deleteComplaint(id) {
+    showConfirm('Delete Complaint', 'Are you sure you want to delete this complaint?', async () => {
+        try {
+            const res = await fetch(`${ADMIN_BASE}/admin/api/complaints/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                await loadComplaints();
+                await loadActivityLog();
+            } else {
+                showAlert('Could not delete complaint');
+            }
+        } catch (e) {
+            showAlert('Network error deleting complaint');
+        }
+    });
+}
+
+// ─── 9. Fee Settings ──────────────────────────────────────────
 async function loadSettings() {
     try {
         const res = await fetch(`${ADMIN_BASE}/admin/api/settings`);
@@ -363,552 +1372,26 @@ async function saveSettings() {
         });
 
         if (res.ok) {
-            msgEl.innerHTML = '<span class="text-success">Settings saved! New fees apply to all future orders.</span>';
+            msgEl.innerHTML = '<span class="text-success fw-bold">✓ Settings saved! New fees apply to all future orders.</span>';
             setTimeout(() => { msgEl.innerHTML = ''; }, 4000);
-            loadStats(); // refresh revenue cards
+            loadStats();
         } else {
             const err = await res.json();
-            msgEl.innerHTML = `<span class="text-danger">${err.detail || 'Save failed'}</span>`;
+            msgEl.innerHTML = `<span class="text-danger">${err.detail || 'Failed to save settings.'}</span>`;
         }
     } catch (e) {
-        msgEl.innerHTML = '<span class="text-danger">Network error.</span>';
+        msgEl.innerHTML = '<span class="text-danger">Network error saving settings.</span>';
     }
 }
 
-// ─── Shops Table ─────────────────────────────────────────────
-async function loadShops() {
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/shops`);
-        const shops = await res.json();
-        const tbody = document.getElementById('shops-tbody');
-        if (!tbody) return;
-        if (!Array.isArray(shops) || shops.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No registered shops yet</td></tr>';
-            return;
-        }
-        let rowsHtml = '';
-        shops.forEach((shop, i) => {
-            const unreadBadge = shop.unread_notifications > 0
-                ? `<span class="badge bg-warning text-dark rounded-pill">${shop.unread_notifications} unread</span>`
-                : `<span class="text-muted small">—</span>`;
-            rowsHtml += `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td class="fw-bold">${shop.shop_name}</td>
-                    <td><code>${shop.shop_id}</code></td>
-                    <td>${shop.food_count}</td>
-                    <td>${unreadBadge}</td>
-                    <td style="white-space:nowrap">${fmtDate(shop.created_at)}</td>
-                    <td>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-success rounded-pill"
-                                    onclick="openNotifModal('${shop.shop_id}', '${shop.shop_name.replace(/'/g, "\\'")}')">Notify</button>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill"
-                                    onclick="adminDeleteShop(${shop.id}, this)">Delete</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
-        tbody.innerHTML = rowsHtml;
-    } catch (e) { console.error('Shops error', e); }
-}
-
-// ─── Toast Notification ──────────────────────────────────────────
-function showToast(message, type) {
-    type = type || 'info';
-    // Remove any existing toast
-    const existing = document.getElementById('admin-toast-container');
-    if (existing) existing.remove();
-
-    const colorMap = {
-        success: '#10b981',
-        danger: '#ef4444',
-        warning: '#f59e0b',
-        info: '#6366f1'
-    };
-    const iconMap = {
-        success: '✅',
-        danger: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-
-    const container = document.createElement('div');
-    container.id = 'admin-toast-container';
-    container.style.cssText = `
-        position: fixed; bottom: 24px; right: 24px; z-index: 99999;
-        background: #1e293b; color: #f1f5f9;
-        border-left: 4px solid ${colorMap[type] || colorMap.info};
-        border-radius: 12px; padding: 14px 20px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.35);
-        font-family: Outfit, sans-serif; font-size: 0.9rem;
-        display: flex; align-items: center; gap: 10px;
-        max-width: 340px; animation: fadeInUp 0.3s ease;
-        transition: opacity 0.4s ease;
-    `;
-
-    // Add keyframe if not already there
-    if (!document.getElementById('toast-keyframe-style')) {
-        const style = document.createElement('style');
-        style.id = 'toast-keyframe-style';
-        style.textContent = '@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}';
-        document.head.appendChild(style);
-    }
-
-    container.innerHTML = `<span style="font-size:1.1rem">${iconMap[type] || iconMap.info}</span><span>${message}</span>`;
-    document.body.appendChild(container);
-
-    setTimeout(() => {
-        container.style.opacity = '0';
-        setTimeout(() => container.remove(), 400);
-    }, 3500);
-}
-
-// ─── Delivery Boys Management ────────────────────────────────────
-let allDeliveryBoysData = [];
-let dbCurrentPage = 1;
-const dbPageSize = 5;
-
-async function loadDeliveryBoys() {
-    const tbody = document.getElementById('delivery-boys-tbody');
-
-    // Show loading spinner
-    if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div> Loading delivery boys...</td></tr>';
-    }
-
-    const apiUrl = `${ADMIN_BASE}/admin/api/delivery-boys`;
-    console.log('[DeliveryBoys] Fetching URL:', apiUrl);
-    console.log('[DeliveryBoys] ADMIN_BASE is:', JSON.stringify(ADMIN_BASE));
-
-    // ── Step 1: Fetch from API ───────────────────────────────────
-    let rawData = null;
-    try {
-        const res = await fetch(apiUrl, { cache: 'no-store' });
-        console.log('[DeliveryBoys] HTTP Status:', res.status, res.statusText);
-        console.log('[DeliveryBoys] Content-Type:', res.headers.get('content-type'));
-
-        const rawText = await res.text();
-        console.log('[DeliveryBoys] Raw response (first 300 chars):', rawText.slice(0, 300));
-
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status} – ${rawText.slice(0, 150) || res.statusText}`);
-        }
-
-        try {
-            rawData = JSON.parse(rawText);
-        } catch (parseErr) {
-            throw new Error(`JSON parse failed: ${parseErr.message} | body was: ${rawText.slice(0, 100)}`);
-        }
-
-    } catch (fetchErr) {
-        console.error('[DeliveryBoys] ❌ Fetch/parse error:', fetchErr);
-        const errMsg = fetchErr.message || String(fetchErr);
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">
-                <div class="text-danger fw-semibold mb-2"><i class="bi bi-wifi-off me-2"></i>Network or Server Error</div>
-                <small class="text-muted font-monospace">${errMsg}</small>
-                <div class="mt-2"><button class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadDeliveryBoys()">Try Again</button></div>
-            </td></tr>`;
-        }
-        return;
-    }
-
-    // ── Step 2: Parse response data ──────────────────────────────
-    const boys = Array.isArray(rawData) ? rawData : (rawData.deliveryBoys || rawData.data || []);
-    allDeliveryBoysData = Array.isArray(boys) ? boys : [];
-    console.log('[DeliveryBoys] ✅ Parsed', allDeliveryBoysData.length, 'delivery boys:', allDeliveryBoysData);
-
-    const statEl = document.getElementById('stat-delivery-boys');
-    if (statEl) statEl.textContent = allDeliveryBoysData.length;
-
-    // ── Step 3: Render table (separate try so render bugs show clearly) ──
-    try {
-        renderDeliveryBoysTable();
-        console.log('[DeliveryBoys] ✅ Table rendered successfully');
-    } catch (renderErr) {
-        console.error('[DeliveryBoys] ❌ Render error:', renderErr);
-        if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">
-                <div class="text-warning fw-semibold mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Data loaded but display error occurred</div>
-                <small class="text-muted font-monospace">${renderErr.message}</small>
-                <div class="mt-2"><button class="btn btn-sm btn-outline-primary rounded-pill" onclick="renderDeliveryBoysTable()">Retry Render</button></div>
-            </td></tr>`;
-        }
-    }
-}
-
-function renderDeliveryBoysTable() {
-    const tbody = document.getElementById('delivery-boys-tbody');
-    if (!tbody) {
-        console.warn('[DeliveryBoys] renderDeliveryBoysTable: tbody not found in DOM');
-        return;
-    }
-
-    const searchEl = document.getElementById('delivery-boy-search');
-    const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
-    console.log('[DeliveryBoys] Rendering with query:', JSON.stringify(query), '| total records:', allDeliveryBoysData.length);
-
-    // Filter by Delivery Boy ID or Name
-    const filtered = allDeliveryBoysData.filter(boy => {
-        const name = (boy.delivery_boy_name || boy.name || '').toLowerCase();
-        const dbId = (boy.delivery_boy_id || '').toLowerCase();
-        return name.includes(query) || dbId.includes(query);
-    });
-
-    if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted fw-medium"><i class="bi bi-person-x fs-4 d-block mb-2 text-secondary"></i>No delivery boys found.</td></tr>';
-        const infoEl = document.getElementById('db-pagination-info');
-        if (infoEl) infoEl.textContent = 'Showing 0 of 0 delivery boys';
-        const prevBtn = document.getElementById('db-prev-btn');
-        const nextBtn = document.getElementById('db-next-btn');
-        if (prevBtn) prevBtn.disabled = true;
-        if (nextBtn) nextBtn.disabled = true;
-        return;
-    }
-
-    const totalPages = Math.ceil(filtered.length / dbPageSize);
-    if (dbCurrentPage > totalPages) dbCurrentPage = totalPages;
-    if (dbCurrentPage < 1) dbCurrentPage = 1;
-
-    const startIdx = (dbCurrentPage - 1) * dbPageSize;
-    const endIdx = Math.min(startIdx + dbPageSize, filtered.length);
-    const pageItems = filtered.slice(startIdx, endIdx);
-
-    let rowsHtml = '';
-    pageItems.forEach((boy, i) => {
-        const rowNum = startIdx + i + 1;
-        const isOnline = boy.status === 'Online';
-        const statusBadge = isOnline
-            ? `<span class="badge bg-success rounded-pill px-3 py-1">🟢 Online</span>`
-            : `<span class="badge bg-secondary rounded-pill px-3 py-1">⚫ Offline</span>`;
-        const nameStr = boy.delivery_boy_name || boy.name || 'Delivery Boy';
-        const boyIdStr = boy.delivery_boy_id || '—';
-        const doneCount = boy.deliveries_done || 0;
-
-        const safeNameEsc = nameStr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const safeIdEsc = boyIdStr.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-
-        rowsHtml += `
-            <tr>
-                <td class="text-muted fw-medium">${rowNum}</td>
-                <td class="fw-bold text-dark">${nameStr}</td>
-                <td><code class="px-2 py-1 bg-light rounded text-primary fw-semibold">${boyIdStr}</code></td>
-                <td>${statusBadge}</td>
-                <td class="fw-bold">${doneCount}</td>
-                <td class="text-muted" style="white-space:nowrap">${fmtDate(boy.created_at)}</td>
-                <td>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                onclick="openEditDeliveryBoyModal(${boy.id}, '${safeNameEsc}', '${safeIdEsc}')">
-                            <i class="bi bi-pencil me-1"></i>Edit
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                onclick="adminDeleteDeliveryBoy(${boy.id}, this)">
-                            <i class="bi bi-trash me-1"></i>Delete
-                        </button>
-                    </div>
-                </td>
-            </tr>`;
-    });
-
-    tbody.innerHTML = rowsHtml;
-
-    // Update Pagination controls
-    const infoEl = document.getElementById('db-pagination-info');
-    if (infoEl) {
-        infoEl.textContent = `Showing ${startIdx + 1} to ${endIdx} of ${filtered.length} delivery boys (Page ${dbCurrentPage} of ${totalPages})`;
-    }
-    const prevBtn = document.getElementById('db-prev-btn');
-    const nextBtn = document.getElementById('db-next-btn');
-    if (prevBtn) prevBtn.disabled = dbCurrentPage <= 1;
-    if (nextBtn) nextBtn.disabled = dbCurrentPage >= totalPages;
-}
-
-function onDeliveryBoySearch() {
-    dbCurrentPage = 1;
-    renderDeliveryBoysTable();
-}
-
-function changeDeliveryBoyPage(dir) {
-    dbCurrentPage += dir;
-    renderDeliveryBoysTable();
-}
-
-function openEditDeliveryBoyModal(id, name, dbId) {
-    document.getElementById('edit_db_id_pk').value = id;
-    document.getElementById('edit_db_name').value = name;
-    document.getElementById('edit_db_id_code').value = dbId;
-
-    const modalEl = document.getElementById('editDeliveryBoyModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
-
-async function saveEditDeliveryBoy(event) {
-    event.preventDefault();
-    const id = document.getElementById('edit_db_id_pk').value;
-    const name = document.getElementById('edit_db_name').value.trim();
-    const delivery_boy_id = document.getElementById('edit_db_id_code').value.trim();
-    const saveBtn = document.getElementById('edit-db-save-btn');
-
-    if (!name || !delivery_boy_id) {
-        showToast('Please fill in all fields', 'warning');
-        return;
-    }
-
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
-
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/delivery-boys/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, delivery_boy_id })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.success !== false) {
-            showToast(data.detail || 'Delivery boy updated successfully', 'success');
-            const modalEl = document.getElementById('editDeliveryBoyModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            await loadDeliveryBoys();
-        } else {
-            showToast(data.detail || 'Failed to update delivery boy', 'danger');
-        }
-    } catch (e) {
-        console.error('Update delivery boy error', e);
-        showToast('Network error while updating delivery boy', 'danger');
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = 'Save Changes';
-    }
-}
-
-async function adminDeleteDeliveryBoy(id, btn) {
-    showConfirm(
-        '🚴 Delete Delivery Boy',
-        'Are you sure you want to delete this delivery boy from the database? This action cannot be undone.',
-        async () => {
-            if (btn) btn.disabled = true;
-            try {
-                const res = await fetch(`${ADMIN_BASE}/admin/api/delivery-boys/${id}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (res.ok && data.success !== false) {
-                    showToast(data.detail || 'Delivery boy deleted successfully', 'success');
-                    await loadDeliveryBoys();
-                    loadStats();
-                } else {
-                    showToast(data.detail || 'Failed to delete delivery boy', 'danger');
-                    if (btn) btn.disabled = false;
-                }
-            } catch (e) {
-                console.error('Delete error', e);
-                showToast('Failed to delete delivery boy', 'danger');
-                if (btn) btn.disabled = false;
-            }
-        }
-    );
-}
-
-async function adminDeleteShop(id, btn) {
-    showConfirm(
-        '🏪 Delete Shop',
-        'The shop and all its login credentials will be permanently removed. This cannot be undone.',
-        async () => {
-            btn.disabled = true;
-            try {
-                const res = await fetch(`${ADMIN_BASE}/admin/api/shops/${id}`, { method: 'DELETE' });
-                if (res.ok) {
-                    btn.closest('tr').remove();
-                    loadStats();
-                } else {
-                    const err = await res.json();
-                    showAlert(err.detail || 'Failed to delete shop.');
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                showAlert('Network error. Please check your connection.');
-                btn.disabled = false;
-            }
-        }
-    );
-}
-
-// ─── Notifications ────────────────────────────────────────────
-function openNotifModal(shopId, shopName) {
-    document.getElementById('notif-shop-id').value = shopId;
-    document.getElementById('notif-shop-name').value = shopName;
-    document.getElementById('notif-target-label').textContent = `${shopName} (${shopId})`;
-    document.getElementById('notif-message').value = '';
-    const modal = new bootstrap.Modal(document.getElementById('sendNotifModal'));
-    modal.show();
-}
-
-async function submitNotification() {
-    const shopId = document.getElementById('notif-shop-id').value;
-    const shopName = document.getElementById('notif-shop-name').value;
-    const message = document.getElementById('notif-message').value.trim();
-    if (!message) {
-        alert('Please enter a message before sending.');
-        return;
-    }
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/notifications`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shop_id: shopId, shop_name: shopName, message })
-        });
-        if (res.ok) {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('sendNotifModal'));
-            modal.hide();
-            loadShops();
-            loadNotifications();
-        } else {
-            const err = await res.json();
-            alert(err.detail || 'Failed to send notification');
-        }
-    } catch (e) {
-        alert('Network error while sending notification');
-    }
-}
-
-async function loadNotifications() {
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/notifications`);
-        const notifs = await res.json();
-        const tbody = document.getElementById('notifications-tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        if (notifs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No notifications sent yet</td></tr>';
-            return;
-        }
-        notifs.forEach((n, i) => {
-            const readBadge = n.is_read
-                ? '<span class="badge-delivered">Read ✓</span>'
-                : '<span class="badge-pending">Unread</span>';
-            tbody.innerHTML += `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td class="fw-medium">${n.shop_name || '—'}</td>
-                    <td><code>${n.shop_id}</code></td>
-                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.message}</td>
-                    <td>${readBadge}</td>
-                    <td style="white-space:nowrap">${fmtDate(n.created_at)}</td>
-                </tr>`;
-        });
-    } catch (e) { console.error('Notifications error', e); }
-}
-
-// ─── Activity Log ─────────────────────────────────────────────
-
-const ACT_META = {
-    order: { color: '#5C5CFF', bg: '#eeeeff', icon: 'O', label: 'Order' },
-    delivery: { color: '#059669', bg: '#d1fae5', icon: 'D', label: 'Delivery' },
-    food: { color: '#d97706', bg: '#fef3c7', icon: 'F', label: 'Food' },
-    shop: { color: '#7c3aed', bg: '#ede9fe', icon: 'S', label: 'Shop' },
-    notification: { color: '#0ea5e9', bg: '#e0f2fe', icon: 'N', label: 'Notif' },
-    settings: { color: '#64748b', bg: '#f1f5f9', icon: 'G', label: 'Settings' },
-    admin: { color: '#3b82f6', bg: '#dbeafe', icon: 'A', label: 'Admin' },
-};
-
-let _allActivityLogs = [];
-let _activityCat = '';
-
-async function loadActivityLog() {
-    const timeline = document.getElementById('activity-timeline');
-    if (!timeline) return;
-    timeline.innerHTML = '<div class="act-empty-state">Loading...</div>';
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/activity-log?limit=200`);
-        _allActivityLogs = await res.json();
-        renderActivityTimeline();
-    } catch (e) {
-        timeline.innerHTML = '<div class="act-empty-state">Failed to load activity log.</div>';
-        console.error('Activity log error', e);
-    }
-}
-
-function setActivityCat(btn, cat) {
-    document.querySelectorAll('.act-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    _activityCat = cat;
-    renderActivityTimeline();
-}
-
-function filterActivityLog() {
-    renderActivityTimeline();
-}
-
-function renderActivityTimeline() {
-    const timeline = document.getElementById('activity-timeline');
-    if (!timeline) return;
-    const search = (document.getElementById('activity-search')?.value || '').toLowerCase();
-
-    let logs = _allActivityLogs;
-    if (_activityCat) logs = logs.filter(l => l.category === _activityCat);
-    if (search) logs = logs.filter(l =>
-        (l.summary || '').toLowerCase().includes(search) ||
-        (l.detail || '').toLowerCase().includes(search) ||
-        (l.action || '').toLowerCase().includes(search)
-    );
-
-    if (logs.length === 0) {
-        timeline.innerHTML = '<div class="act-empty-state">No activity found.</div>';
-        return;
-    }
-
-    timeline.innerHTML = logs.map(log => {
-        const m = ACT_META[log.category] || { color: '#5C5CFF', bg: '#eeeeff', icon: '?', label: log.category };
-        const ago = timeAgo(log.created_at);
-        const detail = log.detail
-            ? `<div class="act-detail">${escHtml(log.detail)}</div>`
-            : '';
-        return `
-        <div class="act-item">
-            <div class="act-dot" style="background:${m.color}; color:#fff;">${m.icon}</div>
-            <div class="act-body">
-                <div class="act-head">
-                    <span class="act-badge" style="background:${m.bg}; color:${m.color};">${m.label}</span>
-                    <span class="act-action">${escHtml(log.action || '')}</span>
-                    <span class="act-time">${ago}</span>
-                </div>
-                <div class="act-summary">${escHtml(log.summary || '')}</div>
-                ${detail}
-            </div>
-        </div>`;
-    }).join('');
-}
-
-function timeAgo(iso) {
-    if (!iso) return '—';
-    const diff = Math.floor((Date.now() - new Date(iso + 'Z')) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-}
-
-function escHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// ─── Custom Confirm Modal ─────────────────────────────────────────
+// ─── Custom Confirm & Alert Modals ────────────────────────────
 function showConfirm(title, message, onConfirm) {
     document.getElementById('confirmModalTitle').textContent = title;
     document.getElementById('confirmModalMsg').textContent = message;
 
     const okBtn = document.getElementById('confirmModalOk');
-    const cancelBtn = document.getElementById('confirmModalCancel');
     const modal = new bootstrap.Modal(document.getElementById('customConfirmModal'), { backdrop: 'static' });
 
-    // Clone button to remove any old listeners
     const newOk = okBtn.cloneNode(true);
     okBtn.parentNode.replaceChild(newOk, okBtn);
 
@@ -917,21 +1400,16 @@ function showConfirm(title, message, onConfirm) {
         if (typeof onConfirm === 'function') onConfirm();
     });
 
-    // Re-bind hover effects on cloned button
-    newOk.addEventListener('mouseover', () => { newOk.style.transform = 'translateY(-2px)'; newOk.style.boxShadow = '0 8px 20px rgba(92,92,255,0.4)'; });
-    newOk.addEventListener('mouseout', () => { newOk.style.transform = 'translateY(0)'; newOk.style.boxShadow = 'none'; });
-
     modal.show();
 }
 
-// ─── Custom Alert Modal ───────────────────────────────────────────
 function showAlert(message) {
     document.getElementById('alertModalMsg').textContent = message;
     const modal = new bootstrap.Modal(document.getElementById('customAlertModal'));
     modal.show();
 }
 
-// ─── Charts ──────────────────────────────────────────────────────
+// ─── Charts ──────────────────────────────────────────────────
 const _charts = {};
 
 function makeChart(id, config) {
@@ -967,7 +1445,6 @@ async function loadCharts() {
             cornerRadius: 8,
         };
 
-        // ── 1. Revenue Trend (line) ──────────────────────────────
         makeChart('chart-revenue', {
             type: 'line',
             data: {
@@ -1004,7 +1481,6 @@ async function loadCharts() {
             }
         });
 
-        // ── 2. Orders by Status (doughnut) ─────────────────────
         const statusLabels = Object.keys(d.orders_by_status);
         const statusData = Object.values(d.orders_by_status);
         const statusColors = { Pending: '#f59e0b', Ready: '#3b82f6', 'Out for Delivery': '#8b5cf6', Delivered: '#10b981', Cancelled: '#f43f5e' };
@@ -1025,12 +1501,8 @@ async function loadCharts() {
                     }
                 }
             });
-        } else {
-            const c = document.getElementById('chart-status');
-            if (c) { const ctx2 = c.getContext('2d'); ctx2.fillStyle = '#94a3b8'; ctx2.font = '14px Outfit,sans-serif'; ctx2.textAlign = 'center'; ctx2.fillText('No orders yet', c.width / 2, c.height / 2); }
         }
 
-        // ── 3. Orders per Shop (horizontal bar) ─────────────────
         if (d.orders_per_shop.labels.length > 0) {
             makeChart('chart-shops', {
                 type: 'bar',
@@ -1058,12 +1530,8 @@ async function loadCharts() {
                     }
                 }
             });
-        } else {
-            const c = document.getElementById('chart-shops');
-            if (c) { const ctx2 = c.getContext('2d'); ctx2.fillStyle = '#94a3b8'; ctx2.font = '14px Outfit,sans-serif'; ctx2.textAlign = 'center'; ctx2.fillText('No data yet', c.width / 2, c.height / 2); }
         }
 
-        // ── 4. Rating Distribution (bar) ────────────────────────
         makeChart('chart-ratings', {
             type: 'bar',
             data: {
@@ -1087,7 +1555,6 @@ async function loadCharts() {
             }
         });
 
-        // ── 5. Top Foods by Volume (polar area) ─────────────────
         if (d.top_foods_by_volume.labels.length > 0) {
             makeChart('chart-foods', {
                 type: 'polarArea',
@@ -1105,118 +1572,69 @@ async function loadCharts() {
                     scales: { r: { grid: { color: gridColor }, ticks: { display: false } } }
                 }
             });
-        } else {
-            const c = document.getElementById('chart-foods');
-            if (c) { const ctx2 = c.getContext('2d'); ctx2.fillStyle = '#94a3b8'; ctx2.font = '14px Outfit,sans-serif'; ctx2.textAlign = 'center'; ctx2.fillText('No data yet', c.width / 2, c.height / 2); }
         }
-
-    } catch (e) { console.error('Charts error', e); }
-}
-
-// ─── Complaints ──────────────────────────────────────────────
-function complaintRoleBadge(role) {
-    const map = {
-        buyer: '<span class="badge bg-danger rounded-pill">Buyer</span>',
-        seller: '<span class="badge bg-warning text-dark rounded-pill">Seller</span>',
-        delivery: '<span class="badge bg-primary rounded-pill">Delivery</span>',
-    };
-    return map[role] || `<span class="badge bg-secondary rounded-pill">${role || 'Unknown'}</span>`;
-}
-
-function complaintStatusBadge(status) {
-    const map = {
-        Open: 'badge-pending',
-        Reviewed: 'badge bg-info text-dark rounded-pill px-2',
-        Resolved: 'badge-delivered',
-    };
-    if (status === 'Reviewed') return `<span class="${map.Reviewed}">${status}</span>`;
-    return status === 'Resolved'
-        ? `<span class="badge-delivered">${status}</span>`
-        : `<span class="badge-pending">${status}</span>`;
-}
-
-async function loadComplaints() {
-    const tbody = document.getElementById('complaints-tbody');
-    if (!tbody) return;
-
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/complaints`);
-        const complaints = await res.json();
-        tbody.innerHTML = '';
-
-        if (!complaints.length) {
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No complaints submitted yet.</td></tr>';
-            return;
-        }
-
-        complaints.forEach(c => {
-            const photoCell = c.image_url
-                ? `<a href="${c.image_url}" target="_blank" rel="noopener"><img src="${c.image_url}" alt="Complaint photo" style="width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;"></a>`
-                : '<span class="text-muted small">—</span>';
-            const msg = (c.message || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const shopCell = c.shop_name
-                ? `<span class="fw-medium text-capitalize">${c.shop_name}</span>`
-                : '<span class="text-muted small">—</span>';
-            tbody.innerHTML += `
-                <tr>
-                    <td class="fw-bold">#${c.id}</td>
-                    <td>${complaintRoleBadge(c.role)}</td>
-                    <td>${c.name || '—'}</td>
-                    <td>${shopCell}</td>
-                    <td>${c.contact || '—'}</td>
-                    <td style="max-width:260px; white-space:normal;">${msg}</td>
-                    <td>${photoCell}</td>
-                    <td>${complaintStatusBadge(c.status)}</td>
-                    <td class="small text-muted">${fmtDate(c.created_at)}</td>
-                    <td>
-                        <div class="d-flex flex-wrap gap-1">
-                            <select class="form-select form-select-sm" style="width:110px;" onchange="updateComplaintStatus(${c.id}, this.value)">
-                                <option value="Open" ${c.status === 'Open' ? 'selected' : ''}>Open</option>
-                                <option value="Reviewed" ${c.status === 'Reviewed' ? 'selected' : ''}>Reviewed</option>
-                                <option value="Resolved" ${c.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
-                            </select>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="deleteComplaint(${c.id})">Delete</button>
-                        </div>
-                    </td>
-                </tr>`;
-        });
     } catch (e) {
-        console.error('Complaints error', e);
-        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Failed to load complaints.</td></tr>';
+        console.error('Charts error', e);
     }
 }
 
-async function updateComplaintStatus(id, status) {
-    try {
-        const res = await fetch(`${ADMIN_BASE}/admin/api/complaints/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        if (res.ok) {
-            loadComplaints();
-            loadActivityLog();
-        } else {
-            const err = await res.json();
-            showAlert(err.detail || 'Could not update complaint');
-        }
-    } catch (e) {
-        showAlert('Network error updating complaint');
-    }
-}
+// ─── Expose global functions for HTML onclick / oninput / onchange ───
+window.showSection = showSection;
+window.loadStats = loadStats;
+window.loadCharts = loadCharts;
+window.loadShops = loadShops;
+window.loadNotifications = loadNotifications;
+window.loadDeliveryBoys = loadDeliveryBoys;
+window.loadFoods = loadFoods;
+window.loadOrders = loadOrders;
+window.loadRatings = loadRatings;
+window.loadComplaints = loadComplaints;
+window.loadSettings = loadSettings;
+window.saveSettings = saveSettings;
+window.loadActivityLog = loadActivityLog;
 
-async function deleteComplaint(id) {
-    showConfirm('Delete Complaint', 'Are you sure you want to delete this complaint?', async () => {
-        try {
-            const res = await fetch(`${ADMIN_BASE}/admin/api/complaints/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                loadComplaints();
-                loadActivityLog();
-            } else {
-                showAlert('Could not delete complaint');
-            }
-        } catch (e) {
-            showAlert('Network error deleting complaint');
-        }
-    });
-}
+window.onShopsSearch = onShopsSearch;
+window.changeShopsPageSize = changeShopsPageSize;
+window.goToShopsPage = goToShopsPage;
+window.openSendNotifModal = openSendNotifModal;
+window.submitNotification = submitNotification;
+window.adminDeleteShop = adminDeleteShop;
+
+window.onNotifsSearch = onNotifsSearch;
+window.changeNotifsPageSize = changeNotifsPageSize;
+window.goToNotifsPage = goToNotifsPage;
+
+window.onDeliveryBoySearch = onDeliveryBoySearch;
+window.changeDeliveryBoyPageSize = changeDeliveryBoyPageSize;
+window.goToDeliveryBoyPage = goToDeliveryBoyPage;
+window.openEditDeliveryBoyModal = openEditDeliveryBoyModal;
+window.saveEditDeliveryBoy = saveEditDeliveryBoy;
+window.adminDeleteDeliveryBoy = adminDeleteDeliveryBoy;
+
+window.onFoodsSearch = onFoodsSearch;
+window.onFoodsShopFilter = onFoodsShopFilter;
+window.changeFoodsPageSize = changeFoodsPageSize;
+window.goToFoodsPage = goToFoodsPage;
+window.adminDeleteFood = adminDeleteFood;
+
+window.onOrdersSearch = onOrdersSearch;
+window.setOrderFilter = setOrderFilter;
+window.changeOrdersPageSize = changeOrdersPageSize;
+window.goToOrdersPage = goToOrdersPage;
+
+window.onRatingsSearch = onRatingsSearch;
+window.onRatingsStarFilter = onRatingsStarFilter;
+window.changeRatingsPageSize = changeRatingsPageSize;
+window.goToRatingsPage = goToRatingsPage;
+
+window.onComplaintsSearch = onComplaintsSearch;
+window.onComplaintsStatusFilter = onComplaintsStatusFilter;
+window.changeComplaintsPageSize = changeComplaintsPageSize;
+window.goToComplaintsPage = goToComplaintsPage;
+window.updateComplaintStatus = updateComplaintStatus;
+window.deleteComplaint = deleteComplaint;
+
+window.filterActivityLog = filterActivityLog;
+window.setActivityCat = setActivityCat;
+window.changeActivityPageSize = changeActivityPageSize;
+window.goToActivityPage = goToActivityPage;

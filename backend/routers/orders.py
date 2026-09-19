@@ -3,9 +3,22 @@ from sqlalchemy.orm import Session
 from typing import List
 from backend import crud, schemas, models
 from backend.database import get_db
-from backend.services import order_service
+from backend.services import order_service, otp_service
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+@router.post("/send-otp")
+def send_buyer_otp(payload: schemas.OTPRequest):
+    """Sends a 4-digit OTP code to the buyer's email."""
+    return otp_service.request_otp(payload.email)
+
+@router.post("/verify-otp")
+def verify_buyer_otp(payload: schemas.OTPVerify):
+    """Verifies the 4-digit OTP code."""
+    valid = otp_service.verify_otp(payload.email, payload.otp)
+    if not valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired 4-digit OTP code.")
+    return {"verified": True, "message": "OTP verified successfully!"}
 
 @router.post("", response_model=schemas.OrderResponse)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
@@ -17,59 +30,34 @@ def checkout_cart(checkout: schemas.CartCheckoutCreate, db: Session = Depends(ge
 
 @router.get("", response_model=List[schemas.OrderResponse])
 def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    # Join with Food to get names
-    orders = db.query(models.Order, models.Food).outerjoin(models.Food, models.Order.food_id == models.Food.id).offset(skip).limit(limit).all()
-    result = []
-    for order, food in orders:
-        order_dict = {c.name: getattr(order, c.name) for c in order.__table__.columns}
-        if food:
-            order_dict["food_name"] = food.food_name
-            order_dict["shop_name"] = food.shop_name
-        result.append(order_dict)
-    return result
+    orders = db.query(models.Order).order_by(models.Order.created_at.desc()).offset(skip).limit(limit).all()
+    return orders
 
 @router.get("/pending", response_model=List[schemas.OrderResponse])
 def read_pending_orders(db: Session = Depends(get_db)):
-    orders = db.query(models.Order, models.Food).outerjoin(models.Food, models.Order.food_id == models.Food.id).filter(models.Order.status.in_(["Pending", "On Road"])).all()
-    result = []
-    for order, food in orders:
-        order_dict = {c.name: getattr(order, c.name) for c in order.__table__.columns}
-        if food:
-            order_dict["food_name"] = food.food_name
-            order_dict["shop_name"] = food.shop_name
-        result.append(order_dict)
-    return result
+    orders = db.query(models.Order).filter(models.Order.status.in_(["Pending", "On Road"])).order_by(models.Order.created_at.desc()).all()
+    return orders
 
 @router.get("/{order_id}", response_model=schemas.OrderResponse)
 def read_order(order_id: int, db: Session = Depends(get_db)):
     order = crud.get_order(db, order_id=order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
-    
-    # Get food name
-    food = crud.get_food(db, food_id=order.food_id)
-    order_dict = {c.name: getattr(order, c.name) for c in order.__table__.columns}
-    if food:
-        order_dict["food_name"] = food.food_name
-        order_dict["shop_name"] = food.shop_name
-    return order_dict
+    return order
 
 @router.get("/shop/{shop_name}/delivery-requests", response_model=List[schemas.OrderResponse])
 def get_shop_delivery_requests(shop_name: str, db: Session = Depends(get_db)):
-    orders = db.query(models.Order, models.Food)\
-        .join(models.Food, models.Order.food_id == models.Food.id)\
-        .filter(models.Food.shop_name == shop_name)\
-        .filter(models.Order.status == "Pending")\
-        .filter(models.Order.delivery_request_status == "Requested")\
+    shop_name_clean = shop_name.strip()
+    orders = (
+        db.query(models.Order)
+        .join(models.OrderItem, models.Order.id == models.OrderItem.order_id)
+        .filter(models.OrderItem.shop_name == shop_name_clean)
+        .filter(models.Order.status == "Pending")
+        .filter(models.Order.delivery_request_status == "Requested")
+        .distinct()
         .all()
-    
-    result = []
-    for order, food in orders:
-        order_dict = {c.name: getattr(order, c.name) for c in order.__table__.columns}
-        order_dict["food_name"] = food.food_name
-        order_dict["shop_name"] = food.shop_name
-        result.append(order_dict)
-    return result
+    )
+    return orders
 
 @router.post("/{order_id}/approve_delivery")
 def approve_delivery_request(order_id: int, db: Session = Depends(get_db)):
@@ -90,10 +78,10 @@ def get_shop_order_history(shop_name: str, db: Session = Depends(get_db)):
     """Retrieve full present and previous order history and financial revenue summary for a shop."""
     shop_name_clean = shop_name.strip()
     
-    orders_query = (
-        db.query(models.Order, models.Food)
-        .join(models.Food, models.Order.food_id == models.Food.id)
-        .filter(models.Food.shop_name == shop_name_clean)
+    item_rows = (
+        db.query(models.OrderItem, models.Order)
+        .join(models.Order, models.OrderItem.order_id == models.Order.id)
+        .filter(models.OrderItem.shop_name == shop_name_clean)
         .order_by(models.Order.created_at.desc())
         .all()
     )
@@ -102,18 +90,18 @@ def get_shop_order_history(shop_name: str, db: Session = Depends(get_db)):
     gross_revenue = 0.0
     total_admin_cut = 0.0
     total_delivery_cut = 0.0
-    completed_count = 0
+    completed_order_ids = set()
     total_items_sold = 0
 
-    for order, food in orders_query:
-        tot = order.total_price or 0.0
-        adm = order.admin_fee if (order.admin_fee is not None and order.admin_fee > 0) else round(tot * 0.01, 2)
-        dev = order.delivery_fee if (order.delivery_fee is not None and order.delivery_fee > 0) else round(tot * 0.01, 2)
+    for item, order in item_rows:
+        tot = item.total_price or 0.0
+        adm = round(tot * 0.03, 2)
+        dev = round(tot * 0.015, 2)
         net = round(tot - adm - dev, 2)
 
         if order.status == "Delivered":
-            completed_count += 1
-            total_items_sold += order.quantity or 0
+            completed_order_ids.add(order.id)
+            total_items_sold += item.quantity or 0
             gross_revenue += tot
             total_admin_cut += adm
             total_delivery_cut += dev
@@ -122,10 +110,12 @@ def get_shop_order_history(shop_name: str, db: Session = Depends(get_db)):
             "id": order.id,
             "student_name": order.student_name,
             "student_id": order.student_id,
+            "email": order.email,
+            "otp_code": order.otp_code,
             "phone": order.phone,
             "delivery_location": order.delivery_location,
-            "food_name": food.food_name,
-            "quantity": order.quantity,
+            "food_name": item.food_name,
+            "quantity": item.quantity,
             "total_price": round(tot, 2),
             "admin_fee": round(adm, 2),
             "delivery_fee": round(dev, 2),
@@ -141,7 +131,7 @@ def get_shop_order_history(shop_name: str, db: Session = Depends(get_db)):
     return {
         "summary": {
             "total_orders": len(orders_list),
-            "completed_orders": completed_count,
+            "completed_orders": len(completed_order_ids),
             "total_items_sold": total_items_sold,
             "gross_revenue": round(gross_revenue, 2),
             "admin_fee_cut": round(total_admin_cut, 2),

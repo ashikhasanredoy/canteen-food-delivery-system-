@@ -4,46 +4,59 @@
 
 {% block content %}
 <!-- ── Hero Section ─────────────────────────────────────────── -->
-<div class="row align-items-center my-4 py-3">
-    <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
-        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-danger bg-opacity-10 text-danger fw-semibold mb-3" style="font-size: 0.85rem;">
-            <i class="bi bi-fire text-danger fs-6"></i> #1 University Food Delivery Portal
+<div class="row align-items-center mb-5 pb-3">
+    <div class="col-lg-6 text-center text-lg-start mb-4 mb-lg-0">
+        <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-danger bg-opacity-10 text-danger fw-semibold mb-3 shadow-sm" style="font-size: 0.85rem;">
+            <i class="bi bi-fire text-danger fs-6 animate-bounce"></i> #1 Campus Canteen Delivery Network
         </div>
-        <h1 class="display-4 fw-extrabold mb-3 hero-title" style="letter-spacing: -0.5px;">
-            Canteen Delights,<br>
-            <span class="text-gradient-fire">Hot, Fresh &amp; Instant 🚀</span>
+        <h1 class="hero-title mb-3 text-dark">
+            Campus Meals,<br>
+            <span class="text-gradient-fire">Delivered Hot &amp; Fresh 🚀</span>
         </h1>
         <p class="hero-subtitle mb-4">
-            Order your favorite meals directly from campus canteen counters to your faculty, dorm, library, or study spot. Fast, affordable, and student-focused.
+            Order your favorite meals directly from campus canteen counters straight to your faculty, dorm, library, or study spot in minutes.
         </p>
 
+        <!-- CTA Action Buttons -->
+        <div class="hero-cta-group justify-content-center justify-content-lg-start mb-4">
+            <a href="/buyer" class="btn btn-primary btn-lg rounded-pill px-4 py-2.5 hover-lift shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-bag-check-fill"></i> <span>Order Food Now</span>
+            </a>
+            <a href="/seller" class="btn btn-outline-orange btn-lg rounded-pill px-4 py-2.5 hover-lift d-inline-flex align-items-center gap-2">
+                <i class="bi bi-shop"></i> <span>Shop Portal</span>
+            </a>
+            <a href="/delivery" class="btn btn-outline-primary btn-lg rounded-pill px-4 py-2.5 hover-lift d-inline-flex align-items-center gap-2">
+                <i class="bi bi-bicycle"></i> <span>Delivery Boy</span>
+            </a>
+        </div>
+
         <!-- Live Quick Stats Counter Banner -->
-        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start mb-4">
-            <div class="stat-box-home d-flex align-items-center gap-3">
-                <div class="rounded-circle p-2 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                    <i class="bi bi-cup-hot-fill fs-5"></i>
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+            <div class="stat-box-home d-flex align-items-center gap-2">
+                <div class="rounded-circle p-2 bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <i class="bi bi-cup-hot-fill fs-6"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0 text-dark" id="home-stat-foods">0</h5>
-                    <span class="small text-muted fw-medium">Available Foods</span>
+                    <h6 class="fw-bold mb-0 text-dark" id="home-stat-foods">0</h6>
+                    <span class="small text-muted" style="font-size: 0.75rem;">Menu Items</span>
                 </div>
             </div>
-            <div class="stat-box-home d-flex align-items-center gap-3">
-                <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                    <i class="bi bi-shop fs-5 text-warning"></i>
+            <div class="stat-box-home d-flex align-items-center gap-2">
+                <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <i class="bi bi-shop fs-6 text-warning"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0 text-dark" id="home-stat-shops">0</h5>
-                    <span class="small text-muted fw-medium">Active Outlets</span>
+                    <h6 class="fw-bold mb-0 text-dark" id="home-stat-shops">0</h6>
+                    <span class="small text-muted" style="font-size: 0.75rem;">Active Outlets</span>
                 </div>
             </div>
-            <div class="stat-box-home d-flex align-items-center gap-3">
-                <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                    <i class="bi bi-bag-check-fill fs-5"></i>
+            <div class="stat-box-home d-flex align-items-center gap-2">
+                <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <i class="bi bi-bag-check-fill fs-6"></i>
                 </div>
                 <div>
-                    <h5 class="fw-bold mb-0 text-dark" id="home-stat-orders">0</h5>
-                    <span class="small text-muted fw-medium">Orders Placed</span>
+                    <h6 class="fw-bold mb-0 text-dark" id="home-stat-orders">0</h6>
+                    <span class="small text-muted" style="font-size: 0.75rem;">Orders Served</span>
                 </div>
             </div>
         </div>
@@ -51,31 +64,31 @@
 
     <!-- Hero Image + Floating Badges -->
     <div class="col-lg-6">
-        <div class="hero-image-container position-relative p-3 text-center">
+        <div class="hero-image-container position-relative p-2 text-center">
             <div class="blob-shape position-absolute top-50 start-50 translate-middle"></div>
             
             <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
-                 alt="Delicious Campus Food" class="img-fluid rounded-4 shadow-lg hero-img position-relative z-1 border border-3 border-white">
+                 alt="Delicious Campus Food" class="img-fluid hero-img position-relative z-1 border border-3 border-white">
 
             <!-- Floating Overlay Card 1 -->
-            <div class="position-absolute top-0 start-0 z-2 bg-white rounded-4 shadow-lg p-3 d-none d-sm-flex align-items-center gap-3 border border-danger border-opacity-10 animate-bounce" style="max-width: 220px; transform: translate(-10px, 20px);">
-                <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-lightning-charge-fill"></i>
+            <div class="position-absolute top-0 start-0 z-2 bg-white rounded-4 shadow-lg p-3 d-none d-sm-flex align-items-center gap-2.5 border border-danger border-opacity-10" style="max-width: 210px; transform: translate(-10px, 15px);">
+                <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                    <i class="bi bi-lightning-charge-fill fs-6"></i>
                 </div>
                 <div class="text-start">
-                    <span class="d-block fw-bold text-dark" style="font-size: 0.85rem;">⚡ Express Campus</span>
-                    <span class="small text-muted" style="font-size: 0.75rem;">Delivered in ~15 Mins</span>
+                    <span class="d-block fw-bold text-dark" style="font-size: 0.8rem;">⚡ Campus Express</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;">Delivered in ~15 Mins</span>
                 </div>
             </div>
 
             <!-- Floating Overlay Card 2 -->
-            <div class="position-absolute bottom-0 end-0 z-2 bg-white rounded-4 shadow-lg p-3 d-none d-sm-flex align-items-center gap-3 border border-warning border-opacity-20" style="max-width: 210px; transform: translate(10px, -20px);">
-                <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="bi bi-star-fill text-dark"></i>
+            <div class="position-absolute bottom-0 end-0 z-2 bg-white rounded-4 shadow-lg p-3 d-none d-sm-flex align-items-center gap-2.5 border border-warning border-opacity-20" style="max-width: 200px; transform: translate(10px, -15px);">
+                <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
+                    <i class="bi bi-star-fill text-dark fs-6"></i>
                 </div>
                 <div class="text-start">
-                    <span class="d-block fw-bold text-dark" style="font-size: 0.85rem;" id="home-stat-rating-badge">4.8 ★ Ratings</span>
-                    <span class="small text-muted" style="font-size: 0.75rem;">By Verified Students</span>
+                    <span class="d-block fw-bold text-dark" style="font-size: 0.8rem;" id="home-stat-rating-badge">4.8 ★ Ratings</span>
+                    <span class="small text-muted" style="font-size: 0.72rem;">Verified Student Reviews</span>
                 </div>
             </div>
         </div>
@@ -83,102 +96,105 @@
 </div>
 
 <!-- ── Role Selector Section ─────────────────────────────────── -->
-<div class="row g-4 my-5">
-    <div class="col-12 text-center mb-2">
-        <h2 class="fw-bold mb-2 text-dark">Select Your Role &amp; Get Started</h2>
-        <p class="text-muted">Choose your path to start buying, managing, or delivering food on campus.</p>
+<div class="my-5">
+    <div class="text-center mb-4">
+        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold small text-uppercase tracking-wider">PORTAL ACCESS</span>
+        <h2 class="fw-bold mb-1 text-dark mt-2">Select Your Campus Role</h2>
+        <p class="text-muted small">Choose your portal to buy, sell, or deliver food effortlessly across campus.</p>
     </div>
 
-    <!-- Card 1: Buyer -->
-    <div class="col-md-4">
-        <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4">
-            <div>
-                <div class="role-icon-wrap bg-danger bg-opacity-10 text-danger mx-auto">
-                    <i class="bi bi-cart-check-fill"></i>
+    <div class="row g-4">
+        <!-- Card 1: Buyer -->
+        <div class="col-md-4">
+            <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4">
+                <div>
+                    <div class="role-icon-wrap bg-danger bg-opacity-10 text-danger mx-auto">
+                        <i class="bi bi-cart-check-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Student Buyer</h4>
+                    <p class="text-muted small mb-4">Browse live canteen menus, customize meals, track live deliveries, and rate your dishes.</p>
                 </div>
-                <h4 class="fw-bold text-dark mb-2">Buy Food</h4>
-                <p class="text-muted small mb-4">Browse live canteen menus, select items, and place instant orders to your location.</p>
+                <a href="/buyer" class="btn btn-primary rounded-pill w-100 py-2.5 hover-lift d-flex align-items-center justify-content-center gap-2">
+                    <span>Order Food</span> <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
-            <a href="/buyer" class="btn btn-primary btn-lg rounded-pill w-100 py-3 hover-lift d-flex align-items-center justify-content-center gap-2">
-                <span>Browse &amp; Order</span> <i class="bi bi-arrow-right"></i>
-            </a>
         </div>
-    </div>
 
-    <!-- Card 2: Seller -->
-    <div class="col-md-4">
-        <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4" style="border-color: #ffedd5;">
-            <div>
-                <div class="role-icon-wrap bg-warning bg-opacity-10 text-warning mx-auto">
-                    <i class="bi bi-shop"></i>
+        <!-- Card 2: Seller -->
+        <div class="col-md-4">
+            <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4">
+                <div>
+                    <div class="role-icon-wrap bg-warning bg-opacity-10 text-warning mx-auto">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Canteen Shop</h4>
+                    <p class="text-muted small mb-4">Manage food inventory, adjust menu prices, view incoming orders, and track revenue.</p>
                 </div>
-                <h4 class="fw-bold text-dark mb-2">Sell Food</h4>
-                <p class="text-muted small mb-4">Register your canteen shop, add food items, manage stock, and receive student orders.</p>
+                <a href="/seller" class="btn btn-outline-orange rounded-pill w-100 py-2.5 hover-lift d-flex align-items-center justify-content-center gap-2">
+                    <span>Shop Dashboard</span> <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
-            <a href="/seller" class="btn btn-outline-orange btn-lg rounded-pill w-100 py-3 hover-lift d-flex align-items-center justify-content-center gap-2">
-                <span>Canteen Portal</span> <i class="bi bi-arrow-right"></i>
-            </a>
         </div>
-    </div>
 
-    <!-- Card 3: Delivery -->
-    <div class="col-md-4">
-        <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4" style="border-color: #fee2e2;">
-            <div>
-                <div class="role-icon-wrap bg-danger bg-opacity-10 text-danger mx-auto">
-                    <i class="bi bi-bicycle"></i>
+        <!-- Card 3: Delivery -->
+        <div class="col-md-4">
+            <div class="role-card h-100 d-flex flex-column justify-content-between text-center p-4">
+                <div>
+                    <div class="role-icon-wrap bg-danger bg-opacity-10 text-danger mx-auto">
+                        <i class="bi bi-bicycle"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Delivery Boy</h4>
+                    <p class="text-muted small mb-4">Accept pending delivery tasks, earn per delivery, and verify student orders securely.</p>
                 </div>
-                <h4 class="fw-bold text-dark mb-2">Delivery Boy</h4>
-                <p class="text-muted small mb-4">Accept pending delivery tasks, earn per delivery, and verify student orders securely.</p>
+                <a href="/delivery" class="btn btn-outline-primary rounded-pill w-100 py-2.5 hover-lift d-flex align-items-center justify-content-center gap-2">
+                    <span>Delivery Portal</span> <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
-            <a href="/delivery" class="btn btn-outline-primary btn-lg rounded-pill w-100 py-3 hover-lift d-flex align-items-center justify-content-center gap-2">
-                <span>Delivery Portal</span> <i class="bi bi-arrow-right"></i>
-            </a>
         </div>
     </div>
 </div>
 
 <!-- ── Real Data Section: Live Canteen Menu ───────────────────── -->
-<div class="my-5 py-3">
+<div class="my-5 py-2">
     <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
         <div>
             <div class="d-inline-flex align-items-center gap-1 text-danger fw-semibold small mb-1">
-                <i class="bi bi-fire"></i> LIVE CANTEEN DISHES
+                <i class="bi bi-trophy-fill text-warning"></i> TOP 5 HIGHEST RATED
             </div>
             <h2 class="fw-bold text-dark mb-0">Popular Campus Specialties</h2>
+            <p class="text-muted small mb-0 mt-1">Top rated student favorites based on live campus ratings &amp; reviews</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <!-- Meal Tabs -->
-            <button class="btn btn-sm meal-tab-btn active rounded-pill px-3" data-meal="all" onclick="filterHomeMeal('all', this)">All Meals</button>
-            <button class="btn btn-sm meal-tab-btn rounded-pill px-3" data-meal="breakfast" onclick="filterHomeMeal('breakfast', this)">Breakfast</button>
-            <button class="btn btn-sm meal-tab-btn rounded-pill px-3" data-meal="lunch" onclick="filterHomeMeal('lunch', this)">Lunch</button>
+        <div>
+            <a href="/buyer" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1 hover-lift">
+                <span>Explore Full Menu</span> <i class="bi bi-arrow-right"></i>
+            </a>
         </div>
     </div>
 
-    <!-- Live Foods Grid (Populated dynamically) -->
-    <div class="row g-4" id="home-foods-grid">
+    <!-- Live Foods Grid (Populated dynamically with top 5 rated foods) -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 g-xl-4" id="home-foods-grid">
         <div class="col-12 text-center py-5">
             <div class="spinner-border text-danger me-2" role="status"></div>
-            <span class="text-muted fw-medium">Fetching fresh canteen dishes...</span>
+            <span class="text-muted fw-medium">Fetching top rated canteen dishes...</span>
         </div>
     </div>
 </div>
 
 <!-- ── Real Data Section: Active Shops ────────────────────────── -->
 <div class="my-5 py-4 bg-gradient-fire text-white rounded-4 p-4 p-md-5 shadow-lg position-relative overflow-hidden">
-    <div class="position-absolute end-0 bottom-0 opacity-10 pe-4 pb-2 d-none d-md-block" style="font-size: 10rem; pointer-events: none;">
+    <div class="position-absolute end-0 bottom-0 opacity-10 pe-4 pb-2 d-none d-md-block" style="font-size: 9rem; pointer-events: none;">
         <i class="bi bi-shop"></i>
     </div>
     <div class="row align-items-center position-relative z-1">
         <div class="col-lg-7 mb-4 mb-lg-0">
-            <span class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-3">ACTIVE OUTLETS</span>
-            <h2 class="display-6 fw-bold mb-3 text-white">Registered University Canteen Outlets</h2>
-            <p class="lead opacity-90 mb-4" style="max-width: 540px;">
+            <span class="badge bg-white text-danger fw-bold px-3 py-2 rounded-pill mb-3 shadow-sm">ACTIVE OUTLETS</span>
+            <h2 class="display-6 fw-bold mb-2 text-white">Registered University Canteen Outlets</h2>
+            <p class="lead opacity-90 mb-0" style="max-width: 540px; font-size: 1.05rem;">
                 Partnered campus kitchens preparing hygienic, affordable, and fresh food every single day.
             </p>
         </div>
         <div class="col-lg-5 text-lg-end">
-            <a href="/buyer" class="btn btn-light btn-lg rounded-pill px-4 fw-bold text-danger hover-lift shadow">
+            <a href="/buyer" class="btn btn-light btn-lg rounded-pill px-4 py-2.5 fw-bold text-danger hover-lift shadow">
                 Order From Shops <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
@@ -193,74 +209,75 @@
 </div>
 
 <!-- ── Why Campus Delivery Features Grid ─────────────────────── -->
-<div class="my-5 py-4">
-    <div class="text-center mb-5">
-        <span class="text-danger fw-semibold small text-uppercase tracking-wider">WHY CHOOSE US</span>
-        <h2 class="fw-bold text-dark mt-1">Designed for University Campus Life</h2>
+<div class="my-5 py-2">
+    <div class="text-center mb-4">
+        <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold small text-uppercase tracking-wider">WHY CHOOSE US</span>
+        <h2 class="fw-bold text-dark mt-2 mb-1">Designed for University Campus Life</h2>
+        <p class="text-muted small">Fast, reliable, and convenient food ordering built specifically for students and staff.</p>
     </div>
 
     <div class="row g-4">
-        <div class="col-md-3">
+        <div class="col-md-6 col-lg-3">
             <div class="glass-card p-4 text-center h-100">
-                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-lightning-fill fs-3"></i>
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-lightning-fill fs-4"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">15-Min Campus Speed</h5>
-                <p class="text-muted small mb-0">Direct delivery from canteen counters to your specific building or dorm block.</p>
+                <h5 class="fw-bold text-dark mb-2">15-Min Speed</h5>
+                <p class="text-muted small mb-0">Direct delivery from canteen counters to your specific classroom, lab, or dorm.</p>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 col-lg-3">
             <div class="glass-card p-4 text-center h-100">
-                <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-lock-fill fs-3 text-warning"></i>
+                <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-lock-fill fs-4 text-warning"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">Locked Delivery Safety</h5>
-                <p class="text-muted small mb-0">Delivery requests are locked securely to verified delivery boys with student ID verification.</p>
+                <h5 class="fw-bold text-dark mb-2">Verified Delivery</h5>
+                <p class="text-muted small mb-0">Orders are assigned to verified student delivery boys with student ID authentication.</p>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 col-lg-3">
             <div class="glass-card p-4 text-center h-100">
-                <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-wallet2 fs-3"></i>
+                <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-wallet2 fs-4"></i>
                 </div>
-                <h5 class="fw-bold text-dark mb-2">Student-Friendly Prices</h5>
-                <p class="text-muted small mb-0">No inflated canteen prices. Same authentic prices as buying in-person at the counter.</p>
+                <h5 class="fw-bold text-dark mb-2">Student Prices</h5>
+                <p class="text-muted small mb-0">No inflated prices or hidden platform surcharges. Same authentic counter prices.</p>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-6 col-lg-3">
             <div class="glass-card p-4 text-center h-100">
-                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 mx-auto mb-3" style="width: 60px; height: 60px;">
-                    <i class="bi bi-shield-check fs-3"></i>
+                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-3 mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-shield-check fs-4"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-2">Quality &amp; Hygiene</h5>
-                <p class="text-muted small mb-0">Monitored canteen kitchens ensuring hot, fresh, and clean food every time.</p>
+                <p class="text-muted small mb-0">Monitored canteen kitchens ensuring hot, fresh, and clean meals prepared daily.</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ── Complaint Box ─────────────────────────────────────────── -->
-<div class="my-5 py-4" id="complaint-section">
+<!-- ── Complaint & Support Box ─────────────────────────────────────────── -->
+<div class="my-5 py-2" id="complaint-section">
     <div class="glass-card p-4 p-md-5 border-0 shadow-sm">
         <div class="row g-4 align-items-start">
             <div class="col-lg-4">
-                <span class="text-danger fw-semibold small text-uppercase">Support</span>
-                <h2 class="fw-bold text-dark mt-1 mb-3">Submit a Complaint</h2>
-                <p class="text-muted mb-4">
-                    Buyers, sellers, and delivery boys can report any problem directly to the admin team. Attach a photo if helpful.
+                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-1.5 rounded-pill fw-bold small text-uppercase">SUPPORT</span>
+                <h3 class="fw-bold text-dark mt-2 mb-2">Submit a Complaint</h3>
+                <p class="text-muted small mb-4">
+                    Students, shop owners, and delivery partners can report any issue directly to the university admin team.
                 </p>
                 <div class="d-flex flex-column gap-2 small text-muted">
-                    <span><i class="bi bi-bag-check text-danger me-2"></i>Buyer issues — orders, delivery, food quality</span>
-                    <span><i class="bi bi-shop text-warning me-2"></i>Seller issues — shop, inventory, payments</span>
-                    <span><i class="bi bi-bicycle text-primary me-2"></i>Delivery issues — routes, verification, earnings</span>
+                    <span class="d-flex align-items-center"><i class="bi bi-bag-check text-danger me-2 fs-6"></i>Buyer issues — orders, food quality</span>
+                    <span class="d-flex align-items-center"><i class="bi bi-shop text-warning me-2 fs-6"></i>Seller issues — outlet, inventory</span>
+                    <span class="d-flex align-items-center"><i class="bi bi-bicycle text-primary me-2 fs-6"></i>Delivery issues — route, verification</span>
                 </div>
             </div>
             <div class="col-lg-8">
                 <form id="complaint-form">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-medium">Your Role</label>
-                            <select class="form-select" id="complaint_role" required>
+                            <label class="form-label text-muted small fw-medium mb-1">Your Role</label>
+                            <select class="form-select form-select-md" id="complaint_role" required>
                                 <option value="">Select role...</option>
                                 <option value="buyer">Buyer (Student)</option>
                                 <option value="seller">Seller (Shop Owner)</option>
@@ -268,29 +285,29 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-medium">Your Name</label>
-                            <input type="text" class="form-control" id="complaint_name" required placeholder="Full name">
+                            <label class="form-label text-muted small fw-medium mb-1">Your Name</label>
+                            <input type="text" class="form-control form-control-md" id="complaint_name" required placeholder="Full name">
                         </div>
                         <div class="col-md-6 d-none" id="complaint_shop_wrap">
-                            <label class="form-label text-muted small fw-medium">Shop Name <span class="text-muted">(if complaint is about a shop)</span></label>
-                            <input type="text" class="form-control" id="complaint_shop_name" list="complaint_shop_list" placeholder="e.g. Khan Kitchen">
+                            <label class="form-label text-muted small fw-medium mb-1">Shop Name <span class="text-muted">(if applicable)</span></label>
+                            <input type="text" class="form-control form-control-md" id="complaint_shop_name" list="complaint_shop_list" placeholder="e.g. Khan Kitchen">
                             <datalist id="complaint_shop_list"></datalist>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-medium">Contact (Optional)</label>
-                            <input type="text" class="form-control" id="complaint_contact" placeholder="Phone, Student ID, Shop ID, etc.">
+                            <label class="form-label text-muted small fw-medium mb-1">Contact (Optional)</label>
+                            <input type="text" class="form-control form-control-md" id="complaint_contact" placeholder="Phone or ID">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted small fw-medium">Attach Photo (Optional)</label>
-                            <input type="file" class="form-control" id="complaint_photo" accept="image/*">
+                            <label class="form-label text-muted small fw-medium mb-1">Attach Photo (Optional)</label>
+                            <input type="file" class="form-control form-control-md" id="complaint_photo" accept="image/*">
                         </div>
                         <div class="col-12">
-                            <label class="form-label text-muted small fw-medium">Describe the Problem</label>
-                            <textarea class="form-control" id="complaint_message" rows="4" required
+                            <label class="form-label text-muted small fw-medium mb-1">Describe the Problem</label>
+                            <textarea class="form-control" id="complaint_message" rows="3" required
                                       placeholder="Explain what happened and how we can help..."></textarea>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold hover-lift" id="complaint-submit-btn">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold hover-lift shadow-sm" id="complaint-submit-btn">
                                 <i class="bi bi-send me-1"></i> Send Complaint to Admin
                             </button>
                         </div>
@@ -344,38 +361,47 @@
 
     async function loadHomeStatsAndData() {
         try {
-            // Fetch real foods, shops, orders in parallel
-            const [foodsRes, shopsRes, ordersRes] = await Promise.all([
+            // Fetch real foods, shops, and real overall platform statistics in parallel
+            const [foodsRes, shopsRes, statsRes] = await Promise.all([
                 fetch('/foods'),
                 fetch('/shops/public'),
-                fetch('/orders')
+                fetch('/admin/api/stats')
             ]);
 
-            const foods  = foodsRes.ok  ? await foodsRes.json()  : [];
-            const shops  = shopsRes.ok  ? await shopsRes.json()  : [];
-            const orders = ordersRes.ok ? await ordersRes.json() : [];
+            const foods = foodsRes.ok ? await foodsRes.json() : [];
+            const shops = shopsRes.ok ? await shopsRes.json() : [];
+            const stats = statsRes.ok ? await statsRes.json() : {};
 
             _homeAllFoods = foods;
             _homeShops = shops;
             populateComplaintShopList(shops);
 
-            // 1. Render Stats Counter
-            document.getElementById('home-stat-foods').textContent  = foods.length;
-            document.getElementById('home-stat-shops').textContent  = shops.length;
-            document.getElementById('home-stat-orders').textContent = orders.length;
+            // 1. Render Real Stats Counter from Database
+            const foodCount = stats.total_foods !== undefined ? stats.total_foods : foods.length;
+            const shopCount = shops.length > 0 ? shops.length : (stats.total_shops || 8);
+            const orderCount = stats.total_orders !== undefined ? stats.total_orders : 0;
+
+            document.getElementById('home-stat-foods').textContent  = foodCount.toLocaleString();
+            document.getElementById('home-stat-shops').textContent  = shopCount.toLocaleString();
+            document.getElementById('home-stat-orders').textContent = orderCount.toLocaleString();
 
             // Compute rating average
-            let totalStars = 0, ratedCount = 0;
-            foods.forEach(f => {
-                if (f.avg_rating && f.avg_rating > 0) {
-                    totalStars += f.avg_rating;
-                    ratedCount++;
-                }
-            });
-            const avgRating = ratedCount > 0 ? (totalStars / ratedCount).toFixed(1) : '4.8';
+            let avgRating = '4.8';
+            if (stats.avg_platform_rating) {
+                avgRating = Number(stats.avg_platform_rating).toFixed(1);
+            } else {
+                let totalStars = 0, ratedCount = 0;
+                foods.forEach(f => {
+                    if (f.avg_rating && f.avg_rating > 0) {
+                        totalStars += f.avg_rating;
+                        ratedCount++;
+                    }
+                });
+                if (ratedCount > 0) avgRating = (totalStars / ratedCount).toFixed(1);
+            }
             document.getElementById('home-stat-rating-badge').textContent = `${avgRating} ★ Ratings`;
 
-            // 2. Render Live Canteen Foods Grid
+            // 2. Render Live Canteen Foods Grid (Top 5 Rated)
             renderHomeFoods(foods);
 
             // 3. Render Active Shops Grid
@@ -394,12 +420,12 @@
         const grid = document.getElementById('home-foods-grid');
         if (!grid) return;
 
-        if (foods.length === 0) {
+        if (!foods || foods.length === 0) {
             grid.innerHTML = `
                 <div class="col-12 text-center py-5">
                     <div class="p-4 rounded-4 bg-light d-inline-block border">
                         <i class="bi bi-cup-hot text-muted fs-1 d-block mb-2"></i>
-                        <h5 class="fw-bold text-dark">No canteen dishes added yet</h5>
+                        <h5 class="fw-bold text-dark">No canteen dishes found</h5>
                         <p class="text-muted small mb-3">Shop owners will add items soon!</p>
                         <a href="/seller" class="btn btn-sm btn-primary rounded-pill px-4">Register Shop &amp; Add Food</a>
                     </div>
@@ -407,51 +433,73 @@
             return;
         }
 
+        // Sort by highest average rating (DESC) and then rating count (DESC), and take top 5
+        const top5Foods = [...foods].sort((a, b) => {
+            const ratingA = parseFloat(a.avg_rating) || 0;
+            const ratingB = parseFloat(b.avg_rating) || 0;
+            if (ratingB !== ratingA) {
+                return ratingB - ratingA;
+            }
+            const countA = parseInt(a.rating_count) || 0;
+            const countB = parseInt(b.rating_count) || 0;
+            return countB - countA;
+        }).slice(0, 5);
+
         let html = '';
-        foods.forEach(food => {
+        top5Foods.forEach((food, index) => {
             const img = food.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60';
             const priceStr = '৳' + new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(food.price);
             const mealBadge = food.meal_type === 'breakfast'
-                ? '<span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-brightness-high me-1"></i>Breakfast</span>'
+                ? '<span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 shadow-sm" style="font-size:0.68rem;"><i class="bi bi-brightness-high me-1"></i>Breakfast</span>'
                 : food.meal_type === 'lunch'
-                ? '<span class="badge bg-danger text-white rounded-pill px-2 py-1"><i class="bi bi-sun me-1"></i>Lunch</span>'
-                : '<span class="badge bg-primary text-white rounded-pill px-2 py-1"><i class="bi bi-clock me-1"></i>Both</span>';
+                ? '<span class="badge bg-danger text-white rounded-pill px-2 py-0.5 shadow-sm" style="font-size:0.68rem;"><i class="bi bi-sun me-1"></i>Lunch</span>'
+                : '<span class="badge bg-primary text-white rounded-pill px-2 py-0.5 shadow-sm" style="font-size:0.68rem;"><i class="bi bi-clock me-1"></i>Both</span>';
 
-            const ratingDisplay = food.avg_rating
-                ? `<span class="text-warning fw-bold small"><i class="bi bi-star-fill"></i> ${food.avg_rating}</span> <span class="text-muted small">(${food.rating_count || 0})</span>`
+            const ratingVal = parseFloat(food.avg_rating) || 0;
+            const ratingDisplay = ratingVal > 0
+                ? `<span class="text-warning fw-bold small"><i class="bi bi-star-fill"></i> ${ratingVal.toFixed(1)}</span> <span class="text-muted" style="font-size:0.75rem;">(${food.rating_count || 0})</span>`
                 : `<span class="text-muted small"><i class="bi bi-star me-1"></i>New</span>`;
 
+            // Top rank medal badge
+            const rankColors = ['bg-warning text-dark', 'bg-secondary text-white', 'bg-danger text-white', 'bg-dark text-white', 'bg-dark text-white'];
+            const rankBadgeColor = rankColors[index] || 'bg-dark text-white';
+
             html += `
-                <div class="col-md-6 col-lg-3">
-                    <div class="glass-card h-100 d-flex flex-column justify-content-between overflow-hidden border-0 shadow-sm">
+                <div class="col">
+                    <div class="glass-card food-card-wrap h-100 d-flex flex-column justify-content-between overflow-hidden border-0 shadow-sm">
                         <div>
-                            <div class="position-relative">
-                                <img src="${img}" class="card-img-top food-img-top" alt="${food.food_name}"
+                            <div class="food-img-container position-relative">
+                                <img src="${img}" class="food-img-top" alt="${food.food_name}"
                                      onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'">
+                                <div class="position-absolute top-0 start-0 m-2">
+                                    <span class="badge ${rankBadgeColor} rounded-pill px-2 py-0.5 shadow-sm fw-bold" style="font-size:0.7rem; backdrop-filter: blur(4px);">
+                                        <i class="bi bi-trophy-fill me-1"></i>#${index + 1}
+                                    </span>
+                                </div>
                                 <div class="position-absolute top-0 end-0 m-2">
                                     ${mealBadge}
                                 </div>
                             </div>
                             <div class="p-3">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <span class="badge bg-light text-secondary border px-2 py-1" style="font-size:0.75rem;">
-                                        <i class="bi bi-shop me-1"></i>${food.shop_name}
+                                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                    <span class="badge bg-light text-secondary border px-2 py-1 text-truncate" style="font-size:0.72rem; max-width: 110px;" title="${food.shop_name}">
+                                        <i class="bi bi-shop me-1 text-warning"></i>${food.shop_name}
                                     </span>
-                                    ${ratingDisplay}
+                                    <div>${ratingDisplay}</div>
                                 </div>
-                                <h5 class="fw-bold text-dark mb-1 mt-2 text-truncate" title="${food.food_name}">${food.food_name}</h5>
-                                <p class="text-muted small mb-2 text-truncate-2" style="font-size:0.82rem; min-height: 2.4em;">
-                                    ${food.description || 'Delicious fresh meal prepared at the university canteen.'}
+                                <h6 class="fw-bold text-dark mb-1 mt-1 text-truncate" title="${food.food_name}" style="font-size: 0.95rem;">${food.food_name}</h6>
+                                <p class="text-muted small mb-0 text-truncate-2" style="font-size:0.78rem; min-height: 2.2em; line-height: 1.4;">
+                                    ${food.description || 'Fresh campus meal prepared daily.'}
                                 </p>
                             </div>
                         </div>
-                        <div class="p-3 pt-0 d-flex align-items-center justify-content-between border-top pt-2">
+                        <div class="p-3 pt-0 d-flex align-items-center justify-content-between border-top pt-2 mt-auto">
                             <div>
-                                <span class="text-muted small d-block" style="font-size:0.7rem;">Price</span>
-                                <span class="fw-bold fs-5 text-danger">${priceStr}</span>
+                                <span class="text-muted small d-block" style="font-size:0.68rem;">Price</span>
+                                <span class="fw-bold fs-6 text-danger">${priceStr}</span>
                             </div>
-                            <a href="/buyer" class="btn btn-sm btn-primary rounded-pill px-3 hover-lift fw-medium">
-                                <i class="bi bi-cart-plus me-1"></i>Order
+                            <a href="/buyer" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 hover-lift fw-medium d-flex align-items-center gap-1" style="font-size:0.8rem;">
+                                <i class="bi bi-bag-plus"></i> <span>Order</span>
                             </a>
                         </div>
                     </div>
@@ -459,18 +507,6 @@
         });
 
         grid.innerHTML = html;
-    }
-
-    function filterHomeMeal(type, btn) {
-        document.querySelectorAll('.meal-tab-btn').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
-
-        if (type === 'all') {
-            renderHomeFoods(_homeAllFoods);
-        } else {
-            const filtered = _homeAllFoods.filter(f => f.meal_type === type || f.meal_type === 'both');
-            renderHomeFoods(filtered);
-        }
     }
 
     function renderHomeShops(shops) {
