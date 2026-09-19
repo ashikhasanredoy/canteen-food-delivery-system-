@@ -159,13 +159,15 @@
         </div>
         <div id="shops-pagination"></div>
     </div>
+</section>
 
-    <!-- Notification History -->
-    <div class="admin-card mt-4">
+<!-- ── Notifications Section ──────────────────────────────────── -->
+<section id="notifications-section" class="admin-section">
+    <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
                 <span>🔔 Notification History</span>
-                <span class="page-total-pill" id="total-notifs-pill"><i class="bi bi-bell"></i> <span id="total-notifs-count">0</span> Notifs</span>
+                <span class="page-total-pill" id="total-notifs-pill"><i class="bi bi-bell"></i> <span id="total-notifs-count">0</span> Notifications</span>
             </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
@@ -173,10 +175,16 @@
                         placeholder="Search notifications..." oninput="onNotifsSearch()">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size:0.75rem;"></i>
                 </div>
+                <select id="notifs-status-filter" class="table-toolbar-select" onchange="onNotifsStatusFilter(this.value)">
+                    <option value="">All Statuses</option>
+                    <option value="unread">Unread Only</option>
+                    <option value="read">Read Only</option>
+                </select>
                 <select id="notifs-page-size" class="table-toolbar-select" onchange="changeNotifsPageSize(this.value)">
-                    <option value="5">5 / page</option>
                     <option value="10" selected>10 / page</option>
                     <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
                     <option value="1000">All</option>
                 </select>
                 <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="loadNotifications()">Refresh</button>

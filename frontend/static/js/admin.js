@@ -120,7 +120,7 @@ function renderPaginationBar(containerId, state, pageChangeFuncName) {
 
 // ─── States ──────────────────────────────────────────────────
 const shopsState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '' };
-const notifsState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '' };
+const notifsState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '', statusFilter: '' };
 const deliveryBoysState = { data: [], filtered: [], currentPage: 1, pageSize: 10, search: '' };
 const foodsState = { data: [], filtered: [], currentPage: 1, pageSize: 15, search: '', shop: '' };
 const ordersState = { data: [], filtered: [], currentPage: 1, pageSize: 25, search: '', status: '' };
@@ -140,40 +140,51 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initSidebar() {
-    const toggleBtn = document.getElementById('sidebar-toggle');
+    document.querySelectorAll('[data-section]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = link.getAttribute('data-section');
+            showSection(id);
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('open');
+        });
+    });
+
+    const toggle = document.getElementById('sidebar-toggle');
     const sidebar = document.getElementById('sidebar');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
             sidebar.classList.toggle('open');
         });
     }
 
-    document.querySelectorAll('[data-section]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetSection = link.dataset.section;
-            showSection(targetSection);
-            sidebar.classList.remove('open');
-        });
-    });
-
-    let initialSection = 'dashboard-section';
-    if (window.location.hash) {
-        const hashSection = window.location.hash.replace('#', '');
-        if (document.getElementById(hashSection)) {
-            initialSection = hashSection;
-        }
-    } else {
-        const storedSection = localStorage.getItem('admin_active_section');
-        if (storedSection && document.getElementById(storedSection)) {
-            initialSection = storedSection;
-        }
-    }
-    showSection(initialSection);
+    // Hash routing or stored section
+    const hash = window.location.hash ? window.location.hash.replace('#', '') : null;
+    const stored = localStorage.getItem('admin_active_section');
+    const targetSection = hash || stored || 'dashboard-section';
+    showSection(targetSection);
 }
 
 function showSection(id) {
     if (!id || !document.getElementById(id)) id = 'dashboard-section';
+
+    const titles = {
+        'dashboard-section': 'Dashboard',
+        'shops-section': 'Shops',
+        'notifications-section': 'Notifications',
+        'delivery-boys-section': 'Delivery Boys',
+        'foods-section': 'Foods',
+        'orders-section': 'Orders',
+        'ratings-section': 'Ratings',
+        'complaints-section': 'Complaints',
+        'settings-section': 'Fee Settings',
+        'activity-section': 'Activity Log'
+    };
+
+    const titleEl = document.querySelector('.topbar-title');
+    if (titleEl && titles[id]) {
+        titleEl.textContent = titles[id];
+    }
 
     const flashStyle = document.getElementById('anti-flash-style');
     if (flashStyle) flashStyle.remove();
@@ -200,7 +211,8 @@ function showSection(id) {
         }
     } catch (e) { }
 
-    if (id === 'shops-section') { loadShops(); loadNotifications(); }
+    if (id === 'shops-section') loadShops();
+    if (id === 'notifications-section') loadNotifications();
     if (id === 'delivery-boys-section') loadDeliveryBoys();
     if (id === 'foods-section') loadFoods();
     if (id === 'orders-section') loadOrders();
@@ -212,7 +224,7 @@ function showSection(id) {
 
 // ─── Load All ────────────────────────────────────────────────
 async function loadAll() {
-    await Promise.all([loadStats(), loadCharts(), loadShops(), loadDeliveryBoys()]);
+    await Promise.all([loadStats(), loadCharts(), loadShops(), loadDeliveryBoys(), loadNotifications()]);
     const updatedEl = document.getElementById('last-updated');
     if (updatedEl) {
         updatedEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -263,6 +275,7 @@ async function loadStats() {
 
         // Sidebar Navigation Badges
         setEl('sidebar-badge-shops', fmtNum(d.total_shops));
+        setEl('sidebar-badge-notifications', fmtNum(d.total_notifications));
         setEl('sidebar-badge-delivery-boys', fmtNum(d.total_delivery_boys));
         setEl('sidebar-badge-foods', fmtNum(d.total_foods));
         setEl('sidebar-badge-orders', fmtNum(d.total_orders));
@@ -1020,7 +1033,11 @@ function filterAndRenderNotifs() {
     if (!tbody) return;
 
     const query = notifsState.search.toLowerCase().trim();
+    const statusFilter = notifsState.statusFilter;
+
     notifsState.filtered = notifsState.data.filter(n => {
+        if (statusFilter === 'unread' && n.is_read) return false;
+        if (statusFilter === 'read' && !n.is_read) return false;
         if (query) {
             const nameMatch = (n.shop_name || '').toLowerCase().includes(query);
             const idMatch = (n.shop_id || '').toLowerCase().includes(query);
@@ -1031,8 +1048,13 @@ function filterAndRenderNotifs() {
     });
 
     const totalItems = notifsState.filtered.length;
+    const totalNotifsPill = document.getElementById('total-notifs-count');
+    if (totalNotifsPill && !query && !statusFilter) {
+        totalNotifsPill.textContent = notifsState.data.length.toLocaleString();
+    }
+
     if (totalItems === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No notifications sent yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No notifications match your filters.</td></tr>';
         renderPaginationBar('notifs-pagination', notifsState, 'goToNotifsPage');
         return;
     }
@@ -1069,6 +1091,12 @@ function filterAndRenderNotifs() {
 
 function onNotifsSearch() {
     notifsState.search = document.getElementById('notifs-search')?.value || '';
+    notifsState.currentPage = 1;
+    filterAndRenderNotifs();
+}
+
+function onNotifsStatusFilter(val) {
+    notifsState.statusFilter = val || '';
     notifsState.currentPage = 1;
     filterAndRenderNotifs();
 }
