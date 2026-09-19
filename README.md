@@ -19,6 +19,7 @@ A complete full-stack food ordering, fulfillment, and campus courier delivery ec
 - [Access Portals & Default Credentials](#-access-portals--default-credentials)
 - [Printable PDF Reference Directories](#-printable-pdf-reference-directories)
 - [Commission & Fee Distribution Model](#-commission--fee-distribution-model)
+- [Codebase Commenting & Developer Standards](#-codebase-commenting--developer-standards)
 - [REST API Reference](#-rest-api-reference)
 - [Database Schema & Entity Relations](#-database-schema--entity-relations)
 - [Troubleshooting & Maintenance](#-troubleshooting--maintenance)
@@ -352,6 +353,50 @@ Example: Student places a ৳500.00 order
 - **Interactive Configuration**: Sliders and percentage inputs allow the university to configure fee parameters in real time.
 - **Preset Quick-Select Chips**: Instantly switch rates (`1.0%`, `1.5%`, `2.0%`, `3.0%`, `4.0%`, `5.0%`, `10.0%`).
 - **Live Simulator**: Test order amounts between `৳50` and `৳2,500` to preview financial allocations before saving policy updates.
+
+---
+
+## 💬 Codebase Commenting & Developer Standards
+
+All backend Python modules, database operations, security shields, and frontend JavaScript engines are documented with human-written comments and docstrings.
+
+### 🧠 Developer Commenting Architecture
+
+```
+Codebase Architecture & Commenting Coverage
+├── backend/
+│   ├── services/
+│   │   ├── delivery_service.py   ➔ Concurrency row locks, idempotent claims, cancellation rules, OTP emails
+│   │   ├── order_service.py      ➔ Atomic cart checkouts, stock pre-flight checks, commission calculations
+│   │   └── otp_service.py        ➔ DNS domain validation, SMTP dispatch, 4-digit code caching & verification
+│   ├── crud.py                   ➔ ORM query abstractions, SQL aggregation functions, duplicate prevention
+│   ├── database.py               ➔ Multi-thread SQLite engine settings, safe ALTER TABLE migrations, seeding
+│   ├── security.py               ➔ Sliding window rate limiter, scanner probe regexes, timing attack defense
+│   ├── admin_app.py              ➔ Session authentication checks, stats aggregation, live analytics feeds
+│   └── main.py                   ➔ Middleware pipeline ordering, CORS policies, static routing
+└── frontend/static/js/
+    ├── buyer.js                  ➔ Reactive cart state, 2-column mobile layout DOM rendering, filter engine
+    ├── seller.js                 ➔ Session restoration, live dish creation modals, order pipeline handling
+    ├── delivery.js               ➔ Open pool claiming, OTP verification handshake, earnings tallying
+    └── admin.js                  ➔ Anti-flash tab switching, Chart.js datasets, fee split simulator math
+```
+
+### 📋 Key Functions & Documented Business Logic
+
+| File | Function / Component | Documented Human Rationale & Business Logic |
+|---|---|---|
+| `delivery_service.py` | `accept_delivery()` | Uses `with_for_update()` row locking to prevent race conditions when two couriers claim the same order simultaneously. Returns HTTP 409 on conflict and handles idempotent re-submissions. |
+| `delivery_service.py` | `cancel_delivery()` | Validates that only the currently assigned rider can release an order back to the open pool. Prohibits cancellation of completed orders. |
+| `delivery_service.py` | `pickup_order()` | Transitions order state to `On Road` after the rider physically collects the food from the kitchen, notifying the student in real time. |
+| `delivery_service.py` | `verify_and_deliver()` | Validates student OTP at delivery handover, transitions state to `Delivered`, credits rider balance, and sends automated delivery receipt emails. |
+| `order_service.py` | `place_order()` | Single-item checkout: validates building location, verifies email domain, checks stock, applies commission formula, generates 4-digit OTP, and dispatches confirmation. |
+| `order_service.py` | `place_cart_orders()` | Atomic multi-item shopping cart checkout: pre-flight stock verification across multiple canteen outlets, line-item insertion, and unified OTP generation. |
+| `crud.py` | `get_rating_stats()` | Uses SQL `func.avg()` and `func.count()` to aggregate average star ratings and review counts without loading raw rating records into memory. |
+| `crud.py` | `get_student_rating_for_food()` | Checks for existing student reviews per food item to prevent spam and duplicate feedback. |
+| `database.py` | `run_migrations()` | Non-destructive SQLite schema migrator that adds new feature columns (`admin_fee`, `delivery_fee`, `otp_code`) while gracefully catching duplicate column errors. |
+| `database.py` | `seed_default_admin()` | Idempotent root admin provisioning that runs on startup and skips seeding if administrator accounts are already detected. |
+| `security.py` | `SecurityShieldMiddleware` | Intercepts automated bot probes, restricts payload sizes to 10MB, enforces 180 req/min general and 15 req/min auth rate limits, and injects HTTP security headers. |
+| `security.py` | `safe_compare()` | Uses `secrets.compare_digest()` for constant-time string comparisons to prevent timing attacks against password verification. |
 
 ---
 

@@ -3,7 +3,11 @@ from fastapi import HTTPException
 from backend import crud, schemas, models
 from backend.services import otp_service
 
-def _log(db, category, action, summary, detail=None):
+def _log(db: Session, category: str, action: str, summary: str, detail: str = None):
+    """
+    Helper function to record delivery audit logs in the background.
+    If logging fails for any reason, we roll back silently so the main delivery flow is never interrupted.
+    """
     try:
         db.add(models.ActivityLog(category=category, action=action, summary=summary, detail=detail))
         db.commit()
@@ -13,9 +17,15 @@ def _log(db, category, action, summary, detail=None):
 
 def accept_delivery(db: Session, payload: schemas.DeliveryRequestPayload):
     """
-    Lock a single order to a delivery boy.
-    Uses row-level locking to prevent race conditions.
+    Assigns an order to a delivery partner when they claim it from the available pool.
+    
+    How it works:
+    - We acquire a row lock using `.with_for_update()` to prevent two riders claiming the same order at the exact same split second.
+    - If another rider already claimed it, we return a 409 Conflict error with a clear message.
+    - If the same rider re-submits (e.g. fast double click), we return the existing assignment safely.
+    - Otherwise, we stamp the order with the rider's ID and change request status to 'Accepted'.
     """
+    # 1. Fetch the order with row-level locking for concurrency protection
     order = (
         db.query(models.Order)
         .filter(models.Order.id == payload.order_id)
@@ -23,37 +33,49 @@ def accept_delivery(db: Session, payload: schemas.DeliveryRequestPayload):
         .first()
     )
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Order not found in system.")
 
+    # 2. Make sure the order hasn't already finished delivery
     if order.status == "Delivered":
-        raise HTTPException(status_code=400, detail="Order has already been delivered")
+        raise HTTPException(status_code=400, detail="This order has already been completed and delivered.")
 
-    # Already accepted by ANOTHER boy → 409 Conflict
+    # 3. Guard against race conditions: check if someone else beat us to it
     if order.delivery_boy_id and order.delivery_boy_id != payload.delivery_boy_id:
         raise HTTPException(
             status_code=409,
-            detail="This order has already been accepted by another delivery boy."
+            detail="This order has already been claimed by another delivery rider."
         )
 
-    # Already accepted by THIS boy → idempotent success
+    # 4. Handle double-click / idempotent requests gracefully
     if order.delivery_boy_id == payload.delivery_boy_id and order.delivery_request_status == "Accepted":
         return order
 
+    # 5. Lock in this rider as the delivery handler
     order.delivery_boy_id = payload.delivery_boy_id
     order.delivery_request_status = "Accepted"
 
     db.commit()
     db.refresh(order)
 
-    _log(db, "delivery", "accepted",
-         f"Order #{order.id} ({len(order.items)} items) accepted by delivery boy {payload.delivery_boy_id}")
+    # 6. Audit log for admin visibility
+    _log(
+        db,
+        "delivery",
+        "accepted",
+        f"Order #{order.id} ({len(order.items)} items) accepted by delivery boy {payload.delivery_boy_id}",
+        detail=f"rider={payload.delivery_boy_id}"
+    )
     return order
 
 
 def cancel_delivery(db: Session, payload: schemas.DeliveryRequestPayload):
     """
-    Release an order back to the pool.
-    Only the delivery boy who accepted the order can cancel it.
+    Allows a delivery partner to release a claimed order back to the open pool.
+    
+    Human business rules:
+    - Only the rider currently assigned to the order can cancel their own delivery assignment.
+    - Delivered orders can never be cancelled.
+    - When cancelled, the order is reset back to 'Pending' so other riders on campus can pick it up immediately.
     """
     order = (
         db.query(models.Order)
@@ -62,20 +84,24 @@ def cancel_delivery(db: Session, payload: schemas.DeliveryRequestPayload):
         .first()
     )
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Order not found.")
 
+    # Check if the order was even claimed
     if order.delivery_request_status == "None" or not order.delivery_boy_id:
-        raise HTTPException(status_code=400, detail="This order has not been accepted yet")
+        raise HTTPException(status_code=400, detail="This order has not been accepted by anyone yet.")
 
+    # Security check: prevent unauthorized rider from cancelling someone else's trip
     if order.delivery_boy_id != payload.delivery_boy_id:
         raise HTTPException(
             status_code=403,
-            detail="You are not authorized to cancel this order — you did not accept it."
+            detail="You are not authorized to cancel this order because it is assigned to a different rider."
         )
 
+    # Once handed over, it's done for good
     if order.status == "Delivered":
-        raise HTTPException(status_code=400, detail="Cannot cancel a delivered order")
+        raise HTTPException(status_code=400, detail="Cannot cancel an order that has already been delivered.")
 
+    # Reset assignment so it reappears in the public rider queue
     order.delivery_boy_id = None
     order.delivery_request_status = "None"
     order.status = "Pending"
@@ -83,29 +109,82 @@ def cancel_delivery(db: Session, payload: schemas.DeliveryRequestPayload):
     db.commit()
     db.refresh(order)
 
-    _log(db, "delivery", "cancelled",
-         f"Order #{order.id} cancelled by {payload.delivery_boy_id} — returned to pool")
+    _log(
+        db,
+        "delivery",
+        "cancelled",
+        f"Order #{order.id} cancelled by rider {payload.delivery_boy_id} — released back to pool"
+    )
+    return order
+
+
+def pickup_order(db: Session, payload: schemas.DeliveryRequestPayload):
+    """
+    Transitions an order state to 'On Road' after the rider physically collects the food from the canteen kitchen.
+    
+    Why this matters:
+    - Gives live visual confirmation to the student buyer that their food is now travelling across campus.
+    - Ensures only the assigned courier can flag the pickup.
+    """
+    order = crud.get_order(db, order_id=payload.order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found.")
+
+    # Ensure the order hasn't already skipped ahead
+    if order.status not in ["Pending"]:
+        raise HTTPException(status_code=400, detail="Order has already been picked up or delivered.")
+
+    if order.delivery_request_status != "Accepted":
+        raise HTTPException(status_code=400, detail="You must accept this order before marking it as picked up.")
+
+    # Verify courier identity
+    if order.delivery_boy_id != payload.delivery_boy_id:
+        raise HTTPException(status_code=403, detail="Not authorized: this order is assigned to another delivery partner.")
+
+    # Transition status to 'On Road'
+    order.status = "On Road"
+    db.commit()
+    db.refresh(order)
+
+    _log(
+        db,
+        "delivery",
+        "pickup",
+        f"Order #{order.id} picked up (On Road) by rider {payload.delivery_boy_id}"
+    )
     return order
 
 
 def verify_and_deliver(db: Session, delivery: schemas.DeliveryVerify):
+    """
+    Finalizes the delivery handshake once the courier arrives at the student's campus location.
+    
+    What this step does:
+    1. Validates order status is active ('Pending' or 'On Road').
+    2. Marks the order as 'Delivered'.
+    3. Triggers an automated receipt confirmation email to the buyer with order item details.
+    4. Records the completion in the system activity log for rider earnings calculations.
+    """
     order = crud.get_order(db, order_id=delivery.order_id)
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Order not found.")
 
+    # Idempotent return if already marked delivered
     if order.status == "Delivered":
         return order
 
     if order.status not in ["Pending", "On Road"]:
-        raise HTTPException(status_code=400, detail="Order is not in a deliverable state")
+        raise HTTPException(status_code=400, detail="Order is not in a deliverable state.")
 
-    # If assigned, only the assigned rider can complete delivery
+    # Verify courier authorization
     if delivery.delivery_boy_id and order.delivery_boy_id and str(order.delivery_boy_id) != str(delivery.delivery_boy_id):
-        raise HTTPException(status_code=403, detail="Not authorized to deliver this order")
+        raise HTTPException(status_code=403, detail="Not authorized to deliver this order.")
 
+    # Transition order state to completed
     order.status = "Delivered"
     total_amt = order.total_price or 0.0
 
+    # Build clean item summary list for receipt email
     items_summary = [
         {
             "food_name": it.food_name or "Food Item",
@@ -119,7 +198,7 @@ def verify_and_deliver(db: Session, delivery: schemas.DeliveryVerify):
     db.commit()
     db.refresh(order)
 
-    # Send 'Order Delivered' email to buyer
+    # Send confirmation delivery receipt email to student
     buyer_email = order.email
     if buyer_email:
         otp_service.send_order_delivered_email(
@@ -132,31 +211,11 @@ def verify_and_deliver(db: Session, delivery: schemas.DeliveryVerify):
             delivery_boy_id=delivery.delivery_boy_id or order.delivery_boy_id
         )
 
-    _log(db, "delivery", "delivered",
-         f"Order #{order.id} delivered to {order.student_name}",
-         detail=f"delivery_boy={delivery.delivery_boy_id or order.delivery_boy_id}, total=৳{round(total_amt, 2)}")
+    _log(
+        db,
+        "delivery",
+        "delivered",
+        f"Order #{order.id} delivered to {order.student_name}",
+        detail=f"delivery_boy={delivery.delivery_boy_id or order.delivery_boy_id}, total=৳{round(total_amt, 2)}"
+    )
     return order
-
-
-def pickup_order(db: Session, payload: schemas.DeliveryRequestPayload):
-    order = crud.get_order(db, order_id=payload.order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    if order.status not in ["Pending"]:
-        raise HTTPException(status_code=400, detail="Order is already picked up or delivered")
-
-    if order.delivery_request_status != "Accepted":
-        raise HTTPException(status_code=400, detail="Order has not been accepted for delivery")
-
-    if order.delivery_boy_id != payload.delivery_boy_id:
-        raise HTTPException(status_code=403, detail="Not authorized to pick up this order")
-
-    order.status = "On Road"
-    db.commit()
-    db.refresh(order)
-
-    _log(db, "delivery", "pickup",
-         f"Order #{order.id} picked up (On Road) by {payload.delivery_boy_id}")
-    return order
-

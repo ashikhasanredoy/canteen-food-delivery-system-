@@ -1,8 +1,19 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from backend import crud, schemas, models
+import random
+import re
+import time
+from backend.services import otp_service
+
+EMAIL_REGEX = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+
 
 def _get_setting(db: Session, key: str, default: float) -> float:
+    """
+    Reads a dynamic floating-point percentage value (like admin commission or rider share) from the database.
+    Falls back cleanly to the provided default if the key is missing or unparseable.
+    """
     s = db.query(models.Setting).filter(models.Setting.key == key).first()
     if s:
         try:
@@ -11,56 +22,69 @@ def _get_setting(db: Session, key: str, default: float) -> float:
             pass
     return default
 
-def _log(db, category, action, summary, detail=None):
+
+def _log(db: Session, category: str, action: str, summary: str, detail: str = None):
+    """
+    Safe activity logger that writes a audit entry into the ActivityLog table.
+    Rolls back silently on database hiccups so main customer operations are never blocked.
+    """
     try:
         db.add(models.ActivityLog(category=category, action=action, summary=summary, detail=detail))
         db.commit()
     except Exception:
         db.rollback()
 
-import random
-import re
-import time
-from backend.services import otp_service
-
-EMAIL_REGEX = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
 def place_order(db: Session, order: schemas.OrderCreate):
-    # Validate delivery location
+    """
+    Handles single-item checkout for immediate food purchases.
+    
+    Step-by-step developer logic:
+    1. Validate destination delivery address (room/building) to make sure riders know where to go.
+    2. Check valid email format and domain reachability.
+    3. Verify stock availability and decrement inventory.
+    4. Compute platform admin fee cut and rider payout cut based on current policy settings.
+    5. Generate a unique 4-digit numeric OTP for delivery verification.
+    6. Dispatch an itemized order confirmation email to the student with the OTP.
+    7. Commit transaction and log the placement event.
+    """
+    # 1. Clean and validate location input
     loc_clean = (order.delivery_location or "").strip()
     if not loc_clean or len(loc_clean) < 3:
-        raise HTTPException(status_code=400, detail="Delivery location / address not found. Please provide a valid room or building location.")
+        raise HTTPException(
+            status_code=400,
+            detail="Delivery location / address is too short. Please provide a clear building or room number."
+        )
 
-    # Validate email and check domain existence
+    # 2. Email verification
     email_clean = otp_service.validate_email_address(order.email)
 
-    # Get the food item
+    # 3. Retrieve food record
     food = crud.get_food(db, food_id=order.food_id)
     if not food:
-        raise HTTPException(status_code=404, detail="Food item not found")
+        raise HTTPException(status_code=404, detail="Requested food item could not be found.")
 
-    # Check stock
+    # 4. Inventory check
     if food.quantity < order.quantity:
-        raise HTTPException(status_code=400, detail="Not enough stock available")
+        raise HTTPException(status_code=400, detail="Not enough food stock available to fulfill this order.")
 
-    # Deduct stock
+    # Decrement available quantity
     food.quantity -= order.quantity
-
     total_price = round(food.price * order.quantity, 2)
 
-    # Read fee percentages from settings (default 1%)
+    # 5. Calculate commission and rider earnings split
     admin_pct = _get_setting(db, "admin_fee_percent", 1.0)
     delivery_pct = _get_setting(db, "delivery_fee_percent", 1.0)
 
     admin_fee = round(total_price * admin_pct / 100, 2)
     delivery_fee = round(total_price * delivery_pct / 100, 2)
 
-    # Generate 4-digit OTP and unique group ID for this confirmed order
+    # 6. Generate 4-digit verification OTP and group reference
     order_otp = str(random.randint(1000, 9999))
     group_id = f"GRP-{int(time.time())}-{random.randint(100, 999)}"
 
     try:
-        # Create single order object
+        # Create database order record
         db_order = models.Order(
             student_name=order.student_name,
             student_id=order.student_id,
@@ -78,6 +102,7 @@ def place_order(db: Session, order: schemas.OrderCreate):
         db.add(db_order)
         db.flush()
 
+        # Link order item detail
         order_item = models.OrderItem(
             order_id=db_order.id,
             food_id=food.id,
@@ -89,7 +114,7 @@ def place_order(db: Session, order: schemas.OrderCreate):
         )
         db.add(order_item)
 
-        # Dispatch email confirmation with 4-digit OTP
+        # Send confirmation email with OTP to the student
         otp_service.send_order_confirmation_email(
             to_email=email_clean,
             student_name=order.student_name,
@@ -109,9 +134,13 @@ def place_order(db: Session, order: schemas.OrderCreate):
         db.commit()
         db.refresh(db_order)
 
-        _log(db, "order", "placed",
-             f"Order #{db_order.id} placed by {order.student_name} — {food.food_name} x{order.quantity} (OTP: {order_otp})",
-             detail=f"total=৳{total_price}, shop={food.shop_name}")
+        _log(
+            db,
+            "order",
+            "placed",
+            f"Order #{db_order.id} placed by {order.student_name} — {food.food_name} x{order.quantity} (OTP: {order_otp})",
+            detail=f"total=৳{total_price}, shop={food.shop_name}"
+        )
 
         return db_order
     except HTTPException:
@@ -123,38 +152,51 @@ def place_order(db: Session, order: schemas.OrderCreate):
 
 
 def place_cart_orders(db: Session, checkout: schemas.CartCheckoutCreate):
+    """
+    Handles multi-item shopping cart checkouts in a single atomic transaction.
+    
+    Why this is structured this way:
+    - Verifies all items have sufficient stock before deducting anything.
+    - Aggregates multi-item purchases into a unified order with multiple OrderItem children.
+    - Computes platform revenue share and courier bounty across the combined total.
+    - Emails a complete itemized bill and a single 4-digit handover OTP to the buyer.
+    """
     if not checkout.items:
-        raise HTTPException(status_code=400, detail="Cart is empty")
+        raise HTTPException(status_code=400, detail="Cart is empty. Please add items before checking out.")
 
-    # Validate delivery location / address
+    # 1. Clean and validate location
     loc_clean = (checkout.delivery_location or "").strip()
     if not loc_clean or len(loc_clean) < 3:
-        raise HTTPException(status_code=400, detail="Delivery location / address not found. Please provide a valid location (e.g. Room 402 / Library).")
+        raise HTTPException(
+            status_code=400,
+            detail="Delivery location / address is missing. Please provide a room or campus building."
+        )
 
-    # Validate email address and check domain existence
+    # 2. Email verification
     email_clean = otp_service.validate_email_address(checkout.email)
 
     admin_pct = _get_setting(db, "admin_fee_percent", 1.0)
     delivery_pct = _get_setting(db, "delivery_fee_percent", 1.0)
 
+    # 3. Pre-flight stock check: make sure all cart items are available
     prepared = []
     for item in checkout.items:
         food = crud.get_food(db, food_id=item.food_id)
         if not food:
-            raise HTTPException(status_code=404, detail=f"Food item #{item.food_id} not found")
+            raise HTTPException(status_code=404, detail=f"Food item #{item.food_id} not found in canteen inventory.")
         if food.quantity < item.quantity:
             raise HTTPException(
                 status_code=400,
-                detail=f"Not enough stock for {food.food_name}. Available: {food.quantity}"
+                detail=f"Not enough stock for '{food.food_name}'. Available: {food.quantity}, Requested: {item.quantity}"
             )
         prepared.append((food, item))
 
-    # Generate unified 4-digit Delivery OTP and shared group ID for this checkout
+    # 4. Generate shared 4-digit Delivery OTP and Group ID
     order_otp = str(random.randint(1000, 9999))
     group_id = f"GRP-{int(time.time())}-{random.randint(100, 999)}"
 
     try:
-        # Create ONE single unified order
+        # Create parent order header
         db_order = models.Order(
             student_name=checkout.student_name,
             student_id=checkout.student_id,
@@ -175,6 +217,7 @@ def place_cart_orders(db: Session, checkout: schemas.CartCheckoutCreate):
         items_summary = []
         total_amount = 0.0
 
+        # Deduct stock and attach line items
         for food, item in prepared:
             food.quantity -= item.quantity
             line_total = round(food.price * item.quantity, 2)
@@ -197,12 +240,13 @@ def place_cart_orders(db: Session, checkout: schemas.CartCheckoutCreate):
                 "price": line_total
             })
 
+        # Finalize fee distributions
         total_amount_round = round(total_amount, 2)
         db_order.total_price = total_amount_round
         db_order.admin_fee = round(total_amount_round * admin_pct / 100, 2)
         db_order.delivery_fee = round(total_amount_round * delivery_pct / 100, 2)
 
-        # Send confirmation email with 4-digit OTP to buyer's email BEFORE committing!
+        # Dispatch confirmation email with OTP before committing
         otp_service.send_order_confirmation_email(
             to_email=email_clean,
             student_name=checkout.student_name,
@@ -214,7 +258,6 @@ def place_cart_orders(db: Session, checkout: schemas.CartCheckoutCreate):
             phone=checkout.phone
         )
 
-        # Commit when email delivery succeeds
         db.commit()
         db.refresh(db_order)
 
@@ -261,4 +304,3 @@ def place_cart_orders(db: Session, checkout: schemas.CartCheckoutCreate):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"Order could not be confirmed: {e}")
-
