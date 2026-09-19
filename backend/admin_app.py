@@ -98,6 +98,9 @@ def get_stats(db: Session = Depends(get_db)):
     total_orders = db.query(models.Order).count()
     pending_orders = db.query(models.Order).filter(models.Order.status == "Pending").count()
     delivered_orders = db.query(models.Order).filter(models.Order.status == "Delivered").count()
+    confirmed_orders = db.query(models.Order).filter(models.Order.status == "Confirmed").count()
+    picked_up_orders = db.query(models.Order).filter(models.Order.status.in_(["Picked Up", "On Road"])).count()
+    
     total_revenue = db.query(func.sum(models.Order.total_price)).filter(
         models.Order.status == "Delivered"
     ).scalar() or 0.0
@@ -125,6 +128,13 @@ def get_stats(db: Session = Depends(get_db)):
     # Total registered delivery boys & shops
     total_delivery_boys = db.query(models.DeliveryBoy).count()
     total_shops = db.query(models.Shop).count()
+    
+    # Complaints & Activity & Notifications
+    total_complaints = db.query(models.Complaint).count()
+    open_complaints = db.query(models.Complaint).filter(models.Complaint.status == "Open").count()
+    resolved_complaints = db.query(models.Complaint).filter(models.Complaint.status == "Resolved").count()
+    total_activity_logs = db.query(models.ActivityLog).count()
+    total_notifications = db.query(models.Notification).count()
 
     return {
         "total_shops": total_shops,
@@ -132,6 +142,8 @@ def get_stats(db: Session = Depends(get_db)):
         "total_orders": total_orders,
         "pending_orders": pending_orders,
         "delivered_orders": delivered_orders,
+        "confirmed_orders": confirmed_orders,
+        "picked_up_orders": picked_up_orders,
         "total_delivery_boys": total_delivery_boys,
         "total_revenue": round(total_revenue, 2),
         "total_admin_revenue": round(total_admin_revenue, 2),
@@ -141,6 +153,11 @@ def get_stats(db: Session = Depends(get_db)):
         "top_food": top_food_query.food_name if top_food_query else None,
         "admin_fee_percent": float(admin_pct_row.value) if admin_pct_row else 1.0,
         "delivery_fee_percent": float(delivery_pct_row.value) if delivery_pct_row else 1.0,
+        "total_complaints": total_complaints,
+        "open_complaints": open_complaints,
+        "resolved_complaints": resolved_complaints,
+        "total_activity_logs": total_activity_logs,
+        "total_notifications": total_notifications,
     }
 
 @admin_app.get("/delivery/api/stats/{delivery_boy_id}")

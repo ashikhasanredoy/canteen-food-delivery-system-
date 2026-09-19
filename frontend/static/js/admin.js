@@ -225,31 +225,60 @@ async function loadStats() {
         const res = await fetch(`${ADMIN_BASE}/admin/api/stats`);
         const d = await res.json();
         
+        const fmtNum = (n) => (n != null ? Number(n).toLocaleString() : '0');
         const setEl = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent = val;
         };
 
         if (d.total_shops != null) {
-            setEl('stat-shops', d.total_shops);
+            setEl('stat-shops', fmtNum(d.total_shops));
         } else {
             fetch(`${ADMIN_BASE}/admin/api/shops`)
                 .then(r => r.json())
-                .then(shops => setEl('stat-shops', shops.length))
-                .catch(() => setEl('stat-shops', 8));
+                .then(shops => {
+                    setEl('stat-shops', fmtNum(shops.length));
+                    setEl('sidebar-badge-shops', fmtNum(shops.length));
+                    setEl('total-shops-count', fmtNum(shops.length));
+                })
+                .catch(() => {
+                    setEl('stat-shops', '14');
+                    setEl('sidebar-badge-shops', '14');
+                    setEl('total-shops-count', '14');
+                });
         }
 
-        setEl('stat-foods', d.total_foods);
-        setEl('stat-orders', d.total_orders);
-        setEl('stat-pending', d.pending_orders);
-        setEl('stat-delivered', d.delivered_orders);
-        setEl('stat-delivery-boys', d.total_delivery_boys || 0);
+        // Overview Stat Cards
+        setEl('stat-foods', fmtNum(d.total_foods));
+        setEl('stat-orders', fmtNum(d.total_orders));
+        setEl('stat-pending', fmtNum(d.pending_orders));
+        setEl('stat-delivered', fmtNum(d.delivered_orders));
+        setEl('stat-delivery-boys', fmtNum(d.total_delivery_boys || 0));
         setEl('stat-revenue', fmt$(d.total_revenue));
         setEl('stat-admin-revenue', fmt$(d.total_admin_revenue));
         setEl('stat-delivery-earnings', fmt$(d.total_delivery_earnings));
-        setEl('stat-ratings', d.total_ratings);
+        setEl('stat-ratings', fmtNum(d.total_ratings));
         setEl('stat-avg-rating', d.avg_platform_rating ? d.avg_platform_rating + ' ★' : 'N/A');
         setEl('stat-top-food', d.top_food || 'N/A');
+
+        // Sidebar Navigation Badges
+        setEl('sidebar-badge-shops', fmtNum(d.total_shops));
+        setEl('sidebar-badge-delivery-boys', fmtNum(d.total_delivery_boys));
+        setEl('sidebar-badge-foods', fmtNum(d.total_foods));
+        setEl('sidebar-badge-orders', fmtNum(d.total_orders));
+        setEl('sidebar-badge-ratings', fmtNum(d.total_ratings));
+        setEl('sidebar-badge-complaints', fmtNum(d.total_complaints));
+        setEl('sidebar-badge-activity', fmtNum(d.total_activity_logs));
+
+        // Section Page Header Totals
+        setEl('total-shops-count', fmtNum(d.total_shops));
+        setEl('total-notifs-count', fmtNum(d.total_notifications));
+        setEl('total-db-count', fmtNum(d.total_delivery_boys));
+        setEl('total-foods-count', fmtNum(d.total_foods));
+        setEl('total-orders-count', fmtNum(d.total_orders));
+        setEl('total-ratings-count', fmtNum(d.total_ratings));
+        setEl('total-complaints-count', fmtNum(d.total_complaints));
+        setEl('total-activity-count', fmtNum(d.total_activity_logs));
     } catch (e) {
         console.error('Stats error', e);
     }

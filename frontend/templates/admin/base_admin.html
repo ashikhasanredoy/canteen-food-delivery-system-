@@ -14,7 +14,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Admin CSS (not the main site CSS) -->
-    <link href="/static/css/admin.css?v=26" rel="stylesheet">
+    <link href="/static/css/admin.css?v=27" rel="stylesheet">
     <!-- Immediate active-section restore to prevent dashboard flash on refresh -->
     <script>
         (function () {
@@ -46,31 +46,38 @@
 
         <nav class="sidebar-nav">
             <a href="#dashboard-section" class="nav-link active" data-section="dashboard-section">
-                Dashboard
+                <span>Dashboard</span>
             </a>
             <a href="#shops-section" class="nav-link" data-section="shops-section">
-                Shops
+                <span>Shops</span>
+                <span class="sidebar-badge" id="sidebar-badge-shops">0</span>
             </a>
             <a href="#delivery-boys-section" class="nav-link" data-section="delivery-boys-section">
-                Delivery Boys
+                <span>Delivery Boys</span>
+                <span class="sidebar-badge" id="sidebar-badge-delivery-boys">0</span>
             </a>
             <a href="#foods-section" class="nav-link" data-section="foods-section">
-                Foods
+                <span>Foods</span>
+                <span class="sidebar-badge" id="sidebar-badge-foods">0</span>
             </a>
             <a href="#orders-section" class="nav-link" data-section="orders-section">
-                Orders
+                <span>Orders</span>
+                <span class="sidebar-badge" id="sidebar-badge-orders">0</span>
             </a>
             <a href="#ratings-section" class="nav-link" data-section="ratings-section">
-                Ratings
+                <span>Ratings</span>
+                <span class="sidebar-badge" id="sidebar-badge-ratings">0</span>
             </a>
             <a href="#complaints-section" class="nav-link" data-section="complaints-section">
-                Complaints
+                <span>Complaints</span>
+                <span class="sidebar-badge" id="sidebar-badge-complaints">0</span>
             </a>
             <a href="#settings-section" class="nav-link" data-section="settings-section">
-                Fee Settings
+                <span>Fee Settings</span>
             </a>
             <a href="#activity-section" class="nav-link" data-section="activity-section">
-                Activity Log
+                <span>Activity Log</span>
+                <span class="sidebar-badge" id="sidebar-badge-activity">0</span>
             </a>
         </nav>
 
@@ -104,7 +111,7 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Admin JS -->
-    <script src="/static/js/admin.js?v=25"></script>
+    <script src="/static/js/admin.js?v=27"></script>
     {% block extra_js %}{% endblock %}
 </body>
 

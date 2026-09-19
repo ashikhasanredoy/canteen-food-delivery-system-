@@ -118,7 +118,10 @@
 <section id="shops-section" class="admin-section">
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <h6 class="mb-0 fw-bold">🏪 Registered Shops</h6>
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                <span>🏪 Registered Shops</span>
+                <span class="page-total-pill" id="total-shops-pill"><i class="bi bi-shop"></i> <span id="total-shops-count">0</span> Shops</span>
+            </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
                     <input type="text" id="shops-search" class="form-control form-control-sm table-search-input"
@@ -160,7 +163,10 @@
     <!-- Notification History -->
     <div class="admin-card mt-4">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <h6 class="mb-0 fw-bold">🔔 Notification History</h6>
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                <span>🔔 Notification History</span>
+                <span class="page-total-pill" id="total-notifs-pill"><i class="bi bi-bell"></i> <span id="total-notifs-count">0</span> Notifs</span>
+            </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
                     <input type="text" id="notifs-search" class="form-control form-control-sm table-search-input"
@@ -203,7 +209,10 @@
 <section id="delivery-boys-section" class="admin-section">
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <h6 class="mb-0 fw-bold">🚴 Registered Delivery Boys</h6>
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                <span>🚴 Registered Delivery Boys</span>
+                <span class="page-total-pill" id="total-db-pill"><i class="bi bi-bicycle"></i> <span id="total-db-count">0</span> Delivery Boys</span>
+            </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
                     <input type="text" id="delivery-boy-search" class="form-control form-control-sm table-search-input"
@@ -338,7 +347,10 @@
 <section id="foods-section" class="admin-section">
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <h6 class="mb-0 fw-bold">🍔 Food Inventory</h6>
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                <span>🍔 Food Inventory</span>
+                <span class="page-total-pill" id="total-foods-pill"><i class="bi bi-egg-fried"></i> <span id="total-foods-count">0</span> Foods</span>
+            </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
                     <input type="text" id="foods-search" class="form-control form-control-sm table-search-input"
@@ -389,7 +401,10 @@
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <h6 class="mb-0 fw-bold">📦 All Orders</h6>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <span>📦 All Orders</span>
+                    <span class="page-total-pill" id="total-orders-pill"><i class="bi bi-box-seam"></i> <span id="total-orders-count">0</span> Orders</span>
+                </h6>
                 <div class="d-flex gap-1 ms-md-2">
                     <button class="btn btn-sm btn-outline-light rounded-pill filter-btn active" data-filter=""
                         onclick="setOrderFilter(this, '')">All</button>
@@ -449,7 +464,10 @@
 <section id="ratings-section" class="admin-section">
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <h6 class="mb-0 fw-bold">⭐ All Ratings</h6>
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                <span>⭐ All Ratings</span>
+                <span class="page-total-pill" id="total-ratings-pill" style="background:#fffbeb; color:#b45309; border-color:#fde68a;"><i class="bi bi-star-fill text-warning"></i> <span id="total-ratings-count">0</span> Ratings</span>
+            </h6>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <div class="position-relative">
                     <input type="text" id="ratings-search" class="form-control form-control-sm table-search-input"
@@ -503,7 +521,10 @@
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-                <h6 class="mb-0 fw-bold">📢 User Complaints</h6>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <span>📢 User Complaints</span>
+                    <span class="page-total-pill" id="total-complaints-pill" style="background:#fef2f2; color:#dc2626; border-color:#fecaca;"><i class="bi bi-exclamation-triangle-fill text-danger"></i> <span id="total-complaints-count">0</span> Complaints</span>
+                </h6>
                 <span class="text-muted small">Reports from buyers, sellers, and delivery boys</span>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -600,7 +621,10 @@
     <div class="admin-card">
         <div class="admin-card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-2">
-                <h6 class="mb-0 fw-bold">📜 Activity Log</h6>
+                <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                    <span>📜 Activity Log</span>
+                    <span class="page-total-pill" id="total-activity-pill" style="background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe;"><i class="bi bi-clock-history"></i> <span id="total-activity-count">0</span> Events</span>
+                </h6>
                 <span class="live-badge"
                     style="font-size: 0.72rem; padding: 2px 8px; border-color: rgba(92, 92, 255, 0.4); color: var(--primary);">●
                     LIVE</span>

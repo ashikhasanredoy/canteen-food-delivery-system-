@@ -96,8 +96,9 @@ body {
 .sidebar-nav .nav-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 11px 16px;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
     color: var(--text-sub);
     border-radius: 10px;
     font-weight: 500;
@@ -118,7 +119,53 @@ body {
     border-color: transparent;
     box-shadow: 0 4px 12px rgba(92, 92, 255, 0.40);
 }
+
+.sidebar-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 20px;
+    background: #eef2ff;
+    color: var(--blue-600);
+    border: 1px solid rgba(92, 92, 255, 0.15);
+    transition: all 0.18s;
+    margin-left: auto;
+}
+
+.sidebar-nav .nav-link.active .sidebar-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.sidebar-nav .nav-link:hover .sidebar-badge {
+    background: #e0e7ff;
+    color: var(--blue-700);
+}
+
 .nav-icon { font-size: 1.05rem; }
+
+/* Page Total Header Badges & Pill Summary */
+.page-total-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.80rem;
+    font-weight: 700;
+    background: var(--blue-50);
+    color: var(--blue-600);
+    border: 1px solid var(--blue-200);
+}
+
+.page-total-pill i {
+    font-size: 0.85rem;
+}
 
 .sidebar-footer {
     padding: 16px 20px;
