@@ -57,9 +57,15 @@ app.include_router(ratings.router)
 app.include_router(shops.router)
 app.include_router(complaints.router)
 
-# Mount admin app under the root so /admin routes are served on port 8000 as well
+from starlette.middleware.sessions import SessionMiddleware
+from backend.config import ADMIN_SESSION_SECRET
+
+# Add Session Middleware for Admin authentication
+app.add_middleware(SessionMiddleware, secret_key=ADMIN_SESSION_SECRET)
+
+# Include admin routes
 from backend.admin_app import admin_app
-app.mount("/", admin_app)
+app.include_router(admin_app.router)
 
 if __name__ == "__main__":
     import uvicorn
