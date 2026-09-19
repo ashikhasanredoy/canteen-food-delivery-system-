@@ -69,8 +69,8 @@
     </div>
 </div>
 
-<!-- Food Menu Grid -->
-<div class="row g-4" id="food-menu">
+<!-- Food Menu Grid (2 columns on mobile, 3 on tablet/desktop) -->
+<div class="row g-2 g-sm-3 g-md-4" id="food-menu">
     <!-- Data populated by JS -->
     <div class="col-12 text-center py-5">
         <div class="spinner-border text-primary" role="status">
@@ -307,5 +307,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/buyer.js?v=12"></script>
+<script src="/static/js/buyer.js?v=15"></script>
 {% endblock %}

@@ -638,39 +638,39 @@ function renderFoodGridAndPagination() {
         const safeImgArg = (food.image_url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
         html += `
-            <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 glass-card border-0 overflow-hidden shadow-sm hover-lift transition-all">
-                    <div class="position-relative">
+            <div class="col-6 col-md-6 col-lg-4 mb-2 mb-md-4">
+                <div class="card h-100 glass-card food-card-item border-0 overflow-hidden shadow-sm hover-lift transition-all">
+                    <div class="position-relative food-img-container">
                         <img src="${food.image_url}" class="card-img-top food-img-top" alt="${safeName}" onerror="this.src='/static/images/foods/default.jpg'">
-                        <div class="position-absolute top-0 end-0 m-3">
-                            <span class="badge ${isAvailable ? 'bg-success' : 'bg-danger'} rounded-pill shadow px-3 py-2 fs-6">
+                        <div class="position-absolute top-0 end-0 m-1.5 m-sm-2 m-md-3">
+                            <span class="badge ${isAvailable ? 'bg-success' : 'bg-danger'} rounded-pill shadow-sm px-2 py-1 px-md-3 py-md-2 food-badge-stock">
                                 ${isAvailable ? food.quantity + ' Left' : 'Sold Out'}
                             </span>
                         </div>
-                        <div class="position-absolute top-0 start-0 m-3">
-                            <span class="badge rounded-pill px-3 py-2 shadow-sm text-white" style="background:${mealColor}; font-size:0.72rem; font-weight:700; letter-spacing:0.3px;">
+                        <div class="position-absolute top-0 start-0 m-1.5 m-sm-2 m-md-3">
+                            <span class="badge rounded-pill px-2 py-1 px-md-3 py-md-2 shadow-sm text-white food-badge-meal" style="background:${mealColor};">
                                 ${mealLabel}
                             </span>
                         </div>
-                        ${inCartQty > 0 ? `<div class="position-absolute bottom-0 end-0 m-3"><span class="badge bg-primary rounded-pill px-3 py-2 shadow">${inCartQty} in cart</span></div>` : ''}
+                        ${inCartQty > 0 ? `<div class="position-absolute bottom-0 end-0 m-1.5 m-sm-2 m-md-3"><span class="badge bg-primary rounded-pill px-2 py-1 px-md-3 py-md-2 shadow-sm food-badge-cart">${inCartQty} in cart</span></div>` : ''}
                     </div>
-                    <div class="card-body d-flex flex-column p-4">
-                        <h5 class="card-title fw-bold fs-4 mb-1">${safeName}</h5>
-                        <p class="text-primary fw-semibold small mb-2"><i class="bi bi-shop me-1"></i>${safeShop}</p>
-                        <div class="mb-3">${renderStars(food.avg_rating, food.rating_count)}</div>
-                        <p class="card-text text-secondary flex-grow-1 opacity-75 small">${safeDesc}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-light">
-                            <span class="fs-3 fw-bold text-dark">${formatCurrency(food.price)}</span>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-outline-warning rounded-pill px-3 hover-lift fw-medium"
+                    <div class="card-body d-flex flex-column p-2.5 p-sm-3 p-md-4">
+                        <h5 class="card-title fw-bold food-card-title mb-1" title="${safeName}">${safeName}</h5>
+                        <p class="text-primary fw-semibold shop-name-label mb-1 mb-md-2" title="${safeShop}"><i class="bi bi-shop me-1"></i>${safeShop}</p>
+                        <div class="food-rating-wrap mb-1 mb-md-3">${renderStars(food.avg_rating, food.rating_count)}</div>
+                        <p class="card-text text-secondary flex-grow-1 opacity-75 small d-none d-md-block mb-2">${safeDesc}</p>
+                        <div class="food-actions-row d-flex justify-content-between align-items-center mt-auto pt-2 pt-md-3 border-top border-light">
+                            <span class="food-price-text fw-bold text-dark">${formatCurrency(food.price)}</span>
+                            <div class="d-flex align-items-center gap-1 gap-md-2 food-btn-group">
+                                <button type="button" class="btn btn-outline-warning rounded-pill food-rate-btn hover-lift fw-medium"
                                         onclick="openRatingModal(${food.id}, '${safeNameArg}', '${safeShopArg}', '${safeImgArg}')"
                                         title="Rate this food">
-                                    <i class="bi bi-star me-1"></i>Rate
+                                    <i class="bi bi-star"></i><span class="d-none d-lg-inline ms-1">Rate</span>
                                 </button>
-                                <button type="button" class="btn btn-primary rounded-pill px-4 hover-lift fw-bold"
+                                <button type="button" class="btn btn-primary rounded-pill food-add-btn hover-lift fw-bold"
                                         ${!isAvailable ? 'disabled' : ''}
                                         onclick="addToCart(${food.id})">
-                                    <i class="bi bi-cart-plus me-1"></i>${isAvailable ? (inCartQty > 0 ? 'Add More' : 'Add to Cart') : 'Sold Out'}
+                                    <i class="bi bi-cart-plus me-1"></i><span>${isAvailable ? (inCartQty > 0 ? 'More' : 'Add') : 'Sold'}</span>
                                 </button>
                             </div>
                         </div>
