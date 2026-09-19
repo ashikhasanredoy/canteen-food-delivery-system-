@@ -1393,29 +1393,144 @@ async function loadSettings() {
     try {
         const res = await fetch(`${ADMIN_BASE}/admin/api/settings`);
         const s = await res.json();
-        const adminPct = s.admin_fee_percent ?? 1.0;
-        const deliveryPct = s.delivery_fee_percent ?? 1.0;
+        const adminPct = s.admin_fee_percent ?? 4.0;
+        const deliveryPct = s.delivery_fee_percent ?? 3.0;
 
-        document.getElementById('admin-fee-slider').value = adminPct;
-        document.getElementById('admin-fee-input').value = adminPct;
-        document.getElementById('admin-fee-display').textContent = adminPct + '%';
-
-        document.getElementById('delivery-fee-slider').value = deliveryPct;
-        document.getElementById('delivery-fee-input').value = deliveryPct;
-        document.getElementById('delivery-fee-display').textContent = deliveryPct + '%';
+        setAdminFeeState(adminPct);
+        setDeliveryFeeState(deliveryPct);
+        updateFeeSimulation();
     } catch (e) {
         console.error('Settings load error', e);
     }
+}
+
+function setAdminFeeState(val) {
+    const num = Math.max(0, Math.min(20, parseFloat(val) || 0));
+    const slider = document.getElementById('admin-fee-slider');
+    const input = document.getElementById('admin-fee-input');
+    const display = document.getElementById('admin-fee-display');
+
+    if (slider) slider.value = num;
+    if (input) input.value = num.toFixed(1);
+    if (display) display.textContent = num.toFixed(1) + '%';
+
+    // Highlight matching preset chip
+    document.querySelectorAll('#settings-section .col-xl-7 .fee-setting-card:first-child .fee-preset-chip').forEach(chip => {
+        const chipVal = parseFloat(chip.textContent);
+        chip.classList.toggle('active', Math.abs(chipVal - num) < 0.05);
+    });
+
+    updateFeeSimulation();
+}
+
+function setDeliveryFeeState(val) {
+    const num = Math.max(0, Math.min(20, parseFloat(val) || 0));
+    const slider = document.getElementById('delivery-fee-slider');
+    const input = document.getElementById('delivery-fee-input');
+    const display = document.getElementById('delivery-fee-display');
+
+    if (slider) slider.value = num;
+    if (input) input.value = num.toFixed(1);
+    if (display) display.textContent = num.toFixed(1) + '%';
+
+    // Highlight matching preset chip
+    document.querySelectorAll('#settings-section .col-xl-7 .fee-setting-card:last-child .fee-preset-chip').forEach(chip => {
+        const chipVal = parseFloat(chip.textContent);
+        chip.classList.toggle('active', Math.abs(chipVal - num) < 0.05);
+    });
+
+    updateFeeSimulation();
+}
+
+function onAdminFeeSliderChange(val) {
+    setAdminFeeState(val);
+}
+
+function onAdminFeeInputChange(val) {
+    setAdminFeeState(val);
+}
+
+function setAdminFeePreset(val) {
+    setAdminFeeState(val);
+}
+
+function onDeliveryFeeSliderChange(val) {
+    setDeliveryFeeState(val);
+}
+
+function onDeliveryFeeInputChange(val) {
+    setDeliveryFeeState(val);
+}
+
+function setDeliveryFeePreset(val) {
+    setDeliveryFeeState(val);
+}
+
+function resetDefaultFeeSettings() {
+    setAdminFeeState(4.0);
+    setDeliveryFeeState(3.0);
+    const msgEl = document.getElementById('settings-msg');
+    if (msgEl) {
+        msgEl.innerHTML = '<div class="alert alert-warning py-2 px-3 small mb-0 rounded-3"><i class="bi bi-exclamation-circle me-1"></i>Default values set (Admin 4.0%, Rider 3.0%). Click "Save Policy Changes" to apply.</div>';
+        setTimeout(() => { msgEl.innerHTML = ''; }, 5000);
+    }
+}
+
+function updateFeeSimulation(customOrderTotal) {
+    const orderSlider = document.getElementById('sim-order-slider');
+    const total = customOrderTotal ? parseFloat(customOrderTotal) : (orderSlider ? parseFloat(orderSlider.value) : 500);
+
+    const adminPct = parseFloat(document.getElementById('admin-fee-input')?.value || 4.0);
+    const deliveryPct = parseFloat(document.getElementById('delivery-fee-input')?.value || 3.0);
+    const shopPct = Math.max(0, 100 - adminPct - deliveryPct);
+
+    const adminAmt = (total * adminPct) / 100;
+    const deliveryAmt = (total * deliveryPct) / 100;
+    const shopAmt = Math.max(0, total - adminAmt - deliveryAmt);
+
+    // Update Text Displays
+    const simOrderDisplay = document.getElementById('sim-order-display');
+    if (simOrderDisplay) simOrderDisplay.textContent = `৳${total.toFixed(2)}`;
+
+    const simShopAmount = document.getElementById('sim-shop-amount');
+    const simShopPctLabel = document.getElementById('sim-shop-pct-label');
+    if (simShopAmount) simShopAmount.textContent = `৳${shopAmt.toFixed(2)}`;
+    if (simShopPctLabel) simShopPctLabel.textContent = `${shopPct.toFixed(1)}% of order`;
+
+    const simAdminAmount = document.getElementById('sim-admin-amount');
+    const simAdminPctLabel = document.getElementById('sim-admin-pct-label');
+    if (simAdminAmount) simAdminAmount.textContent = `৳${adminAmt.toFixed(2)}`;
+    if (simAdminPctLabel) simAdminPctLabel.textContent = `${adminPct.toFixed(1)}% commission`;
+
+    const simDeliveryAmount = document.getElementById('sim-delivery-amount');
+    const simDeliveryPctLabel = document.getElementById('sim-delivery-pct-label');
+    if (simDeliveryAmount) simDeliveryAmount.textContent = `৳${deliveryAmt.toFixed(2)}`;
+    if (simDeliveryPctLabel) simDeliveryPctLabel.textContent = `${deliveryPct.toFixed(1)}% commission`;
+
+    // Update Segmented Progress Bar
+    const simBarShop = document.getElementById('sim-bar-shop');
+    const simBarAdmin = document.getElementById('sim-bar-admin');
+    const simBarDelivery = document.getElementById('sim-bar-delivery');
+
+    if (simBarShop) simBarShop.style.width = `${shopPct}%`;
+    if (simBarAdmin) simBarAdmin.style.width = `${adminPct}%`;
+    if (simBarDelivery) simBarDelivery.style.width = `${deliveryPct}%`;
 }
 
 async function saveSettings() {
     const adminPct = parseFloat(document.getElementById('admin-fee-input').value);
     const deliveryPct = parseFloat(document.getElementById('delivery-fee-input').value);
     const msgEl = document.getElementById('settings-msg');
+    const saveBtn = document.getElementById('save-fee-btn');
 
-    if (isNaN(adminPct) || isNaN(deliveryPct) || adminPct < 0 || deliveryPct < 0) {
-        msgEl.innerHTML = '<span class="text-danger">Please enter valid percentages (0–100).</span>';
+    if (isNaN(adminPct) || isNaN(deliveryPct) || adminPct < 0 || deliveryPct < 0 || (adminPct + deliveryPct) > 100) {
+        msgEl.innerHTML = '<div class="alert alert-danger py-2 px-3 small mb-0 rounded-3">Please enter valid percentages (0% – 100%). Total fees cannot exceed 100%.</div>';
         return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Saving...';
     }
 
     try {
@@ -1429,15 +1544,20 @@ async function saveSettings() {
         });
 
         if (res.ok) {
-            msgEl.innerHTML = '<span class="text-success fw-bold">✓ Settings saved! New fees apply to all future orders.</span>';
-            setTimeout(() => { msgEl.innerHTML = ''; }, 4000);
+            msgEl.innerHTML = '<div class="alert alert-success py-2 px-3 small mb-0 rounded-3 d-flex align-items-center gap-2"><i class="bi bi-check-circle-fill text-success fs-6"></i><span><strong>Settings saved successfully!</strong> New commission rates are live and will apply to all future orders.</span></div>';
+            setTimeout(() => { if (msgEl) msgEl.innerHTML = ''; }, 5000);
             loadStats();
         } else {
             const err = await res.json();
-            msgEl.innerHTML = `<span class="text-danger">${err.detail || 'Failed to save settings.'}</span>`;
+            msgEl.innerHTML = `<div class="alert alert-danger py-2 px-3 small mb-0 rounded-3">${err.detail || 'Failed to save settings.'}</div>`;
         }
     } catch (e) {
-        msgEl.innerHTML = '<span class="text-danger">Network error saving settings.</span>';
+        msgEl.innerHTML = '<div class="alert alert-danger py-2 px-3 small mb-0 rounded-3">Network error saving settings.</div>';
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="bi bi-check2-circle me-1"></i>Save Policy Changes';
+        }
     }
 }
 

@@ -638,41 +638,222 @@
 
 <!-- ── Settings Section ──────────────────────────────────── -->
 <section id="settings-section" class="admin-section">
-    <div class="admin-card" style="max-width: 560px;">
-        <div class="admin-card-header">
-            <h6 class="mb-0 fw-bold">⚙️ Fee Settings</h6>
-            <span class="text-muted small">Changes apply to new orders immediately</span>
+    <!-- Top Header Banner -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <span>⚙️ Commission & Fee Management</span>
+                <span class="page-total-pill"><i class="bi bi-sliders"></i> Active Policy</span>
+            </h5>
+            <p class="text-muted small mb-0">Configure real-time commission split for platform administration and delivery rider payouts.</p>
         </div>
-        <div class="p-4">
-            <div class="mb-4">
-                <label class="d-flex justify-content-between mb-2">
-                    <span class="fw-medium">Admin Fee (%)</span>
-                    <span class="text-primary fw-bold" id="admin-fee-display">1.0%</span>
-                </label>
-                <input type="range" class="fee-slider" id="admin-fee-slider" min="0" max="20" step="0.5" value="1"
-                    oninput="document.getElementById('admin-fee-display').textContent = this.value + '%'; document.getElementById('admin-fee-input').value = this.value;">
-                <input type="number" class="fee-number-input mt-2" id="admin-fee-input" min="0" max="20" step="0.1"
-                    value="1"
-                    oninput="document.getElementById('admin-fee-slider').value = this.value; document.getElementById('admin-fee-display').textContent = this.value + '%';">
-                <small class="text-muted">Admin earns this % of every order's total price.</small>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold btn-sm hover-lift" onclick="resetDefaultFeeSettings()">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Defaults
+            </button>
+            <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold btn-sm hover-lift shadow-sm" onclick="saveSettings()" id="save-fee-btn">
+                <i class="bi bi-check2-circle me-1"></i>Save Policy Changes
+            </button>
+        </div>
+    </div>
+
+    <div id="settings-msg" class="mb-3"></div>
+
+    <div class="row g-4">
+        <!-- Left Column: Fee Sliders & Controls -->
+        <div class="col-xl-7">
+            <!-- 1. Admin Platform Fee Card -->
+            <div class="fee-setting-card mb-4 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="fee-card-header p-4 text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="fee-icon-box bg-white bg-opacity-20 rounded-3 p-2.5 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-shield-check fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Platform Admin Commission</h5>
+                            <span class="small opacity-90">Cut collected by canteen administration</span>
+                        </div>
+                    </div>
+                    <div class="fee-hero-badge px-3 py-1 rounded-pill bg-white text-primary fw-extrabold fs-5 shadow-sm">
+                        <span id="admin-fee-display">4.0%</span>
+                    </div>
+                </div>
+
+                <div class="p-4">
+                    <div class="row g-3 align-items-center mb-4">
+                        <div class="col-sm-8">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-2">Adjust Commission Rate (0% – 20%)</label>
+                            <input type="range" class="fee-slider fee-slider-indigo" id="admin-fee-slider" min="0" max="20" step="0.5" value="4.0"
+                                oninput="onAdminFeeSliderChange(this.value)">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-2">Exact Rate (%)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control fw-bold fs-5 text-center fee-exact-input" id="admin-fee-input" min="0" max="20" step="0.1" value="4.0"
+                                    oninput="onAdminFeeInputChange(this.value)">
+                                <span class="input-group-text bg-light fw-bold text-muted">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Preset Chips -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="small text-muted fw-semibold me-1">Quick Select:</span>
+                        <button type="button" class="fee-preset-chip" onclick="setAdminFeePreset(1.0)">1.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setAdminFeePreset(2.0)">2.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setAdminFeePreset(3.0)">3.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setAdminFeePreset(4.0)">4.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setAdminFeePreset(5.0)">5.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setAdminFeePreset(10.0)">10.0%</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-5">
-                <label class="d-flex justify-content-between mb-2">
-                    <span class="fw-medium">Delivery Boy Fee (%)</span>
-                    <span class="text-info fw-bold" id="delivery-fee-display">1.0%</span>
-                </label>
-                <input type="range" class="fee-slider" id="delivery-fee-slider" min="0" max="20" step="0.5" value="1"
-                    oninput="document.getElementById('delivery-fee-display').textContent = this.value + '%'; document.getElementById('delivery-fee-input').value = this.value;">
-                <input type="number" class="fee-number-input mt-2" id="delivery-fee-input" min="0" max="20" step="0.1"
-                    value="1"
-                    oninput="document.getElementById('delivery-fee-slider').value = this.value; document.getElementById('delivery-fee-display').textContent = this.value + '%';">
-                <small class="text-muted">Delivery boy earns this % of every order's total price.</small>
-            </div>
+            <!-- 2. Delivery Boy Fee Card -->
+            <div class="fee-setting-card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="fee-card-header p-4 text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #059669, #10b981);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="fee-icon-box bg-white bg-opacity-20 rounded-3 p-2.5 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-bicycle fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Delivery Boy Payout Share</h5>
+                            <span class="small opacity-90">Earnings allocated directly to student rider</span>
+                        </div>
+                    </div>
+                    <div class="fee-hero-badge px-3 py-1 rounded-pill bg-white text-success fw-extrabold fs-5 shadow-sm">
+                        <span id="delivery-fee-display">3.0%</span>
+                    </div>
+                </div>
 
-            <div id="settings-msg" class="mb-3" style="min-height: 24px;"></div>
-            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="saveSettings()">Save
-                Settings</button>
+                <div class="p-4">
+                    <div class="row g-3 align-items-center mb-4">
+                        <div class="col-sm-8">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-2">Adjust Payout Rate (0% – 20%)</label>
+                            <input type="range" class="fee-slider fee-slider-emerald" id="delivery-fee-slider" min="0" max="20" step="0.5" value="3.0"
+                                oninput="onDeliveryFeeSliderChange(this.value)">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label text-muted small fw-bold text-uppercase mb-2">Exact Rate (%)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control fw-bold fs-5 text-center fee-exact-input" id="delivery-fee-input" min="0" max="20" step="0.1" value="3.0"
+                                    oninput="onDeliveryFeeInputChange(this.value)">
+                                <span class="input-group-text bg-light fw-bold text-muted">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Preset Chips -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="small text-muted fw-semibold me-1">Quick Select:</span>
+                        <button type="button" class="fee-preset-chip" onclick="setDeliveryFeePreset(1.0)">1.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setDeliveryFeePreset(1.5)">1.5%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setDeliveryFeePreset(2.0)">2.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setDeliveryFeePreset(3.0)">3.0%</button>
+                        <button type="button" class="fee-preset-chip" onclick="setDeliveryFeePreset(5.0)">5.0%</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Live Order Simulation & Revenue Breakdown -->
+        <div class="col-xl-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-header bg-transparent border-0 p-4 pb-0">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-pie-chart-fill text-primary"></i>
+                            <span>Live Order Split Simulator</span>
+                        </h5>
+                        <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small">Interactive</span>
+                    </div>
+                    <p class="text-muted small mt-1 mb-0">See how every order paid by students is distributed.</p>
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <!-- Simulator Input -->
+                    <div class="p-3 bg-light rounded-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-semibold text-dark">Sample Order Total:</span>
+                            <span class="fw-extrabold text-primary fs-5" id="sim-order-display">৳500.00</span>
+                        </div>
+                        <input type="range" class="form-range" id="sim-order-slider" min="50" max="2500" step="50" value="500"
+                            oninput="updateFeeSimulation(this.value)">
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>৳50</span>
+                            <span>৳1,000</span>
+                            <span>৳2,500</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Segmented Progress Bar -->
+                    <div class="mb-4">
+                        <label class="small text-muted fw-bold text-uppercase mb-2">Payout Allocation Ratio</label>
+                        <div class="progress rounded-pill shadow-inner" style="height: 18px; overflow: hidden; background: #e2e8f0;">
+                            <div id="sim-bar-shop" class="progress-bar bg-warning progress-bar-striped" role="progressbar" style="width: 93%;" title="Shop Share"></div>
+                            <div id="sim-bar-admin" class="progress-bar bg-primary" role="progressbar" style="width: 4%;" title="Admin Share"></div>
+                            <div id="sim-bar-delivery" class="progress-bar bg-success" role="progressbar" style="width: 3%;" title="Delivery Boy Share"></div>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown Detail List -->
+                    <div class="payout-breakdown-list d-flex flex-column gap-3 mb-4">
+                        <!-- 1. Shop Payout -->
+                        <div class="payout-row p-3 rounded-3 border d-flex align-items-center justify-content-between bg-white">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <span class="badge rounded-circle p-2 bg-warning bg-opacity-15 text-warning">
+                                    <i class="bi bi-shop fs-6"></i>
+                                </span>
+                                <div>
+                                    <div class="fw-bold text-dark small">Shop Outlet Net Payout</div>
+                                    <small class="text-muted" id="sim-shop-pct-label">93.0% of order</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-extrabold text-dark fs-6" id="sim-shop-amount">৳465.00</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. Admin Cut -->
+                        <div class="payout-row p-3 rounded-3 border d-flex align-items-center justify-content-between bg-white">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <span class="badge rounded-circle p-2 bg-primary bg-opacity-15 text-primary">
+                                    <i class="bi bi-shield-check fs-6"></i>
+                                </span>
+                                <div>
+                                    <div class="fw-bold text-dark small">Platform Admin Revenue</div>
+                                    <small class="text-muted" id="sim-admin-pct-label">4.0% commission</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-extrabold text-primary fs-6" id="sim-admin-amount">৳20.00</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Delivery Rider Cut -->
+                        <div class="payout-row p-3 rounded-3 border d-flex align-items-center justify-content-between bg-white">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <span class="badge rounded-circle p-2 bg-success bg-opacity-15 text-success">
+                                    <i class="bi bi-bicycle fs-6"></i>
+                                </span>
+                                <div>
+                                    <div class="fw-bold text-dark small">Delivery Boy Earnings</div>
+                                    <small class="text-muted" id="sim-delivery-pct-label">3.0% commission</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-extrabold text-success fs-6" id="sim-delivery-amount">৳15.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Safety Note -->
+                    <div class="alert alert-info border-0 rounded-3 mb-0 small py-2.5 px-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle-fill fs-5 text-info flex-shrink-0"></i>
+                        <span>Changes take effect automatically on all new checkout orders.</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
