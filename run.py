@@ -38,7 +38,7 @@ def print_banner():
     print(f"║  🚴  Delivery Boy →  http://{HOST}:{PORT}/delivery           ║")
     print(f"║  🔐  Admin Panel  →  http://{HOST}:{PORT}/admin              ║")
     print("╠══════════════════════════════════════════════════════════════╣")
-    print("║  Admin Credentials:  admin  /  canteen@2024                  ║")
+    print("║  Admin Credentials:  AshikHasanRedoy2027 / Ahr2027#*-hAr     ║")
     print("╠══════════════════════════════════════════════════════════════╣")
     print("║  💾  All data is saved in: backend/database/canteen.db       ║")
     print("║      Restarting will NOT delete any data.                    ║")

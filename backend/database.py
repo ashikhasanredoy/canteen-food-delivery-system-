@@ -85,7 +85,7 @@ def seed_default_settings():
 def seed_default_admin():
     """
     Ensures a default root administrator account exists upon initial system startup.
-    Default credentials: username 'admin' / password 'canteen@2024'.
+    Default credentials: username 'AshikHasanRedoy2027' / password 'Ahr2027#*-hAr'.
     Safe to execute repeatedly — skips seeding if an admin is already detected in the database.
     """
     db = SessionLocal()
@@ -94,17 +94,17 @@ def seed_default_admin():
         if db.query(Admin).count() == 0:
             try:
                 import bcrypt
-                pw_hash = bcrypt.hashpw(b"canteen@2024", bcrypt.gensalt()).decode("utf-8")
+                pw_hash = bcrypt.hashpw(b"Ahr2027#*-hAr", bcrypt.gensalt()).decode("utf-8")
             except ImportError:
-                pw_hash = "PLAIN:canteen@2024"  # Fallback format if bcrypt is absent
+                pw_hash = "PLAIN:Ahr2027#*-hAr"  # Fallback format if bcrypt is absent
             
             db.add(Admin(
-                admin_id="admin",
+                admin_id="AshikHasanRedoy2027",
                 name="System Admin",
                 password_hash=pw_hash,
             ))
             db.commit()
-            print("[DB SEED] Default admin created: admin / canteen@2024")
+            print("[DB SEED] Default admin created: AshikHasanRedoy2027 / Ahr2027#*-hAr")
         else:
             print("[DB SEED] Admin already exists, skipping seed.")
     except Exception as e:
@@ -112,3 +112,4 @@ def seed_default_admin():
         print(f"[DB SEED] seed_default_admin skipped: {e}")
     finally:
         db.close()
+

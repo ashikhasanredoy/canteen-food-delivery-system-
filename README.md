@@ -323,7 +323,7 @@ $$\text{http://127.0.0.1:8000}$$
 | **Buy Food** | [`/buyer`](http://127.0.0.1:8000/buyer) | Student / Buyer | Open access (Provide Student ID at checkout) |
 | **Sell Food** | [`/seller`](http://127.0.0.1:8000/seller) | Canteen Shop | `shop_1` / `password` *(See PDF for shops 1–14)* |
 | **Delivery Partner** | [`/delivery`](http://127.0.0.1:8000/delivery) | Delivery Rider | `DB001` / `password` *(See PDF for riders 1–154)* |
-| **Admin Control** | [`/admin`](http://127.0.0.1:8000/admin) | Platform Admin | **User:** `admin`<br>**Password:** `canteen@2024` or `admin123` |
+| **Admin Control** | [`/admin`](http://127.0.0.1:8000/admin) | Platform Admin | **User:** `AshikHasanRedoy2027`<br>**Password:** `Ahr2027#*-hAr` |
 
 ---
 

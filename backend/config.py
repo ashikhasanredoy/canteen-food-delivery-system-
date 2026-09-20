@@ -8,8 +8,8 @@ DATABASE_URL = f"sqlite:///{os.path.join(DATABASE_DIR, 'canteen.db')}"
 os.makedirs(DATABASE_DIR, exist_ok=True)
 
 # ── Admin credentials ────────────────────────────────────────────
-ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "canteen@2024")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "AshikHasanRedoy2027")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Ahr2027#*-hAr")
 ADMIN_SESSION_SECRET = os.environ.get("ADMIN_SESSION_SECRET", "super-secret-admin-key-change-in-prod")
 
 # ── Email / OTP Sender Configuration ─────────────────────────────
