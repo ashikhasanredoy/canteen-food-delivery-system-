@@ -111,15 +111,16 @@ class SecurityShieldMiddleware:
             return
 
         # Step 3: Inject Security Headers in response start
+        from starlette.datastructures import MutableHeaders
+
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
-                headers = list(message.get("headers", []))
-                headers.append((b"x-content-type-options", b"nosniff"))
-                headers.append((b"x-frame-options", b"SAMEORIGIN"))
-                headers.append((b"x-xss-protection", b"1; mode=block"))
-                headers.append((b"referrer-policy", b"strict-origin-when-cross-origin"))
-                headers.append((b"permissions-policy", b"geolocation=(), camera=(), microphone=()"))
-                message["headers"] = headers
+                headers = MutableHeaders(scope=message)
+                headers["x-content-type-options"] = "nosniff"
+                headers["x-frame-options"] = "SAMEORIGIN"
+                headers["x-xss-protection"] = "1; mode=block"
+                headers["referrer-policy"] = "strict-origin-when-cross-origin"
+                headers["permissions-policy"] = "geolocation=(), camera=(), microphone=()"
             await send(message)
 
         await self.app(scope, receive, send_wrapper)
