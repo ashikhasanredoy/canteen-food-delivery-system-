@@ -37,9 +37,19 @@ admin_app = FastAPI(title="Canteen Admin Panel", docs_url="/admin/api-docs")
 # Session middleware (must be added before routes)
 admin_app.add_middleware(SessionMiddleware, secret_key=ADMIN_SESSION_SECRET)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "frontend", "static")
-TEMPLATES_DIR = os.path.join(BASE_DIR, "frontend", "templates")
+def _find_dir(subpath):
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), subpath),
+        os.path.join(os.getcwd(), subpath),
+        os.path.abspath(subpath),
+    ]
+    for p in candidates:
+        if os.path.isdir(p):
+            return p
+    return candidates[0]
+
+STATIC_DIR = _find_dir("frontend/static")
+TEMPLATES_DIR = _find_dir("frontend/templates")
 
 try:
     os.makedirs(STATIC_DIR, exist_ok=True)

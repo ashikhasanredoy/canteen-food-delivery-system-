@@ -11,9 +11,19 @@ import os
 #  FRONTEND HTML PAGE ROUTES & PUBLIC HOME STATS ROUTER
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Configure Jinja2 templates directory path relative to project root
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-TEMPLATES_DIR = os.path.join(BASE_DIR, "frontend", "templates")
+# Configure Jinja2 templates directory path with fallback discovery
+def _get_templates_dir():
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "templates"),
+        os.path.join(os.getcwd(), "frontend", "templates"),
+        os.path.abspath("frontend/templates"),
+    ]
+    for p in candidates:
+        if os.path.isdir(p):
+            return p
+    return candidates[0]
+
+TEMPLATES_DIR = _get_templates_dir()
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 router = APIRouter(tags=["pages"])

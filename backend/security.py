@@ -70,45 +70,57 @@ def safe_compare(val1: str, val2: str) -> bool:
         return False
     return secrets.compare_digest(val1.encode("utf-8"), val2.encode("utf-8"))
 
-# ── 4. Unified Security Middleware ────────────────────────────────────────────
-class SecurityShieldMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host if request.client else "127.0.0.1"
-        path = request.url.path
-        query = request.url.query
+# ── 4. Unified Security Middleware (Pure ASGI — Serverless Compatible) ────────
+from starlette.types import ASGIApp, Scope, Receive, Send
+
+class SecurityShieldMiddleware:
+    """
+    Pure ASGI middleware for maximum performance and 100% serverless (Vercel/Lambda) compatibility.
+    Does not suffer from BaseHTTPMiddleware stream buffering or serverless event loop issues.
+    """
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        client = scope.get("client")
+        client_ip = client[0] if client else "127.0.0.1"
+        path = scope.get("path", "")
+        query = scope.get("query_string", b"").decode("utf-8", errors="ignore")
 
         # Step 1: Block known automated hacker probes & directory traversal scans
         if is_malicious_probe(path, query):
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=403,
                 content={"detail": "Access forbidden: suspicious activity detected."}
             )
+            await response(scope, receive, send)
+            return
 
         # Step 2: Enforce Rate Limiting against DDoS / Brute Force
         is_auth = any(auth_path in path for auth_path in ["/login", "/register", "/admin/login"])
         if not check_rate_limit(client_ip, is_auth_route=is_auth):
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=429,
                 content={"detail": "Too many requests. Please slow down and try again later."}
             )
+            await response(scope, receive, send)
+            return
 
-        # Step 3: Check maximum content length (limit to 10MB to prevent memory exhaustion DoS)
-        content_length = request.headers.get("content-length")
-        if content_length and content_length.isdigit():
-            if int(content_length) > 10 * 1024 * 1024:
-                return JSONResponse(
-                    status_code=413,
-                    content={"detail": "Payload too large. Maximum allowed size is 10MB."}
-                )
+        # Step 3: Inject Security Headers in response start
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers.append((b"x-content-type-options", b"nosniff"))
+                headers.append((b"x-frame-options", b"SAMEORIGIN"))
+                headers.append((b"x-xss-protection", b"1; mode=block"))
+                headers.append((b"referrer-policy", b"strict-origin-when-cross-origin"))
+                headers.append((b"permissions-policy", b"geolocation=(), camera=(), microphone=()"))
+                message["headers"] = headers
+            await send(message)
 
-        # Step 4: Process request
-        response = await call_next(request)
+        await self.app(scope, receive, send_wrapper)
 
-        # Step 5: Inject Security Headers to harden against XSS, clickjacking, sniffing
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
-        
-        return response
