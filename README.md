@@ -358,7 +358,20 @@ Example: Student places a ৳500.00 order
 
 ## 💬 Codebase Commenting & Developer Standards
 
-All backend Python modules, database operations, security shields, and frontend JavaScript engines are documented with human-written comments and docstrings.
+All backend Python modules, API routers, database operations, security shields, frontend templates (HTML), styles (CSS), and JavaScript engines are documented with human-written comments and docstrings.
+
+### 🎯 Why Comprehensive Comments Were Added Across Every File
+
+1. **🧠 Long-Term Maintainability & Seamless Onboarding**:
+   - Allows new developers, university staff, or student contributors to immediately understand the purpose, data flow, and constraints of every function without guessing or reverse engineering.
+2. **🛡️ Documenting Security & Edge-Case Decisions**:
+   - Clearly explains *why* certain security controls exist (e.g. why `with_for_update()` row-locking prevents courier race conditions, why `secrets.compare_digest` prevents timing attacks, and why image uploads enforce 5MB limits with UUID renaming).
+3. **🔄 Traceability Across Full-Stack Layers**:
+   - Bridges the gap between frontend DOM interactions (e.g. cart state in `buyer.js`, order dispatch in `seller.js`) and backend database mutations in `crud.py` and `services/`.
+4. **🎓 Academic & Evaluative Clarity**:
+   - Provides clear, transparent documentation for academic evaluation, project defense, and code reviews, demonstrating industry-standard engineering practices.
+5. **🎨 Design System Transparency**:
+   - In CSS and HTML templates, comments explain design tokens (Crimson/Flame color palette, glassmorphism overlays, anti-flash scripts, and mobile responsive grid rules).
 
 ### 🧠 Developer Commenting Architecture
 
@@ -373,12 +386,21 @@ Codebase Architecture & Commenting Coverage
 │   ├── database.py               ➔ Multi-thread SQLite engine settings, safe ALTER TABLE migrations, seeding
 │   ├── security.py               ➔ Sliding window rate limiter, scanner probe regexes, timing attack defense
 │   ├── admin_app.py              ➔ Session authentication checks, stats aggregation, live analytics feeds
+│   ├── models.py & schemas.py    ➔ Entity relationships, Pydantic bounds, HTML escaping sanitization
 │   └── main.py                   ➔ Middleware pipeline ordering, CORS policies, static routing
-└── frontend/static/js/
-    ├── buyer.js                  ➔ Reactive cart state, 2-column mobile layout DOM rendering, filter engine
-    ├── seller.js                 ➔ Session restoration, live dish creation modals, order pipeline handling
-    ├── delivery.js               ➔ Open pool claiming, OTP verification handshake, earnings tallying
-    └── admin.js                  ➔ Anti-flash tab switching, Chart.js datasets, fee split simulator math
+├── frontend/static/js/
+│   ├── buyer.js                  ➔ Reactive cart state, 2-column mobile layout DOM rendering, filter engine
+│   ├── seller.js                 ➔ Session restoration, live dish creation modals, order pipeline handling
+│   ├── delivery.js               ➔ Open pool claiming, OTP verification handshake, earnings tallying
+│   ├── admin.js                  ➔ Anti-flash tab switching, Chart.js datasets, fee split simulator math
+│   └── main.js                   ➔ Toast alert DOM lifecycle, BDT currency formatter, monthly calendar
+├── frontend/templates/
+│   ├── base.html                 ➔ Glassmorphism header, live calendar dropdown, responsive footer
+│   ├── base_admin.html           ➔ Synchronous anti-flash script, live KPI sidebar badges, topbar
+│   └── dashboard.html            ➔ Dual gradient fee cards, live split simulator, audit & ticket tables
+└── frontend/static/css/
+    ├── style.css                 ➔ Cafeteria design token palette, universal scrollbars, mobile food cards
+    └── admin.css                 ➔ Royal Blue theme tokens, sticky navigation, metric cards, slider thumbs
 ```
 
 ### 📋 Key Functions & Documented Business Logic
