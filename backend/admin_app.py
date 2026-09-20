@@ -71,7 +71,7 @@ def is_authenticated(request: Request) -> bool:
 async def admin_login_page(request: Request):
     if is_authenticated(request):
         return RedirectResponse(url="/admin", status_code=302)
-    return templates.TemplateResponse("admin/login.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request=request, name="admin/login.html", context={"error": None})
 
 from backend.security import safe_compare
 
@@ -89,8 +89,9 @@ async def admin_login_submit(
     # Log failed login attempt
     log_activity(db, "admin", "login_failed", f"Failed admin login attempt with username: '{username}'")
     return templates.TemplateResponse(
-        "admin/login.html",
-        {"request": request, "error": "Invalid username or password."},
+        request=request,
+        name="admin/login.html",
+        context={"error": "Invalid username or password."},
         status_code=401
     )
 
@@ -106,7 +107,7 @@ async def admin_logout(request: Request, db: Session = Depends(get_db)):
 async def admin_dashboard(request: Request):
     if not is_authenticated(request):
         return RedirectResponse(url="/admin/login", status_code=302)
-    return templates.TemplateResponse("admin/dashboard.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="admin/dashboard.html")
 
 # ─── Stats API ───────────────────────────────────────────────────
 @admin_app.get("/admin/api/stats")

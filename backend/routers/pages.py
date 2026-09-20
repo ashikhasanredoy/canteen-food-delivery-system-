@@ -37,7 +37,7 @@ async def home_page(request: Request):
     """
     Renders the public landing page with hero banner, feature highlights, and campus portal navigation.
     """
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @router.get("/buyer", response_class=HTMLResponse)
@@ -45,7 +45,7 @@ async def buyer_page(request: Request):
     """
     Renders the Student Food Discovery & Ordering portal with responsive 2-column mobile grid.
     """
-    return templates.TemplateResponse("buyer.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="buyer.html")
 
 
 @router.get("/seller", response_class=HTMLResponse)
@@ -53,7 +53,7 @@ async def seller_page(request: Request):
     """
     Renders the Canteen Merchant Dashboard for inventory management and order fulfillment.
     """
-    return templates.TemplateResponse("seller.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="seller.html")
 
 
 @router.get("/delivery", response_class=HTMLResponse)
@@ -61,7 +61,7 @@ async def delivery_page(request: Request):
     """
     Renders the Student Courier Delivery Dashboard for order claiming and OTP handovers.
     """
-    return templates.TemplateResponse("delivery.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="delivery.html")
 
 
 @router.get("/api/home/stats")
