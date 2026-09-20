@@ -1,12 +1,29 @@
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ *  MAIN PUBLIC & PORTAL STYLESHEET — University Canteen Food Delivery System
+ * ══════════════════════════════════════════════════════════════════════════════
+ * 
+ * Design System Overview:
+ * - Color Palette: Warm university cafeteria theme (Crimson Red, Flame Orange, Amber Gold).
+ * - Typography: Google Fonts 'Outfit' with geometric sans-serif clarity.
+ * - Glassmorphism: Translucent white overlays with subtle borders and backdrop blur.
+ * - Mobile Responsiveness: 2-column food card layout with clamped titles and touch-friendly targets.
+ * - Universal Scrollbars: Clean zero-width scrollable containers with native smooth momentum.
+ */
+
 :root {
+    /* Brand Accent Colors */
     --primary-color: #ef4444;       /* Vivid Crimson Red */
     --primary-hover: #dc2626;       /* Deep Red */
     --secondary-color: #f97316;     /* Vibrant Flame Orange */
     --secondary-hover: #ea580c;     /* Warm Burnt Orange */
     --accent-amber: #f59e0b;        /* Warm Gold */
 
+    /* Gradients */
     --primary-gradient: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
     --primary-gradient-hover: linear-gradient(135deg, #dc2626 0%, #ea580c 100%);
+    
+    /* Background & Glass Tokens */
     --dark-bg: #0f172a;
     --dark-card: #1e293b;
     --light-bg: #fffbf7;

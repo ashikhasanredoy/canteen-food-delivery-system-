@@ -1,6 +1,16 @@
-/* ==========================================
-   CANTEEN ADMIN PANEL — Blue Theme (#5C5CFF)
-   ========================================== */
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ *  ADMIN DASHBOARD STYLESHEET — University Canteen Food Delivery System
+ * ══════════════════════════════════════════════════════════════════════════════
+ * 
+ * Design System Overview:
+ * - Color Palette: Modern Royal Indigo/Blue (#5C5CFF) with clean slate neutrals.
+ * - Sidebar Navigation: Sticky left navigation with active indicators and live counter badges.
+ * - Glassmorphism & Cards: High contrast white metric cards with soft elevated shadows.
+ * - Fee Simulator: Dual gradient theme cards (Indigo for Platform Cut, Emerald for Rider Share)
+ *   with synchronized sliders, glowing handles, and segmented progress bars.
+ * - Micro-interactions: Smooth hover lifts, pill badges, and invisible smooth scrollbars.
+ */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 

@@ -5,48 +5,84 @@ from backend import crud, schemas, models
 from backend.database import get_db
 from backend.services import order_service, otp_service
 
+# ══════════════════════════════════════════════════════════════════════════════
+#  ORDER PLACEMENT, TRACKING & CART CHECKOUT ROUTER
+# ══════════════════════════════════════════════════════════════════════════════
+
 router = APIRouter(prefix="/orders", tags=["orders"])
+
 
 @router.post("/send-otp")
 def send_buyer_otp(payload: schemas.OTPRequest):
-    """Sends a 4-digit OTP code to the buyer's email."""
+    """
+    Triggers an on-demand 4-digit verification OTP dispatched to the student's email.
+    Used for email verification before final checkout submission.
+    """
     return otp_service.request_otp(payload.email)
+
 
 @router.post("/verify-otp")
 def verify_buyer_otp(payload: schemas.OTPVerify):
-    """Verifies the 4-digit OTP code."""
+    """
+    Validates a submitted 4-digit OTP code against the server cache and expiration window.
+    """
     valid = otp_service.verify_otp(payload.email, payload.otp)
     if not valid:
-        raise HTTPException(status_code=400, detail="Invalid or expired 4-digit OTP code.")
+        raise HTTPException(status_code=400, detail="Invalid or expired 4-digit OTP code. Please request a new one.")
     return {"verified": True, "message": "OTP verified successfully!"}
+
 
 @router.post("", response_model=schemas.OrderResponse)
 def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
+    """
+    Places a single-dish instant order. Validates stock, calculates fees, and emails the student.
+    """
     return order_service.place_order(db, order)
+
 
 @router.post("/cart", response_model=schemas.CartCheckoutResponse)
 def checkout_cart(checkout: schemas.CartCheckoutCreate, db: Session = Depends(get_db)):
+    """
+    Executes an atomic multi-item shopping cart checkout across multiple canteen outlets.
+    """
     return order_service.place_cart_orders(db, checkout)
+
 
 @router.get("", response_model=List[schemas.OrderResponse])
 def read_orders(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    Returns recent campus orders with offset pagination, sorted newest first.
+    """
     orders = db.query(models.Order).order_by(models.Order.created_at.desc()).offset(skip).limit(limit).all()
     return orders
 
+
 @router.get("/pending", response_model=List[schemas.OrderResponse])
 def read_pending_orders(db: Session = Depends(get_db)):
+    """
+    Returns active orders in 'Pending' or 'On Road' states for active dispatch monitoring.
+    """
     orders = db.query(models.Order).filter(models.Order.status.in_(["Pending", "On Road"])).order_by(models.Order.created_at.desc()).all()
     return orders
 
+
 @router.get("/{order_id}", response_model=schemas.OrderResponse)
 def read_order(order_id: int, db: Session = Depends(get_db)):
+    """
+    Fetches real-time status and itemized details for a single order by ID.
+    Used by the student live tracking modal on the buyer portal.
+    """
     order = crud.get_order(db, order_id=order_id)
     if order is None:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Order not found.")
     return order
+
 
 @router.get("/shop/{shop_name}/delivery-requests", response_model=List[schemas.OrderResponse])
 def get_shop_delivery_requests(shop_name: str, db: Session = Depends(get_db)):
+    """
+    Retrieves all pending courier pickup requests for a specific canteen merchant.
+    """
     shop_name_clean = shop_name.strip()
     orders = (
         db.query(models.Order)
@@ -59,23 +95,33 @@ def get_shop_delivery_requests(shop_name: str, db: Session = Depends(get_db)):
     )
     return orders
 
+
 @router.post("/{order_id}/approve_delivery")
 def approve_delivery_request(order_id: int, db: Session = Depends(get_db)):
+    """
+    Allows a canteen kitchen to approve a courier's request to pick up prepared food.
+    """
     order = crud.get_order(db, order_id=order_id)
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Order not found.")
         
     if order.delivery_request_status != "Requested":
-        raise HTTPException(status_code=400, detail="No pending delivery request for this order")
+        raise HTTPException(status_code=400, detail="No pending delivery request for this order.")
         
     order.delivery_request_status = "Approved"
     db.commit()
-    return {"message": "Delivery request approved"}
+    return {"message": "Delivery request approved successfully."}
 
 
 @router.get("/shop/{shop_name}/history")
 def get_shop_order_history(shop_name: str, db: Session = Depends(get_db)):
-    """Retrieve full present and previous order history and financial revenue summary for a shop."""
+    """
+    Retrieves full historical sales, completed order logs, and net revenue breakdown for a shop.
+    
+    Why this calculation exists:
+    - Breaks down Gross Revenue into Admin Platform Cut, Courier Fee Share, and Net Merchant Payout.
+    - Used by the Seller Dashboard to display live earnings cards and sales ledgers.
+    """
     shop_name_clean = shop_name.strip()
     
     item_rows = (
@@ -140,4 +186,3 @@ def get_shop_order_history(shop_name: str, db: Session = Depends(get_db)):
         },
         "orders": orders_list
     }
-

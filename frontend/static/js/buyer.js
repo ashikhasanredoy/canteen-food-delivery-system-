@@ -1,17 +1,35 @@
+/**
+ * ══════════════════════════════════════════════════════════════════════════════
+ *  STUDENT BUYER PORTAL — Client-Side Logic & Shopping Cart
+ * ══════════════════════════════════════════════════════════════════════════════
+ * 
+ * Handles:
+ * - Real-time catalog discovery, category filtering, search, and pagination.
+ * - Persistent multi-item cart stored in browser LocalStorage.
+ * - Mobile responsive 2-column food grid rendering.
+ * - Checkout submission with campus building selection & OTP delivery tracking.
+ * - Star rating submissions and customer review feedback.
+ */
+
 const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
 const CART_STORAGE_KEY = 'canteen_buyer_cart';
-let allFoods = [];
-let activeMealFilter = '';
-let activeShopFilter = '';
-let cart = [];
-let currentPage = 1;
-let itemsPerPage = 12;
-let currentFilteredFoods = [];
 
+// Global state variables
+let allFoods = [];               // Master list of dishes fetched from backend
+let activeMealFilter = '';       // Active meal category ('breakfast', 'lunch', 'both', or '')
+let activeShopFilter = '';       // Active canteen shop name filter
+let cart = [];                   // In-memory cart array synchronized with localStorage
+let currentPage = 1;             // Active pagination page
+let itemsPerPage = 12;           // Number of food cards rendered per page
+let currentFilteredFoods = [];   // Cached subset of foods matching active filters
+
+// ── DOM Initialization & Event Listeners ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Restore persistent cart and load active campus food catalog
     loadCart();
     loadMenu();
 
+    // 2. Search, sorting, and shop filter controls
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
     const shopFilterSelect = document.getElementById('shop-filter-select');
@@ -21,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         itemsPerPage = parseInt(perPageSelect.value, 10) || 12;
     }
 
+    // Instant search input listener with auto-reset to page 1
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             currentPage = 1;
@@ -28,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Price and popularity sorting dropdown
     if (sortSelect) {
         sortSelect.addEventListener('change', () => {
             currentPage = 1;
@@ -35,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Shop outlet dropdown filter
     if (shopFilterSelect) {
         shopFilterSelect.addEventListener('change', (e) => {
             activeShopFilter = e.target.value;
@@ -43,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 3. Cart action buttons
     const clearCartBtn = document.getElementById('clear-cart-btn');
     if (clearCartBtn) clearCartBtn.addEventListener('click', clearCart);
 
