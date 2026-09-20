@@ -3,21 +3,41 @@ import shutil
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# In Vercel serverless environments, the deployment directory is read-only.
-# We copy the bundled SQLite database to /tmp so write operations succeed seamlessly.
-if os.environ.get("VERCEL"):
-    TMP_DB_PATH = "/tmp/canteen.db"
-    SRC_DB_PATH = os.path.join(BASE_DIR, "backend", "database", "canteen.db")
-    if not os.path.exists(TMP_DB_PATH) and os.path.exists(SRC_DB_PATH):
+# In serverless environments (e.g. Vercel, AWS Lambda), the deployment folder is read-only.
+# We test if the local directory is writable; if not or if serverless env vars are detected,
+# we copy the pre-seeded SQLite database to /tmp/canteen.db so all reads and writes succeed.
+def _resolve_database_url():
+    db_dir = os.path.join(BASE_DIR, "backend", "database")
+    db_file = os.path.join(db_dir, "canteen.db")
+    
+    is_serverless = bool(
+        os.environ.get("VERCEL")
+        or os.environ.get("VERCEL_ENV")
+        or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+        or os.environ.get("LAMBDA_TASK_ROOT")
+    )
+
+    if not is_serverless:
         try:
-            shutil.copy2(SRC_DB_PATH, TMP_DB_PATH)
+            os.makedirs(db_dir, exist_ok=True)
+            test_file = os.path.join(db_dir, ".write_test")
+            with open(test_file, "w") as f:
+                f.write("1")
+            os.remove(test_file)
+            return f"sqlite:///{db_file}"
         except Exception:
-            pass
-    DATABASE_URL = f"sqlite:///{TMP_DB_PATH}"
-else:
-    DATABASE_DIR = os.path.join(BASE_DIR, "backend", "database")
-    DATABASE_URL = f"sqlite:///{os.path.join(DATABASE_DIR, 'canteen.db')}"
-    os.makedirs(DATABASE_DIR, exist_ok=True)
+            is_serverless = True
+
+    # Serverless / read-only fallback: copy pre-seeded database to /tmp
+    tmp_db_file = "/tmp/canteen.db"
+    if not os.path.exists(tmp_db_file) and os.path.exists(db_file):
+        try:
+            shutil.copy2(db_file, tmp_db_file)
+        except Exception as e:
+            print(f"[DB TMP COPY] Warning: {e}")
+    return f"sqlite:///{tmp_db_file}"
+
+DATABASE_URL = _resolve_database_url()
 
 # ── Admin credentials ────────────────────────────────────────────
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "AshikHasanRedoy2027")

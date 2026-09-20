@@ -16,9 +16,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 # Create database tables and run migrations
-Base.metadata.create_all(bind=engine)
-run_migrations()
-seed_default_settings()
+try:
+    Base.metadata.create_all(bind=engine)
+    run_migrations()
+    seed_default_settings()
+except Exception as e:
+    print(f"[BOOTSTRAP NOTICE] Database init: {e}")
 
 app = FastAPI(title="University Canteen Food Delivery System")
 
@@ -55,9 +58,14 @@ app.add_middleware(SecurityShieldMiddleware)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, "frontend", "static")
 
-# Ensure static dir exists (if empty git repo)
-os.makedirs(STATIC_DIR, exist_ok=True)
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Ensure static dir exists (safe in read-only environments)
+try:
+    os.makedirs(STATIC_DIR, exist_ok=True)
+except Exception:
+    pass
+
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Include routers
 app.include_router(pages.router)
