@@ -41,6 +41,28 @@ async def validation_exception_handler(request, exc):
     return JSONResponse(status_code=400, content={"detail": detail})
 
 
+import traceback
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+
+@app.exception_handler(Exception)
+async def global_unhandled_exception_handler(request: Request, exc: Exception):
+    err_tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    print(f"[UNHANDLED EXCEPTION on {request.url.path}]:\n{err_tb}")
+    return HTMLResponse(
+        status_code=500,
+        content=f"""<!DOCTYPE html>
+<html>
+<head><title>500 Internal Error</title></head>
+<body style="font-family: sans-serif; background: #0f172a; color: #f87171; padding: 30px;">
+    <h2>⚠️ Server Error on {request.url.path}</h2>
+    <p style="color: #cbd5e1;">A runtime exception occurred while processing this request:</p>
+    <pre style="background: #1e293b; color: #38bdf8; padding: 20px; border-radius: 8px; overflow: auto; font-size: 13px; line-height: 1.5;">{err_tb}</pre>
+</body>
+</html>"""
+    )
+
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -54,11 +76,24 @@ app.add_middleware(
 from backend.security import SecurityShieldMiddleware
 app.add_middleware(SecurityShieldMiddleware)
 
-# Mount static files
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "frontend", "static")
+# Mount static files with robust path resolution
+def _find_static_dir():
+    candidates = [
+        os.path.join(PROJECT_ROOT, "frontend", "static"),
+        os.path.join(os.getcwd(), "frontend", "static"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "static"),
+        os.path.abspath("frontend/static"),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            return p
+    for root, dirs, _ in os.walk(os.getcwd()):
+        if os.path.basename(root) == "static" and "frontend" in root:
+            return root
+    return candidates[0]
 
-# Ensure static dir exists (safe in read-only environments)
+STATIC_DIR = _find_static_dir()
+
 try:
     os.makedirs(STATIC_DIR, exist_ok=True)
 except Exception:

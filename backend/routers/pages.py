@@ -11,7 +11,7 @@ import os
 #  FRONTEND HTML PAGE ROUTES & PUBLIC HOME STATS ROUTER
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Configure Jinja2 templates directory path with fallback discovery
+# Configure Jinja2 templates directory path with deep discovery
 def _get_templates_dir():
     candidates = [
         os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "templates"),
@@ -19,8 +19,11 @@ def _get_templates_dir():
         os.path.abspath("frontend/templates"),
     ]
     for p in candidates:
-        if os.path.isdir(p):
+        if os.path.exists(os.path.join(p, "base.html")):
             return p
+    for root, dirs, files in os.walk(os.getcwd()):
+        if "base.html" in files:
+            return root
     return candidates[0]
 
 TEMPLATES_DIR = _get_templates_dir()
