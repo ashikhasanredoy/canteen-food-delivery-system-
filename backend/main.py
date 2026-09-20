@@ -1,9 +1,16 @@
+import sys
+import os
+
+# Ensure the repository root directory is in sys.path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base, run_migrations, seed_default_settings
 from backend.routers import pages, foods, orders, delivery, ratings, shops, complaints
-import os
 
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
